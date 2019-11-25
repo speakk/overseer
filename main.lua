@@ -1,5 +1,5 @@
-local lovetoys = require('lovetoys')
-local cpml = require('cpml')
+local lovetoys = require('libs/lovetoys')
+local cpml = require('libs/cpml')
 
 local commonComponents = require('components/common')
 
@@ -34,6 +34,9 @@ function love.load()
   cameraEntity:add(commonComponents.PlayerInput())
   cameraEntity:add(commonComponents.CameraComponent())
 
+  local eventManager = EventManager()
+  eventManager:initialize();
+
   -- Finally, we setup an Engine.
   engine = Engine()
   engine:addEntity(cameraEntity)
@@ -55,19 +58,19 @@ function love.load()
     wallBluePrint:add(commonComponents.Draw({0,0,1,1}))
     wallBluePrint:add(commonComponents.BluePrint())
     engine:addEntity(wallBluePrint)
+
+    -- eventManager.fireEvent("blueprint_activated"
   end
 
-  -- Let's add the MoveSystem to the Engine. Its update() 
-  -- method will be invoked within any Engine:update() call.
-  engine:addSystem(MoveSystem())
 
   -- This will be a 'draw' System, so the
   -- Engine will call its draw method.
-  engine:addSystem(DrawSystem(), "draw")
-  engine:addSystem(CameraSystem())
   engine:addSystem(PlayerInputSystem())
+  engine:addSystem(CameraSystem())
   engine:addSystem(BluePrintSystem())
-  engine:addSystem(SettlerSystem())
+  engine:addSystem(SettlerSystem(eventManager))
+  engine:addSystem(MoveSystem())
+  engine:addSystem(DrawSystem(), "draw")
 end
 
 function love.update(dt)

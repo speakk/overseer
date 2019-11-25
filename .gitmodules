@@ -1,6 +1,0 @@
-[submodule "cpml"]
-	path = cpml
-	url = https://github.com/excessive/cpml.git
-[submodule "lovetoys"]
-	path = lovetoys
-	url = https://github.com/lovetoys/lovetoys.git

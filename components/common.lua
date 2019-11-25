@@ -1,5 +1,5 @@
-local cpml = require('cpml')
-local lovetoys = require('lovetoys')
+local cpml = require('libs/cpml')
+local lovetoys = require('libs/lovetoys')
 lovetoys.initialize({globals = true, debug = true})
 
 local common = {}

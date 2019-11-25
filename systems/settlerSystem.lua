@@ -1,12 +1,20 @@
-local cpml = require('cpml')
+local cpml = require('libs/cpml')
 local commonComponents = require('components/common')
 
 local SettlerSystem = class("SettlerSystem", System)
 
-function SettlerSystem:initialize()
+BluePrintActivated = class("BluePrintActivated")
+
+function BluePrintActivated:initialize(entity)
+    -- self.key = key
+    -- self.isrepeat = isrepeat
+end
+
+function SettlerSystem:initialize(eventManager)
+  self.eventManager = eventManager
   System.initialize(self)
   self.workQueue = {}
-  --EventManager:addListener("blueprint_activated", self, self.blueprintActivated)
+  eventManager:addListener("blueprint_activated", self, self.blueprintActivated)
 end
 
 -- Define this System requirements.

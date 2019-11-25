@@ -1,9 +1,9 @@
-local cpml = require('cpml')
+local cpml = require('libs/cpml')
 local commonComponents = require('components/common')
 
 local PlayerInputSystem = class("PlayerInputSystem", System)
 
-local cameraSpeed = 200
+local cameraSpeed = 500
 
 function PlayerInputSystem:requires()
   return {"playerInput"}
