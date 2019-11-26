@@ -7,7 +7,8 @@ local workQueue = {}
 
 local SettlerSystem = ECS.System({commonComponents.Settler, commonComponents.Worker, commonComponents.Position, commonComponents.Velocity}, {commonComponents.BluePrint, "blueprints"})
 
-function SettlerSystem:init(eventManager)
+function SettlerSystem:init(mapSystem)
+  self.mapSystem = mapSystem
   -- self.eventManager = eventManager
   -- System.initialize(self)
   -- eventManager:addListener("blueprint_activated", self, self.blueprintActivated)
@@ -37,6 +38,8 @@ function SettlerSystem:update(dt)
           if distance < 2 then
             job.finished = true
             entity:get(commonComponents.Worker).available = true
+            -- FIRE EVENT bluePrintFinished(bluePrint) here
+            self:getInstance():emit("bluePrintFinished", job.target)
             for i, v in ipairs(workQueue) do
               if v == jobEntity then
                 table.remove(workQueue, i)
@@ -98,7 +101,6 @@ function SettlerSystem:assignJobForNextAvailable()
     if table.getn(availableWorkers) > 0 then
       -- availableWorkers[1]:give(commonComponents.Job, jobComponent.target, jobComponent.reserved, jobComponent.finished)
       if not jobComponent.reserved then
-        print("Giving job", nextJob)
         jobComponent.reserved = true
         availableWorkers[1]:give(commonComponents.Work, nextJob)
         availableWorkers[1]:get(commonComponents.Worker).available = false
