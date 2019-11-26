@@ -1,17 +1,13 @@
+local commonComponents = require('components/common')
+
 local camera = require('camera')
 
--- Create a System class as lovetoys.System subclass.
-local CameraSystem = class("CameraSystem", System)
-
--- Define this System's requirements.
-function CameraSystem:requires()
-  return {"position", "camera"}
-end
+local CameraSystem = ECS.System({commonComponents.Position, commonComponents.Camera})
 
 function CameraSystem:update(dt)
-  for _, entity in pairs(self.targets) do
-    local position = entity:get("position")
-    camera:setPosition(position.x, position.y);
+  for _, entity in ipairs(self.pool.objects) do
+    local position = entity:get(commonComponents.Position)
+    camera:setPosition(position.vector.x, position.vector.y);
   end
 end
 

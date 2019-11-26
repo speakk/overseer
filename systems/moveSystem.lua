@@ -1,17 +1,13 @@
--- Create a System class as lovetoys.System subclass.
-local MoveSystem = class("MoveSystem", System)
+local commonComponents = require('components/common')
 
--- Define this System's requirements.
-function MoveSystem:requires()
-  return {"position", "velocity"}
-end
+-- Create a System class as lovetoys.System subclass.
+local MoveSystem = ECS.System({commonComponents.Position, commonComponents.Velocity})
 
 function MoveSystem:update(dt)
-  for _, entity in pairs(self.targets) do
-    local position = entity:get("position")
-    local velocity = entity:get("velocity")
-    position.x = position.x + velocity.vector.x * dt
-    position.y = position.y + velocity.vector.y * dt
+  for _, entity in pairs(self.pool.objects) do
+    local position = entity:get(commonComponents.Position)
+    local velocity = entity:get(commonComponents.Velocity)
+    position.vector = position.vector + velocity.vector * dt
   end
 end
 
