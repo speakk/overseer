@@ -1,6 +1,6 @@
 --local lovetoys = require('libs/lovetoys')
 local Concord = require("libs/Concord/lib").init({
-  useEvents = false,
+  useEvents = true,
 })
 
 
@@ -14,15 +14,7 @@ ECS.Entity = require("libs/Concord/lib.entity")
 local instance = ECS.Instance()
 
 -- Add the Instance to concord to make it active
---Concord.addInstance(instance)
-
-function love.update(dt)
-  instance:emit("update", dt)
-end
-
-function love.draw()
-  instance:emit("draw")
-end
+Concord.addInstance(instance)
 
 local cpml = require('libs/cpml')
 
@@ -91,6 +83,8 @@ function load()
   instance:addSystem(SettlerSystem(), "blueprintActivated")
   instance:addSystem(MoveSystem(), "update")
   instance:addSystem(DrawSystem(), "draw")
+  instance:addSystem(GUISystem(), "mousepressed")
+  instance:addSystem(GUISystem(), "mousereleased")
   instance:addSystem(GUISystem(), "update")
   instance:addSystem(GUISystem(), "draw")
 

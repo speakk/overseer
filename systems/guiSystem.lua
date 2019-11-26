@@ -27,13 +27,12 @@ function GUISystem:draw()
   ui:draw()
 end
 
-function love.mousepressed(x, y, button, istouch, presses)
-  print("Uii")
-	ui:mousepressed(x, y, button, istouch, presses)
+function GUISystem:mousepressed(x, y, button, istouch, presses)
+  ui:mousepressed(x, y, button, istouch, presses)
 end
 
-function love.mousereleased(x, y, button, istouch, presses)
-	ui:mousereleased(x, y, button, istouch, presses)
+function GUISystem:mousereleased(x, y, button, istouch, presses)
+  ui:mousereleased(x, y, button, istouch, presses)
 end
 
 return GUISystem
