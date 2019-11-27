@@ -3,7 +3,6 @@ local Concord = require("libs/Concord/lib").init({
   useEvents = true,
 })
 
-
 --load main ECS libs
 ECS = {}
 ECS.Component = require("libs/Concord/lib.component")
@@ -13,6 +12,13 @@ ECS.Entity = require("libs/Concord/lib.entity")
 
 local instance = ECS.Instance()
 
+local windowWidth = 1000
+local windowHeight = 800
+love.window.setMode(windowWidth, windowHeight, { resizable=true })
+
+local gamera = require('libs/gamera/gamera')
+local camera = gamera.new(0, 0, 1000, 1000)
+
 -- Add the Instance to concord to make it active
 Concord.addInstance(instance)
 
@@ -21,18 +27,16 @@ local cpml = require('libs/cpml')
 local commonComponents = require('components/common')
 
 local guiSystem = require('systems/guiSystem')()
-local playerInputSystem = require('systems/playerInputSystem')()
-local cameraSystem = require('systems/cameraSystem')()
+local cameraSystem = require('systems/cameraSystem')(camera)
 local moveSystem = require('systems/moveSystem')()
-local bluePrintSystem = require('systems/bluePrintSystem')()
-local mapSystem = require('systems/mapSystem')()
+local mapSystem = require('systems/mapSystem')(camera)
+local bluePrintSystem = require('systems/bluePrintSystem')(mapSystem)
+local playerInputSystem = require('systems/playerInputSystem')(bluePrintSystem, mapSystem, camera)
 local settlerSystem = require('systems/settlerSystem')(mapSystem)
-local drawSystem = require('systems/drawSystem')(mapSystem)
+local drawSystem = require('systems/drawSystem')(mapSystem, camera)
 
 --lovetoys.initialize({globals = true, debug = true})
 
-local windowWidth = 1000
-local windowHeight = 800
 
 x = 5.0
 speed = 25
@@ -44,7 +48,6 @@ width = 60
 
 function load()
   love.graphics.setColor(255, 0, 0)
-  love.window.setMode(windowWidth, windowHeight, { resizable=true })
 
   cameraEntity = ECS.Entity()
   cameraEntity:give(commonComponents.Position, cpml.vec2(30, 40))
@@ -86,7 +89,9 @@ function load()
   -- This will be a 'draw' System, so the
   -- Engine will call its draw method.
   instance:addSystem(playerInputSystem, "update")
+  instance:addSystem(playerInputSystem, "mousepressed")
   instance:addSystem(cameraSystem, "update")
+  instance:addSystem(cameraSystem, "resize")
   instance:addSystem(bluePrintSystem, "update")
   instance:addSystem(bluePrintSystem, "bluePrintFinished")
   instance:addSystem(settlerSystem, "update")
@@ -100,27 +105,27 @@ function load()
   instance:addSystem(guiSystem, "update")
   instance:addSystem(guiSystem, "draw")
 
-  for i = 1,90,1 do
-    local wallBluePrint = ECS.Entity()
+   -- for i = 1,90,1 do
+   --   local wallBluePrint = ECS.Entity()
 
-    local worldSize = mapSystem:getSize()
-    while true do
-      position = mapSystem:clampToWorldBounds(cpml.vec2(math.random(worldSize.x), math.random(worldSize.y)))
-      if mapSystem:isCellAvailable(position) then
-        break
-      end
-    end
+   --   local worldSize = mapSystem:getSize()
+   --   while true do
+   --     position = mapSystem:clampToWorldBounds(cpml.vec2(math.random(worldSize.x), math.random(worldSize.y)))
+   --     if mapSystem:isCellAvailable(position) then
+   --       break
+   --     end
+   --   end
 
-    wallBluePrint:give(commonComponents.Position, mapSystem:gridPositionToPixels(position))
-    wallBluePrint:give(commonComponents.Draw, {0,0,1,1})
-    wallBluePrint:give(commonComponents.BluePrint)
-    wallBluePrint:apply()
-    instance:addEntity(wallBluePrint)
+   --   wallBluePrint:give(commonComponents.Position, mapSystem:gridPositionToPixels(position))
+   --   wallBluePrint:give(commonComponents.Draw, {0,0,1,1})
+   --   wallBluePrint:give(commonComponents.BluePrint)
+   --   wallBluePrint:apply()
+   --   instance:addEntity(wallBluePrint)
 
-    instance:emit("blueprintActivated", wallBluePrint)
+   --   instance:emit("blueprintActivated", wallBluePrint)
 
-    -- eventManager.fireEvent("blueprint_activated"
-  end
+   --   -- eventManager.fireEvent("blueprint_activated"
+   -- end
 end
 
 load()

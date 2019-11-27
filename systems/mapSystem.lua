@@ -8,11 +8,14 @@ local Pathfinder = require('libs/jumper.pathfinder')
 
 local map = {}
 
-function MapSystem:init()
+
+function MapSystem:init(camera)
   self.width = 100
   self.height = 100
   self.cellSize = 30
   self.padding = 2
+  self.camera = camera
+
 
   for y = 1,self.height,1 do
     local row = {}
@@ -25,6 +28,8 @@ function MapSystem:init()
   self.grid = Grid(map)
   local walkable = 0
   self.myFinder = Pathfinder(self.grid, 'JPS', walkable) 
+
+  camera:setWorld(0, 0, self.width * self.cellSize, self.height * self.cellSize)
 end
 
 function MapSystem:getPath(from, to)
@@ -35,7 +40,6 @@ function MapSystem:getPath(from, to)
 end
 
 function MapSystem:update(dt)
-  
 end
 
 function MapSystem:getCellSize()
@@ -43,14 +47,14 @@ function MapSystem:getCellSize()
 end
 
 function MapSystem:draw()
-  camera:set()
-  for rowNum, row in ipairs(map) do
-    for cellNum, cellValue in ipairs(row) do
-      love.graphics.setColor(cellValue*0.7, 0.2, 0.3)
-      love.graphics.rectangle("fill", cellNum*self.cellSize, rowNum*self.cellSize, self.cellSize - self.padding, self.cellSize - self.padding)
+  self.camera:draw(function(l,t,w,h)
+    for rowNum, row in ipairs(map) do
+      for cellNum, cellValue in ipairs(row) do
+        love.graphics.setColor(cellValue*0.7, 0.2, 0.3)
+        love.graphics.rectangle("fill", cellNum*self.cellSize, rowNum*self.cellSize, self.cellSize - self.padding, self.cellSize - self.padding)
+      end
     end
-  end
-  camera:unset()
+  end)
 end
 
 function MapSystem:isPositionWithinBounds(position)
@@ -65,7 +69,7 @@ end
 function MapSystem:clampToWorldBounds(gridPosition)
   return cpml.vec2(cpml.utils.clamp(gridPosition.x, 1, self.width), cpml.utils.clamp(gridPosition.y, 1, self.height)) 
 end
- 
+
 -- function MapSystem:getSizeInPixels()
 --   return cpml.vec2(self.width*self.cellSize, self.height*self.cellSize)
 -- end

@@ -9,10 +9,16 @@ local SettlerSystem = ECS.System({commonComponents.Settler, commonComponents.Wor
 function SettlerSystem:init(mapSystem)
   self.mapSystem = mapSystem
   self.workQueue = {}
+  self.lastAssigned = 0
+  self.assignWaitTime = 0.5
 end
 
 function SettlerSystem:update(dt)
-  self:assignJobForNextAvailable()
+  if love.timer.getTime() - self.lastAssigned > self.assignWaitTime then 
+    self:assignJobForNextAvailable()
+    self.lastAssigned = love.timer.getTime()
+  end
+
   for _, entity in ipairs(self.pool.objects) do
     local velocity = entity:get(commonComponents.Velocity)
     local position = entity:get(commonComponents.Position)
@@ -100,21 +106,21 @@ end
 function SettlerSystem:getNextJob()
   local unfinishedJob = nil
 
-  while true do
-    local job = self.workQueue[math.random(1, #self.workQueue)]
-    unfinishedJob = job
-    break
-  end
-
-  -- for _, job in ipairs(self.workQueue) do
-  --   local jobComponent = job:get(commonComponents.Job)
-  --   if not jobComponent.reserved and not jobComponent.finished then
-  --     unfinishedJob = job
-  --     break
-  --   end
+  -- while true do
+  --   local job = self.workQueue[math.random(1, #self.workQueue)]
+  --   unfinishedJob = job
+  --   break
   -- end
 
-  unfinishedJob.reserved = true
+  for _, job in ipairs(self.workQueue) do
+    local jobComponent = job:get(commonComponents.Job)
+    if not jobComponent.reserved and not jobComponent.finished then
+      unfinishedJob = job
+      break
+    end
+  end
+
+  if unfinishedJob then unfinishedJob.reserved = true end
   return unfinishedJob
 end
 
@@ -138,7 +144,7 @@ function SettlerSystem:assignJobForNextAvailable()
       availableWorker:give(commonComponents.Work, nextJob)
       --availableWorker:get(commonComponents.Worker).available = false
 
-      availableWorker:give(commonComponents.Path, self.mapSystem:getPath(position, targetPosition))
+      availableWorker:give(commonComponents.Path, path)
     else
       jobComponent.reserved = false
 
