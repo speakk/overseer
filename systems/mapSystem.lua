@@ -17,7 +17,7 @@ function MapSystem:init()
   for y = 1,self.height,1 do
     local row = {}
     for x = 1,self.width,1 do
-      row[x] = cpml.utils.round(math.random(2)-1)
+      row[x] = cpml.utils.round(love.math.noise(x + love.math.random(), y + love.math.random())*0.7)
     end
     map[y] = row
   end
@@ -28,17 +28,18 @@ function MapSystem:init()
 end
 
 function MapSystem:getPath(from, to)
+  -- from = self:pixelsToGridCoordinates(from)
+  -- to = self:pixelsToGridCoordinates(to)
   local path = self.myFinder:getPath(from.x, from.y, to.x, to.y)
-  if path then
-    print(('Path found! Length: %.2f'):format(path:getLength()))
-    for node, count in path:nodes() do
-      print(('Step: %d - x: %d - y: %d'):format(count, node:getX(), node:getY()))
-    end
-  end
+  return path
 end
 
 function MapSystem:update(dt)
   
+end
+
+function MapSystem:getCellSize()
+  return self.cellSize
 end
 
 function MapSystem:draw()
@@ -52,17 +53,46 @@ function MapSystem:draw()
   camera:unset()
 end
 
-function MapSystem:snapToGridCorner(position)
-  return cpml.vec2(cpml.utils.round(position.x / self.cellSize) * self.cellSize, cpml.utils.round(position.y / self.cellSize) * self.cellSize)
+function MapSystem:isPositionWithinBounds(position)
+  local left_x, left_y, right_x, right_y = self.grid:getBounds()
+  return position.x > left_x and position.x < right_x and position.y > left_y and position.y < right_y
 end
 
-function MapSystem:snapToGridCenter(position, size)
-  size = size or 10
-  return self:snapToGridCorner(position) + cpml.vec2((self.cellSize-self.padding-size)/2, (self.cellSize-self.padding-size)/2)
+function MapSystem:getSize()
+  return cpml.vec2(self.width, self.height)
 end
 
-function MapSystem:getSizeInPixels()
-  return cpml.vec2(self.width*self.cellSize, self.height*self.cellSize)
+function MapSystem:clampToWorldBounds(gridPosition)
+  return cpml.vec2(cpml.utils.clamp(gridPosition.x, 1, self.width), cpml.utils.clamp(gridPosition.y, 1, self.height)) 
+end
+ 
+-- function MapSystem:getSizeInPixels()
+--   return cpml.vec2(self.width*self.cellSize, self.height*self.cellSize)
+-- end
+
+function MapSystem:gridPositionToPixels(gridPosition, positionFlag, entitySize)
+  positionFlag = positionFlag or "corner"
+  --local tilePosition = cpml.vec2(math.floor(gridPosition.x / self.cellSize) * self.cellSize, math.floor(gridPosition.y / self.cellSize) * self.cellSize)
+  local tilePosition = cpml.vec2(gridPosition.x * self.cellSize, gridPosition.y * self.cellSize)
+
+  if positionFlag == "center" then
+    entitySize = entitySize or 10
+    return tilePosition + cpml.vec2((self.cellSize-self.padding-entitySize)/2, (self.cellSize-self.padding-entitySize)/2)
+  end
+
+  return tilePosition
+end
+
+function MapSystem:snapPixelToGrid(pixelPosition, positionFlag, entitySize)
+  return self:gridPositionToPixels(self:pixelsToGridCoordinates(pixelPosition, positionFlag, entitySize))
+end
+
+function MapSystem:pixelsToGridCoordinates(pixelPosition)
+  return cpml.vec2(math.floor(pixelPosition.x/self.cellSize), math.floor(pixelPosition.y/self.cellSize))
+end
+
+function MapSystem:isCellAvailable(gridPosition)
+  return self.grid:isWalkableAt(gridPosition.x, gridPosition.y)
 end
 
 return MapSystem

@@ -7,8 +7,10 @@ common.PlayerInput = ECS.Component()
 common.Camera = ECS.Component()
 common.Draw = ECS.Component(function(e, color) e.color = color or { 1, 0, 0 } end)
 common.Settler = ECS.Component()
-common.Work = ECS.Component(function(e, job)
-  e.job = job or nil
+common.Work = ECS.Component(function(e, job) e.job = job or nil end)
+common.Path = ECS.Component(function(e, path, currentIndex)
+  e.path = path
+  e.currentIndex = currentIndex or 1
 end)
 common.Job = ECS.Component(function(e, target, reserved, finished)
   e.target = target or nil

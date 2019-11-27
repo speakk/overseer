@@ -20,7 +20,6 @@ local cpml = require('libs/cpml')
 
 local commonComponents = require('components/common')
 
-local drawSystem = require('systems/drawSystem')()
 local guiSystem = require('systems/guiSystem')()
 local playerInputSystem = require('systems/playerInputSystem')()
 local cameraSystem = require('systems/cameraSystem')()
@@ -28,6 +27,7 @@ local moveSystem = require('systems/moveSystem')()
 local bluePrintSystem = require('systems/bluePrintSystem')()
 local mapSystem = require('systems/mapSystem')()
 local settlerSystem = require('systems/settlerSystem')(mapSystem)
+local drawSystem = require('systems/drawSystem')(mapSystem)
 
 --lovetoys.initialize({globals = true, debug = true})
 
@@ -62,9 +62,17 @@ function load()
    --engine = Engine()
    --engine:addEntity(cameraEntity)
 
-  for i = 1,10,1 do
+  for i = 1,30,1 do
     settler = ECS.Entity()
-    settler:give(commonComponents.Position, cpml.vec2(math.random(windowWidth), math.random(windowHeight)))
+    local worldSize = mapSystem:getSize()
+    while true do
+      position = mapSystem:clampToWorldBounds(cpml.vec2(math.random(worldSize.x), math.random(worldSize.y)))
+      if mapSystem:isCellAvailable(position) then
+        break
+      end
+    end
+
+    settler:give(commonComponents.Position, mapSystem:gridPositionToPixels(position))
       :give(commonComponents.Draw, {1,1,0})
       :give(commonComponents.Settler)
       :give(commonComponents.Worker)
@@ -94,9 +102,16 @@ function load()
 
   for i = 1,90,1 do
     local wallBluePrint = ECS.Entity()
-    local mapSize = mapSystem:getSizeInPixels()
-    local location = mapSystem:snapToGridCenter(cpml.vec2(math.random(mapSize.x), math.random(mapSize.y)))
-    wallBluePrint:give(commonComponents.Position, location)
+
+    local worldSize = mapSystem:getSize()
+    while true do
+      position = mapSystem:clampToWorldBounds(cpml.vec2(math.random(worldSize.x), math.random(worldSize.y)))
+      if mapSystem:isCellAvailable(position) then
+        break
+      end
+    end
+
+    wallBluePrint:give(commonComponents.Position, mapSystem:gridPositionToPixels(position))
     wallBluePrint:give(commonComponents.Draw, {0,0,1,1})
     wallBluePrint:give(commonComponents.BluePrint)
     wallBluePrint:apply()
