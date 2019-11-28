@@ -1,3 +1,4 @@
+local Vector = require('libs/brinevector/brinevector')
 local cpml = require('libs/cpml')
 local commonComponents = require('components/common')
 
@@ -13,7 +14,7 @@ end
 
 function PlayerInputSystem:update(dt)
   -- velocity = commonComponents.Velocity(0, 0)
-  vector = cpml.vec2(0, 0)
+  vector = Vector(0, 0)
   if love.keyboard.isDown("w") then
     vector.y = -1
   end
@@ -26,7 +27,7 @@ function PlayerInputSystem:update(dt)
   if love.keyboard.isDown("d") then
     vector.x = 1
   end
-  vector = vector:normalize() * cameraSpeed
+  vector = vector.normalized * cameraSpeed
   x, y = self.camera:getPosition()
   self.camera:setPosition(x + vector.x*dt, y + vector.y*dt)
   for _, entity in ipairs(self.pool.objects) do
@@ -38,13 +39,20 @@ function PlayerInputSystem:update(dt)
 end
 
 function PlayerInputSystem:mousepressed(x, y, button, istouch, presses)
-  print(x, y, button, istouch, presses)
   -- ADD CAM TRANSFORM TO COORDINATES
   globalX, globalY = self.camera:toWorld(x, y)
-  print(globalX, globalY)
-  local position = self.mapSystem:pixelsToGridCoordinates(cpml.vec2(globalX, globalY))
-  print("position", position.x, position.y)
-  self.bluePrintSystem:placeBlueprint(self.mapSystem:pixelsToGridCoordinates(cpml.vec2(globalX, globalY)))
+  local position = self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY))
+  self.bluePrintSystem:placeBlueprint(self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY)))
+end
+
+function PlayerInputSystem:wheelmoved(x, y)
+  local zoomSpeed = 0.3
+  local maxZoom = 4
+  local minZoom = 0.1
+  local currentScale = self.camera:getScale()
+  print(self.camera:getScale())
+  currentScale = cpml.utils.clamp(currentScale + y * zoomSpeed, minZoom, maxZoom)
+  self.camera:setScale(currentScale)
 end
 
 return PlayerInputSystem

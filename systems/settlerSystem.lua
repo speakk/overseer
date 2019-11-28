@@ -1,5 +1,6 @@
-local cpml = require('libs/cpml')
-local inspect = require('inspect')
+--local cpml = require('libs/cpml')
+local Vector = require('libs/brinevector/brinevector')
+local inspect = require('libs/inspect')
 local commonComponents = require('components/common')
 
 local settlerSpeed = 200
@@ -23,7 +24,7 @@ function SettlerSystem:update(dt)
     local velocity = entity:get(commonComponents.Velocity)
     local position = entity:get(commonComponents.Position)
 
-    velocity.vector = cpml.vec2(0, 0)
+    velocity.vector = Vector(0, 0)
 
     if entity:has(commonComponents.Work) then
       local work = entity:get(commonComponents.Work)
@@ -46,7 +47,7 @@ function SettlerSystem:update(dt)
             for node, count in pathComponent.path:nodes() do
               --print("currentIndex", pathComponent.currentIndex, "count", count)
               if count == pathComponent.currentIndex then
-                nextGridPosition = cpml.vec2(node:getX(), node:getY())
+                nextGridPosition = Vector(node:getX(), node:getY())
                 break
               end
             end
@@ -54,10 +55,10 @@ function SettlerSystem:update(dt)
             if nextGridPosition then
               nextPosition = self.mapSystem:gridPositionToPixels(nextGridPosition, "center")
               local angle = math.atan2(nextPosition.y - position.vector.y, nextPosition.x - position.vector.x)
-              velocity.vector = cpml.vec2(math.cos(angle), math.sin(angle)):normalize()
+              velocity.vector = Vector(math.cos(angle), math.sin(angle)).normalized
 
               if self.mapSystem:pixelsToGridCoordinates(position.vector) == nextGridPosition then
-                --local distance = cpml.vec2.dist(position.vector, nextPosition)
+                --local distance = Vector.dist(position.vector, nextPosition)
                 --if distance < 1.5 then
                 pathComponent.currentIndex = pathComponent.currentIndex + 1
 
@@ -81,7 +82,7 @@ function SettlerSystem:update(dt)
       end
     end
 
-    velocity.vector = velocity.vector:normalize() * settlerSpeed
+    velocity.vector = velocity.vector.normalized * settlerSpeed
   end
 end
 

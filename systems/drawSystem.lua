@@ -1,4 +1,4 @@
-local cpml = require('libs/cpml')
+local Vector = require('libs/brinevector/brinevector')
 local commonComponents = require('components/common')
 local camera = require('camera')
 
@@ -28,7 +28,7 @@ function DrawSystem:draw()
         if pathComponent.path then
           local vertices = {}
           for node, count in pathComponent.path:nodes() do
-            local pixelPosition = self.mapSystem:gridPositionToPixels(cpml.vec2(node:getX(), node:getY()), 'center', 2)
+            local pixelPosition = self.mapSystem:gridPositionToPixels(Vector(node:getX(), node:getY()), 'center', 2)
             table.insert(vertices, pixelPosition.x)
             table.insert(vertices, pixelPosition.y)
             --print(('Step: %d - x: %d - y: %d'):format(count, node:getX(), node:getY()))

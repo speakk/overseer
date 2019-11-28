@@ -19,3 +19,4 @@ function ProfilerSystem:draw()
   love.graphics.print(love.report or "Please wait...")
 end
 
+return ProfilerSystem

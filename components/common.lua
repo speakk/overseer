@@ -1,8 +1,8 @@
-local cpml = require('libs/cpml')
+local Vector = require('libs/brinevector/brinevector')
 local common = {}
 
-common.Position = ECS.Component(function(e, vector) e.vector = vector or cpml.vec2(0, 0) end)
-common.Velocity = ECS.Component(function(e, vector) e.vector = vector or cpml.vec2(0, 0) end)
+common.Position = ECS.Component(function(e, vector) e.vector = vector or Vector(0, 0) end)
+common.Velocity = ECS.Component(function(e, vector) e.vector = vector or Vector(0, 0) end)
 common.PlayerInput = ECS.Component()
 common.Camera = ECS.Component()
 common.Draw = ECS.Component(function(e, color) e.color = color or { 1, 0, 0 } end)

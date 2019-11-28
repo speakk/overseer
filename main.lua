@@ -22,7 +22,7 @@ local camera = gamera.new(0, 0, 1000, 1000)
 -- Add the Instance to concord to make it active
 Concord.addInstance(instance)
 
-local cpml = require('libs/cpml')
+local Vector = require('libs/brinevector/brinevector')
 
 local commonComponents = require('components/common')
 
@@ -34,6 +34,7 @@ local bluePrintSystem = require('systems/bluePrintSystem')(mapSystem)
 local playerInputSystem = require('systems/playerInputSystem')(bluePrintSystem, mapSystem, camera)
 local settlerSystem = require('systems/settlerSystem')(mapSystem)
 local drawSystem = require('systems/drawSystem')(mapSystem, camera)
+
 
 --lovetoys.initialize({globals = true, debug = true})
 
@@ -50,8 +51,8 @@ function load()
   love.graphics.setColor(255, 0, 0)
 
   cameraEntity = ECS.Entity()
-  cameraEntity:give(commonComponents.Position, cpml.vec2(30, 40))
-    :give(commonComponents.Velocity, cpml.vec2(0, 0))
+  cameraEntity:give(commonComponents.Position, Vector(30, 40))
+    :give(commonComponents.Velocity, Vector(0, 0))
     :give(commonComponents.PlayerInput)
     :give(commonComponents.Camera)
     :apply()
@@ -69,7 +70,7 @@ function load()
     settler = ECS.Entity()
     local worldSize = mapSystem:getSize()
     while true do
-      position = mapSystem:clampToWorldBounds(cpml.vec2(math.random(worldSize.x), math.random(worldSize.y)))
+      position = mapSystem:clampToWorldBounds(Vector(math.random(worldSize.x), math.random(worldSize.y)))
       if mapSystem:isCellAvailable(position) then
         break
       end
@@ -90,6 +91,7 @@ function load()
   -- Engine will call its draw method.
   instance:addSystem(playerInputSystem, "update")
   instance:addSystem(playerInputSystem, "mousepressed")
+  instance:addSystem(playerInputSystem, "wheelmoved")
   instance:addSystem(cameraSystem, "update")
   instance:addSystem(cameraSystem, "resize")
   instance:addSystem(bluePrintSystem, "update")
@@ -105,12 +107,16 @@ function load()
   instance:addSystem(guiSystem, "update")
   instance:addSystem(guiSystem, "draw")
 
+  -- local profilerSystem = require('systems/profilerSystem')()
+  -- instance:addSystem(profilerSystem, "update")
+  -- instance:addSystem(profilerSystem, "draw")
+
    -- for i = 1,90,1 do
    --   local wallBluePrint = ECS.Entity()
 
    --   local worldSize = mapSystem:getSize()
    --   while true do
-   --     position = mapSystem:clampToWorldBounds(cpml.vec2(math.random(worldSize.x), math.random(worldSize.y)))
+   --     position = mapSystem:clampToWorldBounds(Vector(math.random(worldSize.x), math.random(worldSize.y)))
    --     if mapSystem:isCellAvailable(position) then
    --       break
    --     end
