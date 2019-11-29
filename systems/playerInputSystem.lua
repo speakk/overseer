@@ -6,8 +6,8 @@ local PlayerInputSystem = ECS.System({commonComponents.PlayerInput})
 
 local cameraSpeed = 500
 
-function PlayerInputSystem:init(bluePrintSystem, mapSystem, camera)
-  self.bluePrintSystem = bluePrintSystem
+function PlayerInputSystem:init(overseerSystem, mapSystem, camera)
+  self.overseerSystem = overseerSystem
   self.mapSystem = mapSystem
   self.camera = camera
 end
@@ -42,7 +42,8 @@ function PlayerInputSystem:mousepressed(x, y, button, istouch, presses)
   -- ADD CAM TRANSFORM TO COORDINATES
   globalX, globalY = self.camera:toWorld(x, y)
   local position = self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY))
-  self.bluePrintSystem:placeBlueprint(self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY)))
+  self.overseerSystem:enactClick(self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY)))
+  --self.bluePrintSystem:placeBlueprint(self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY)))
 end
 
 function PlayerInputSystem:wheelmoved(x, y)

@@ -14,6 +14,7 @@ function SettlerSystem:init(mapSystem)
   self.assignWaitTime = 0.5
 end
 
+-- Marked for optimization
 function SettlerSystem:update(dt)
   if love.timer.getTime() - self.lastAssigned > self.assignWaitTime then 
     self:assignJobForNextAvailable()
@@ -125,6 +126,7 @@ function SettlerSystem:getNextJob()
   return unfinishedJob
 end
 
+-- Marked for optimization
 function SettlerSystem:assignJobForNextAvailable()
   local nextJob = self:getNextJob()
 

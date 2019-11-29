@@ -23,18 +23,20 @@ function DrawSystem:draw()
       love.graphics.setColor(color[1], color[2], color[3])
       love.graphics.rectangle("fill", entity:get(commonComponents.Position).vector.x, entity:get(commonComponents.Position).vector.y, 10, 10)
 
-      if (entity:has(commonComponents.Path)) then
-        local pathComponent = entity:get(commonComponents.Path)
-        if pathComponent.path then
-          local vertices = {}
-          for node, count in pathComponent.path:nodes() do
-            local pixelPosition = self.mapSystem:gridPositionToPixels(Vector(node:getX(), node:getY()), 'center', 2)
-            table.insert(vertices, pixelPosition.x)
-            table.insert(vertices, pixelPosition.y)
-            --print(('Step: %d - x: %d - y: %d'):format(count, node:getX(), node:getY()))
+      if DEBUG then
+        if (entity:has(commonComponents.Path)) then
+          local pathComponent = entity:get(commonComponents.Path)
+          if pathComponent.path then
+            local vertices = {}
+            for node, count in pathComponent.path:nodes() do
+              local pixelPosition = self.mapSystem:gridPositionToPixels(Vector(node:getX(), node:getY()), 'center', 2)
+              table.insert(vertices, pixelPosition.x)
+              table.insert(vertices, pixelPosition.y)
+              --print(('Step: %d - x: %d - y: %d'):format(count, node:getX(), node:getY()))
+            end
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.line(vertices)
           end
-          love.graphics.setColor(1, 1, 1)
-          love.graphics.line(vertices)
         end
       end
 

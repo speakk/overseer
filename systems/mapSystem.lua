@@ -85,10 +85,11 @@ end
 --   return Vector(self.width*self.cellSize, self.height*self.cellSize)
 -- end
 
+-- Marked for optimization
 function MapSystem:gridPositionToPixels(gridPosition, positionFlag, entitySize)
   positionFlag = positionFlag or "corner"
   --local tilePosition = Vector(math.floor(gridPosition.x / self.cellSize) * self.cellSize, math.floor(gridPosition.y / self.cellSize) * self.cellSize)
-  local tilePosition = Vector(gridPosition.x * self.cellSize, gridPosition.y * self.cellSize)
+  local tilePosition = Vector(gridPosition.x, gridPosition.y) * self.cellSize
 
   if positionFlag == "center" then
     entitySize = entitySize or 10

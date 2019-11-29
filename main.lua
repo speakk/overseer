@@ -3,6 +3,10 @@ local Concord = require("libs/Concord/lib").init({
   useEvents = true,
 })
 
+M = require ("libs/Moses/moses")
+
+DEBUG = false
+
 --load main ECS libs
 ECS = {}
 ECS.Component = require("libs/Concord/lib.component")
@@ -31,7 +35,8 @@ local cameraSystem = require('systems/cameraSystem')(camera)
 local moveSystem = require('systems/moveSystem')()
 local mapSystem = require('systems/mapSystem')(camera)
 local bluePrintSystem = require('systems/bluePrintSystem')(mapSystem)
-local playerInputSystem = require('systems/playerInputSystem')(bluePrintSystem, mapSystem, camera)
+local overseerSystem = require('systems/overseerSystem')(bluePrintSystem)
+local playerInputSystem = require('systems/playerInputSystem')(overseerSystem, mapSystem, camera)
 local settlerSystem = require('systems/settlerSystem')(mapSystem)
 local drawSystem = require('systems/drawSystem')(mapSystem, camera)
 
@@ -102,6 +107,7 @@ function load()
   instance:addSystem(mapSystem, "update")
   instance:addSystem(mapSystem, "draw")
   instance:addSystem(drawSystem, "draw")
+  instance:addSystem(overseerSystem, "update")
   instance:addSystem(guiSystem, "mousepressed")
   instance:addSystem(guiSystem, "mousereleased")
   instance:addSystem(guiSystem, "update")
