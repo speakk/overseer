@@ -1,8 +1,10 @@
+local inspect = require('libs/inspect')
 local commonComponents = require('components/common')
 -- Create a draw System.
 local BluePrintSystem = ECS.System({commonComponents.BluePrint})
 
 function BluePrintSystem:generateBluePrint(gridPosition, constructionType)
+  print("constructionType", inspect(constructionType))
   local bluePrint = ECS.Entity()
   bluePrint:give(commonComponents.Position, self.mapSystem:gridPositionToPixels(gridPosition))
   bluePrint:give(commonComponents.Draw, constructionType.color)

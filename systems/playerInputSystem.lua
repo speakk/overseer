@@ -40,9 +40,9 @@ end
 
 function PlayerInputSystem:mousepressed(x, y, button, istouch, presses)
   -- ADD CAM TRANSFORM TO COORDINATES
-  globalX, globalY = self.camera:toWorld(x, y)
-  local position = self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY))
-  self.overseerSystem:enactClick(self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY)))
+  -- globalX, globalY = self.camera:toWorld(x, y)
+  -- local position = self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY))
+  -- self.overseerSystem:enactClick(self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY)))
   --self.bluePrintSystem:placeBlueprint(self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY)))
 end
 
