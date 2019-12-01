@@ -55,45 +55,6 @@ width = 60
 function load()
   love.graphics.setColor(255, 0, 0)
 
-  cameraEntity = ECS.Entity()
-  cameraEntity:give(commonComponents.Position, Vector(30, 40))
-    :give(commonComponents.Velocity, Vector(0, 0))
-    :give(commonComponents.PlayerInput)
-    :give(commonComponents.Camera)
-    :apply()
-
-  instance:addEntity(cameraEntity)
-
-  -- local eventManager = EventManager()
-  -- eventManager:initialize();
-
-  -- Finally, we setup an Engine.
-   --engine = Engine()
-   --engine:addEntity(cameraEntity)
-
-  for i = 1,30,1 do
-    settler = ECS.Entity()
-    local worldSize = mapSystem:getSize()
-    while true do
-      position = mapSystem:clampToWorldBounds(Vector(math.random(worldSize.x), math.random(worldSize.y)))
-      if mapSystem:isCellAvailable(position) then
-        break
-      end
-    end
-
-    settler:give(commonComponents.Position, mapSystem:gridPositionToPixels(position))
-      :give(commonComponents.Draw, {1,1,0})
-      :give(commonComponents.Settler)
-      :give(commonComponents.Worker)
-      :give(commonComponents.Velocity)
-      :apply()
-    instance:addEntity(settler)
-  end
-
-
-
-  -- This will be a 'draw' System, so the
-  -- Engine will call its draw method.
   instance:addSystem(guiSystem, "keypressed")
   instance:addSystem(guiSystem, "mousepressed")
   instance:addSystem(guiSystem, "mousereleased")
@@ -115,44 +76,11 @@ function load()
   instance:addSystem(overseerSystem, "update")
   instance:addSystem(guiSystem, "draw")
 
+  settlerSystem:initalizeTestSettlers()
+
   -- local profilerSystem = require('systems/profilerSystem')()
   -- instance:addSystem(profilerSystem, "update")
   -- instance:addSystem(profilerSystem, "draw")
-
-   -- for i = 1,90,1 do
-   --   local wallBluePrint = ECS.Entity()
-
-   --   local worldSize = mapSystem:getSize()
-   --   while true do
-   --     position = mapSystem:clampToWorldBounds(Vector(math.random(worldSize.x), math.random(worldSize.y)))
-   --     if mapSystem:isCellAvailable(position) then
-   --       break
-   --     end
-   --   end
-
-   --   wallBluePrint:give(commonComponents.Position, mapSystem:gridPositionToPixels(position))
-   --   wallBluePrint:give(commonComponents.Draw, {0,0,1,1})
-   --   wallBluePrint:give(commonComponents.BluePrint)
-   --   wallBluePrint:apply()
-   --   instance:addEntity(wallBluePrint)
-
-   --   instance:emit("blueprintActivated", wallBluePrint)
-
-   --   -- eventManager.fireEvent("blueprint_activated"
-   -- end
 end
 
 load()
--- 
--- function love.update(dt)
---   x = x + speed * dt
---   mod_a = math.sin(x*0.1)*0.3+0.7
---   engine:update(dt)
--- end
--- 
--- function love.draw()
---   -- love.graphics.setColor(mod_a, mod_a, math.sin(x*0.07)*255)
---   love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
---   --love.graphics.ellipse("fill", x, 200, width, mod_a*height, 100)
---   engine:draw()
--- end

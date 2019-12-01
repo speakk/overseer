@@ -14,6 +14,30 @@ function SettlerSystem:init(mapSystem)
   self.assignWaitTime = 0.5
 end
 
+function SettlerSystem:initalizeTestSettlers()
+  for i = 1,30,1 do
+    local settler = ECS.Entity()
+    local worldSize = self.mapSystem:getSize()
+    while true do
+      position = self.mapSystem:clampToWorldBounds(Vector(math.random(worldSize.x), math.random(worldSize.y)))
+      if self.mapSystem:isCellAvailable(position) then
+        break
+      end
+    end
+
+    settler:give(commonComponents.Position, self.mapSystem:gridPositionToPixels(position))
+      :give(commonComponents.Draw, {1,1,0})
+      :give(commonComponents.Settler)
+      :give(commonComponents.Inventory)
+      :give(commonComponents.Worker)
+      :give(commonComponents.Velocity)
+      :apply()
+      print("Self", self)
+      self:getInstance():addEntity(settler)
+  end
+
+end
+
 -- Marked for optimization
 function SettlerSystem:update(dt)
   if love.timer.getTime() - self.lastAssigned > self.assignWaitTime then 

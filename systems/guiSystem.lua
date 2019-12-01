@@ -23,7 +23,6 @@ function buildMenuHierarchy(self, items, key, path)
     end
 
     local currentSelection = self.overseerSystem:getDataSelector()
-    --local selectionMatch = lume.all(currentSelection, function(selection) return lume.find(path, selection) end)
     local selectionMatch = path == currentSelection
     local sel = { value = selectionMatch}
     if ui:selectable(items.name .. ", " .. requirements, sel) then
