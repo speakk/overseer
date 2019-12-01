@@ -19,6 +19,7 @@ common.Job = ECS.Component(function(e, target, reserved, finished)
 end)
 common.Worker = ECS.Component(function(e, available) e.available = available or true end)
 common.BluePrint = ECS.Component()
+common.Inventory = ECS.Component(function(e, contents) e.contents = contents or {} end)
 
 return common
 

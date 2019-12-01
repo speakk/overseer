@@ -9,23 +9,22 @@ local ui
 
 local GUISystem = ECS.System()
 
-local materialNames = {
-  wood = "Wood",
-  metal = "Metal",
-  stone = "Stone"
-}
-
 function buildMenuHierarchy(self, items, key, path)
-  if path then path = lume.concat(path, {key}) else path = {} end
+  if path and string.len(path) > 0 then path = path .. "." .. key else path = key end
   if not items.subItems then
     local requirements = "Requires: "
-    for key, value in pairs(items.requirements) do
-      requirements = requirements .. materialNames[key] .. ": " .. value
-      requirements = requirements .. ", "
+    if items.requirements then
+      for key, value in pairs(items.requirements) do
+        requirements = requirements .. constructionTypes.getBySelector(key).name .. ": " .. value
+        requirements = requirements .. ", "
+      end
+    else
+      requirements = requirements .. '-'
     end
 
     local currentSelection = self.overseerSystem:getDataSelector()
-    local selectionMatch = lume.all(currentSelection, function(selection) return lume.find(path, selection) end)
+    --local selectionMatch = lume.all(currentSelection, function(selection) return lume.find(path, selection) end)
+    local selectionMatch = path == currentSelection
     local sel = { value = selectionMatch}
     if ui:selectable(items.name .. ", " .. requirements, sel) then
       if sel.value then
@@ -35,9 +34,6 @@ function buildMenuHierarchy(self, items, key, path)
   elseif type(items) == "table" then
     if items.name and items.subItems then
       if ui:treePush('tab', items.name) then
-        -- If tab is open AND also need to check if other tabs are open
-        --table.insert(path, key)
-        table.insert(path, "subItems")
         for key, item in pairs(items.subItems) do
           buildMenuHierarchy(self, item, key, path)
         end
@@ -58,7 +54,7 @@ function GUISystem:init(overseerSystem, mapSystem, camera)
     build = {
       name = "Build",
       shortCut = "q",
-      subItems = constructionTypes
+      subItems = constructionTypes.data
     },
     settlers = {
       name = "Settlers",
@@ -95,7 +91,7 @@ function GUISystem:update(dt)
     if self.overseerSystem:getSelectedAction() == menuName then
       if ui:windowBegin('menu', 0, windowHeight-menuSize-actionsBarHeight, menuWidth, menuSize) then
         for key, subItem in pairs(menuItem.subItems) do
-          buildMenuHierarchy(self, subItem, key, {})
+          buildMenuHierarchy(self, subItem, key)
         end
         ui:windowEnd()
       end

@@ -1,12 +1,15 @@
-return {
+local lume = require('libs/lume')
+local inspect = require('libs/inspect')
+
+local data = {
   walls = {
     name = "Walls",
     subItems = {
       wooden_wall = {
         name = "Wooden wall",
         requirements = {
-          wood = 10,
-          metal = 1
+          ["raw_materials.wood"] = 10,
+          ["raw_materials.metal"] = 1
         },
         color = {0.9, 0.7, 0.1},
         hp = 100
@@ -14,8 +17,8 @@ return {
       iron_wall = {
         name = "Iron wall",
         requirements = {
-          wood = 10,
-          metal = 1
+          ["raw_materials.wood"] = 10,
+          ["raw_materials.metal"] = 1
         },
         color = {0.5, 0.5, 0.55},
         hp = 500
@@ -28,7 +31,7 @@ return {
       wooden_door = {
         name = "Wooden door",
         requirements = {
-          wood = 3
+          ["raw_materials.wood"] = 3
         },
         color = {0.9, 0.7, 0.1},
         hp = 100
@@ -36,7 +39,7 @@ return {
       stone_door = {
         name = "Stone door",
         requirements = {
-          stone = 3
+          ["raw_materials.stone"] = 3
         },
         color = {0.8, 0.8, 0.8},
         hp = 200
@@ -49,11 +52,58 @@ return {
       turrent = {
         name = "Turret",
         requirements = {
-          metal = 3
+          ["raw_materials.metal"] = 3
         },
         color = { 0.6, 0.5, 0.1 },
         hp = 300
       }
     }
+  },
+  raw_materials = {
+    name = "Raw materials",
+    subItems = {
+      wood = {
+        name = "Wood"
+      },
+      iron = {
+        name = "Iron"
+      },
+      stone = {
+        name = "Stone"
+      },
+      metal = {
+        name = "Metal"
+      }
+    }
   }
+}
+
+local function getDataWithSelectorTable(data, selectorTable)
+  if #selectorTable == 0 then return data end
+  local newTable = {unpack(selectorTable)}
+  table.insert(newTable, 2, 'subItems')
+  --local lastSelector = table.remove(newTable, 1)
+  return getDataWithSelectorTable(data[selectorTable[#selectorTable]], newTable)
+end
+
+local function getDataBySelectorTable(dataRemaining, selectorTable)
+  if #selectorTable == 0 then
+    return dataRemaining
+  end
+  local newTable = {unpack(selectorTable)}
+  local lastSelector = table.remove(newTable, 1)
+
+  if #selectorTable > 1 then return getDataBySelectorTable(dataRemaining[lastSelector]["subItems"], newTable) end
+  if #selectorTable == 1 then return getDataBySelectorTable(dataRemaining[lastSelector], newTable) end
+end
+
+local function getBySelector(selector)
+  local selectorTable = lume.split(selector, ".")
+  local tableSoFar = nil
+  return getDataBySelectorTable(data, selectorTable)
+end
+
+return {
+  data = data,
+  getBySelector = getBySelector
 }
