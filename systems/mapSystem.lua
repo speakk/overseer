@@ -12,8 +12,8 @@ local map = {}
 
 
 function MapSystem:init(camera)
-  self.width = 300
-  self.height = 300
+  self.width = 100
+  self.height = 100
   self.cellSize = 30
   self.padding = 2
   self.camera = camera

@@ -17,11 +17,8 @@ local materialNames = {
 
 function buildMenuHierarchy(self, items, key, path)
   if path then path = lume.concat(path, {key}) else path = {} end
-  --path = path or {}
-  --table.insert(path, 1, key)
   if not items.subItems then
     local requirements = "Requires: "
-    --print("Items", inspect(items))
     for key, value in pairs(items.requirements) do
       requirements = requirements .. materialNames[key] .. ": " .. value
       requirements = requirements .. ", "
@@ -44,8 +41,8 @@ function buildMenuHierarchy(self, items, key, path)
         for key, item in pairs(items.subItems) do
           buildMenuHierarchy(self, item, key, path)
         end
-      end
       ui:treePop()
+      end
     end
   end
 end
@@ -60,6 +57,7 @@ function GUISystem:init(overseerSystem, mapSystem, camera)
   self.menuHierarchy = {
     build = {
       name = "Build",
+      shortCut = "q",
       subItems = constructionTypes
     },
     settlers = {
@@ -94,13 +92,11 @@ function GUISystem:update(dt)
   local menuSize = 200
   local menuWidth = 400
   for menuName, menuItem in pairs(self.menuHierarchy) do
-    print("Huh", menuName)
     if self.overseerSystem:getSelectedAction() == menuName then
       if ui:windowBegin('menu', 0, windowHeight-menuSize-actionsBarHeight, menuWidth, menuSize) then
-        local shortMenu = lume.clone(menuItem)
-        table.remove(shortMenu, 1)
-        print("shortMenu", inspect(shortMenu))
-        buildMenuHierarchy(self, shortMenu, nil)
+        for key, subItem in pairs(menuItem.subItems) do
+          buildMenuHierarchy(self, subItem, key, {})
+        end
         ui:windowEnd()
       end
     end
@@ -125,6 +121,7 @@ function GUISystem:keypressed(pressedKey, scancode, isrepeat)
   for menuName, menuItem in pairs(self.menuHierarchy) do
     if menuItem.shortCut == pressedKey then
       menuItem.selected = not menuItem.selected
+      if menuItem.selected then self.overseerSystem:setSelectedAction(menuName) else self.overseerSystem:setSelectedAction("") end
     end
     if menuItem.subItems then
       local subIndex = 1

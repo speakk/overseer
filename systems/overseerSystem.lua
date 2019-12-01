@@ -52,12 +52,14 @@ function OverseerSystem:update(dt)
 end
 
 function OverseerSystem:enactClick(gridCoordinates)
-  self.actionCallbacks[self.selectedAction](gridCoordinates)
+  if self.selectedAction and self.actionCallbacks[self.selectedAction] then
+    self.actionCallbacks[self.selectedAction](gridCoordinates)
+  end
 end
 
 function OverseerSystem:build(gridCoordinates)
   local dataSelector = lume.clone(self.dataSelector)
-  table.remove(dataSelector, 1)
+  --table.remove(dataSelector, 1)
   print("dataSelector", inspect(dataSelector))
   local data = getDataWithSelector(constructionTypes, dataSelector)
   self.bluePrintSystem:placeBluePrint(gridCoordinates, data)
