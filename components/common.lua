@@ -23,6 +23,8 @@ end)
 common.Worker = ECS.Component(function(e, available) e.available = available or true end)
 common.BluePrint = ECS.Component()
 common.Inventory = ECS.Component(function(e, contents) e.contents = contents or {} end)
+common.Selector = ECS.Component(function(e, selector) e.selector = selector or "" end)
+common.Item = ECS.Component(function(e, itemData) e.itemData = itemData or {} end)
 
 return common
 

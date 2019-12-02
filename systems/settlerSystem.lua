@@ -1,11 +1,13 @@
 local Vector = require('libs/brinevector/brinevector')
+local inspect = require('libs/inspect')
+local lume = require('libs/lume')
 local commonComponents = require('components/common')
 
 local settlerSpeed = 200
 
 local SettlerSystem = ECS.System(
-  {commonComponents.Settler, commonComponents.Worker, commonComponents.Position, commonComponents.Velocity},
-  {commonComponents.BluePrint, "blueprints"}
+{commonComponents.Settler, commonComponents.Worker, commonComponents.Position, commonComponents.Velocity},
+{commonComponents.BluePrint, "blueprints"}
 )
 
 function SettlerSystem:init(mapSystem)
@@ -28,16 +30,82 @@ function SettlerSystem:initalizeTestSettlers()
     end
 
     settler:give(commonComponents.Position, self.mapSystem:gridPositionToPixels(position))
-      :give(commonComponents.Draw, {1,1,0})
-      :give(commonComponents.Settler)
-      :give(commonComponents.Inventory)
-      :give(commonComponents.Worker)
-      :give(commonComponents.Velocity)
-      :apply()
-      print("Self", self)
-      self:getInstance():addEntity(settler)
+    :give(commonComponents.Draw, {1,1,0})
+    :give(commonComponents.Settler)
+    :give(commonComponents.Inventory)
+    :give(commonComponents.Worker)
+    :give(commonComponents.Velocity)
+    :apply()
+    --print("Self", self)
+    self:getInstance():addEntity(settler)
   end
 
+end
+
+function SettlerSystem:findNextTarget(settler)
+  --print ("Finding for", inspect(settler))
+  local path = nil
+  if settler:has(commonComponents.Work) then
+    local work = settler:get(commonComponents.Work)
+    local jobEntity = work.job
+    local job = jobEntity:get(commonComponents.Job)
+    if job.target and not job.finished then
+      local jobTarget = job.target
+      local itemData = jobTarget:get(commonComponents.Item).itemData
+      if itemData.requirements then
+        local inventory = settler:get(commonComponents.Inventory).contents
+        -- Loop through requirements. If requirement not in inventory,
+        -- mark it in the missing variable
+        local missingSelector = nil
+        for key, amount in pairs(itemData.requirements) do
+          local match = lume.match(inventory,
+            function(invItem) return invItem:get(commonComponents.Selector).selector == key end)
+          if not match then
+            missingSelector = key
+            break
+          end
+        end
+
+        if missingSelector then
+          local itemsOnMap = self.itemSystem:getItemsFromGroundBySelector(missingSelector)
+          if itemsOnMap then
+            -- TODO: Get closest item to settler, for now just pick first from list
+            local itemOnMap = itemsOnMap[1]
+            path = self.mapSystem:getPath(
+              settler:get(commonComponents.Position).vector,
+              itemOnMap:get(commonComponents.Position).vector
+              )
+          end
+        else
+          path = self:findDirectPathForJobTarget(settler, job)
+        end
+      else
+        path = self:findDirectPathForJobTarget(settler, job)
+      end
+    end
+
+    if path then
+      job.reserved = true
+      settler:give(commonComponents.Work, job)
+      settler:set(commonComponents.Path, path)
+    end
+
+    return path
+  else
+    return nil
+  end
+end
+
+function SettlerSystem:findDirectPathForJobTarget(settler, job)
+  local position = self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector)
+  local targetPosition = self.mapSystem:pixelsToGridCoordinates(job.target:get(commonComponents.Position).vector)
+  local path = self.mapSystem:getPath(position, targetPosition)
+
+  if not path then
+    return false
+  end
+
+  return true
 end
 
 -- Marked for optimization
@@ -130,12 +198,6 @@ end
 function SettlerSystem:getNextJob()
   local unfinishedJob = nil
 
-  -- while true do
-  --   local job = self.workQueue[math.random(1, #self.workQueue)]
-  --   unfinishedJob = job
-  --   break
-  -- end
-
   for _, job in ipairs(self.workQueue) do
     local jobComponent = job:get(commonComponents.Job)
     if not jobComponent.reserved and not jobComponent.finished then
@@ -157,21 +219,20 @@ function SettlerSystem:assignJobForNextAvailable()
     local availableWorkers = self:getAvailableWorkers()
     if table.getn(availableWorkers) > 0 then
       local availableWorker = availableWorkers[math.random(1, #availableWorkers)]
-      local position = self.mapSystem:pixelsToGridCoordinates(availableWorker:get(commonComponents.Position).vector)
-      local targetPosition = self.mapSystem:pixelsToGridCoordinates(
-        jobComponent.target:get(commonComponents.Position).vector
-      )
-      local path = self.mapSystem:getPath(position, targetPosition)
+      self:findNextTarget(availableWorker)
+      -- local position = self.mapSystem:pixelsToGridCoordinates(availableWorker:get(commonComponents.Position).vector)
+      -- local targetPosition = self.mapSystem:pixelsToGridCoordinates(
+      -- jobComponent.target:get(commonComponents.Position).vector
+      -- )
+      -- local path = self.mapSystem:getPath(position, targetPosition)
 
-      if not path then
-        return
-      end
+      -- if not path then
+      --   return
+      -- end
 
-      jobComponent.reserved = true
-      availableWorker:give(commonComponents.Work, nextJob)
-      --availableWorker:get(commonComponents.Worker).available = false
-
-      availableWorker:give(commonComponents.Path, path)
+      -- jobComponent.reserved = true
+      -- availableWorker:give(commonComponents.Work, nextJob)
+      -- availableWorker:give(commonComponents.Path, path)
     else
       jobComponent.reserved = false
 
