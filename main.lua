@@ -1,13 +1,9 @@
---local lovetoys = require('libs/lovetoys')
 local Concord = require("libs/Concord/lib").init({
   useEvents = true,
 })
 
-M = require ("libs/Moses/moses")
-
 DEBUG = false
 
---load main ECS libs
 ECS = {}
 ECS.Component = require("libs/Concord/lib.component")
 ECS.System = require("libs/Concord/lib.system")
@@ -26,10 +22,6 @@ local camera = gamera.new(0, 0, 1000, 1000)
 -- Add the Instance to concord to make it active
 Concord.addInstance(instance)
 
-local Vector = require('libs/brinevector/brinevector')
-
-local commonComponents = require('components/common')
-
 local cameraSystem = require('systems/cameraSystem')(camera)
 local moveSystem = require('systems/moveSystem')()
 local mapSystem = require('systems/mapSystem')(camera)
@@ -40,19 +32,7 @@ local playerInputSystem = require('systems/playerInputSystem')(overseerSystem, m
 local settlerSystem = require('systems/settlerSystem')(mapSystem)
 local drawSystem = require('systems/drawSystem')(mapSystem, camera)
 
-
---lovetoys.initialize({globals = true, debug = true})
-
-
-x = 5.0
-speed = 25
-
-mod_a = 0.0
-
-height = 60
-width = 60
-
-function load()
+local function load()
   love.graphics.setColor(255, 0, 0)
 
   instance:addSystem(guiSystem, "keypressed")

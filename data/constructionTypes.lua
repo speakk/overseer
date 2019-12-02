@@ -1,5 +1,4 @@
 local lume = require('libs/lume')
-local inspect = require('libs/inspect')
 
 local data = {
   walls = {
@@ -78,14 +77,6 @@ local data = {
   }
 }
 
-local function getDataWithSelectorTable(data, selectorTable)
-  if #selectorTable == 0 then return data end
-  local newTable = {unpack(selectorTable)}
-  table.insert(newTable, 2, 'subItems')
-  --local lastSelector = table.remove(newTable, 1)
-  return getDataWithSelectorTable(data[selectorTable[#selectorTable]], newTable)
-end
-
 local function getDataBySelectorTable(dataRemaining, selectorTable)
   if #selectorTable == 0 then
     return dataRemaining
@@ -99,7 +90,6 @@ end
 
 local function getBySelector(selector)
   local selectorTable = lume.split(selector, ".")
-  local tableSoFar = nil
   return getDataBySelectorTable(data, selectorTable)
 end
 
