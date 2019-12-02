@@ -1,35 +1,46 @@
 local cpml = require('libs/cpml')
 local inspect = require('libs/inspect')
 local Vector = require('libs/brinevector/brinevector')
-local camera = require('camera')
-local commonComponents = require('components/common')
 local MapSystem = ECS.System()
+local utils = require('utils/utils')
 
 local Grid = require('libs/jumper.grid')
 local Pathfinder = require('libs/jumper.pathfinder')
 
 local map = {}
+local mapColors = {}
 
 
 function MapSystem:init(camera)
   self.width = 100
   self.height = 100
   self.cellSize = 30
-  self.padding = 2
+  self.padding = 0
   self.camera = camera
 
+  local grassNoiseScale = 0.05
 
   for y = 1,self.height,1 do
     local row = {}
+    local colorRow = {}
     for x = 1,self.width,1 do
-      row[x] = cpml.utils.round(love.math.noise(x + love.math.random(), y + love.math.random())*0.60)
+      --row[x] = cpml.utils.round(love.math.noise(x + love.math.random(), y + love.math.random())*0.60)
+      -- Right now just initialize map with no collision
+      row[x] = 0
+      colorRow[x] = {
+        a = love.math.noise(x + love.math.random(), y + love.math.random()),
+        b = love.math.noise(x + love.math.random(), y + love.math.random()),
+        c = love.math.noise(x + love.math.random(), y + love.math.random()),
+        grass = cpml.utils.round(love.math.noise(x * grassNoiseScale, y * grassNoiseScale)-0.3)
+      }
     end
     map[y] = row
+    mapColors[y] = colorRow
   end
 
   self.grid = Grid(map)
   self.walkable = 0
-  self.myFinder = Pathfinder(self.grid, 'JPS', self.walkable) 
+  self.myFinder = Pathfinder(self.grid, 'JPS', self.walkable)
   self.myFinder:setMode('ORTHOGONAL')
   print(inspect(self.myFinder:getModes()))
 
@@ -43,7 +54,7 @@ function MapSystem:getPath(from, to)
   return path
 end
 
-function MapSystem:update(dt)
+function MapSystem:update(dt) --luacheck: ignore
 end
 
 function MapSystem:getCellSize()
@@ -59,9 +70,24 @@ function MapSystem:draw()
         local x2 = x1 + self.cellSize
         local y1 = rowNum * self.cellSize
         local y2 = y1 + self.cellSize
-        if x1 > l-drawMargin and x2 < l+w+drawMargin and y1 > t-drawMargin and y2 < t+h+drawMargin then
-          love.graphics.setColor(cellValue*0.7, 0.2, 0.3)
-          love.graphics.rectangle("fill", cellNum*self.cellSize, rowNum*self.cellSize, self.cellSize - self.padding, self.cellSize - self.padding)
+        if utils.withinBounds(x1, y1, x2, y2, l, t, l+w, t+h, drawMargin) then
+        --if x1 > l-drawMargin and x2 < l+w+drawMargin and y1 > t-drawMargin and y2 < t+h+drawMargin then
+          -- Don't draw solid stuff here
+          if cellValue == 0 then
+            --love.graphics.setColor(cellValue*0.7, 0.2, 0.3)
+            local color = mapColors[rowNum][cellNum]
+            if color.grass == 1 then
+              love.graphics.setColor(0.35, 0.4+(color.c*0.1), 0.1)
+            else
+              love.graphics.setColor(color.a*0.1+0.5, color.a*0.1+0.3, color.c*0.05+0.15)
+            end
+            love.graphics.rectangle("fill",
+            cellNum*self.cellSize,
+            rowNum*self.cellSize,
+            self.cellSize - self.padding,
+            self.cellSize - self.padding
+            )
+          end
         end
       end
     end
@@ -78,17 +104,12 @@ function MapSystem:getSize()
 end
 
 function MapSystem:clampToWorldBounds(gridPosition)
-  return Vector(cpml.utils.clamp(gridPosition.x, 1, self.width), cpml.utils.clamp(gridPosition.y, 1, self.height)) 
+  return Vector(cpml.utils.clamp(gridPosition.x, 1, self.width), cpml.utils.clamp(gridPosition.y, 1, self.height))
 end
-
--- function MapSystem:getSizeInPixels()
---   return Vector(self.width*self.cellSize, self.height*self.cellSize)
--- end
 
 -- Marked for optimization
 function MapSystem:gridPositionToPixels(gridPosition, positionFlag, entitySize)
   positionFlag = positionFlag or "corner"
-  --local tilePosition = Vector(math.floor(gridPosition.x / self.cellSize) * self.cellSize, math.floor(gridPosition.y / self.cellSize) * self.cellSize)
   local tilePosition = Vector(gridPosition.x, gridPosition.y) * self.cellSize
 
   if positionFlag == "center" then

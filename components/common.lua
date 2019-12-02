@@ -5,7 +5,10 @@ common.Position = ECS.Component(function(e, vector) e.vector = vector or Vector(
 common.Velocity = ECS.Component(function(e, vector) e.vector = vector or Vector(0, 0) end)
 common.PlayerInput = ECS.Component()
 common.Camera = ECS.Component()
-common.Draw = ECS.Component(function(e, color) e.color = color or { 1, 0, 0 } end)
+common.Draw = ECS.Component(function(e, color, size)
+  e.color = color or { 1, 0, 0 }
+  e.size = size or Vector(32, 32)
+end)
 common.Settler = ECS.Component()
 common.Work = ECS.Component(function(e, job) e.job = job or nil end)
 common.Path = ECS.Component(function(e, path, currentIndex)

@@ -1,6 +1,4 @@
 local nuklear = require("nuklear")
-local inspect = require("libs/inspect")
-local lume = require("libs/lume")
 local Vector = require('libs/brinevector/brinevector')
 
 local constructionTypes = require('data/constructionTypes')
@@ -9,13 +7,13 @@ local ui
 
 local GUISystem = ECS.System()
 
-function buildMenuHierarchy(self, items, key, path)
+local function buildMenuHierarchy(self, items, key, path)
   if path and string.len(path) > 0 then path = path .. "." .. key else path = key end
   if not items.subItems then
     local requirements = "Requires: "
     if items.requirements then
-      for key, value in pairs(items.requirements) do
-        requirements = requirements .. constructionTypes.getBySelector(key).name .. ": " .. value
+      for itemKey, value in pairs(items.requirements) do
+        requirements = requirements .. constructionTypes.getBySelector(itemKey).name .. ": " .. value
         requirements = requirements .. ", "
       end
     else
@@ -33,8 +31,8 @@ function buildMenuHierarchy(self, items, key, path)
   elseif type(items) == "table" then
     if items.name and items.subItems then
       if ui:treePush('tab', items.name) then
-        for key, item in pairs(items.subItems) do
-          buildMenuHierarchy(self, item, key, path)
+        for subKey, item in pairs(items.subItems) do
+          buildMenuHierarchy(self, item, subKey, path)
         end
       ui:treePop()
       end
@@ -62,7 +60,7 @@ function GUISystem:init(overseerSystem, mapSystem, camera)
   }
 end
 
-function GUISystem:update(dt)
+function GUISystem:update(dt) --luacheck: ignore
   ui:frameBegin()
   local windowWidth = love.graphics.getWidth()
   local windowHeight = love.graphics.getHeight()
@@ -99,7 +97,7 @@ function GUISystem:update(dt)
   ui:frameEnd()
 end
 
-function GUISystem:draw()
+function GUISystem:draw() --luacheck: ignore
   ui:draw()
 end
 
@@ -107,16 +105,19 @@ function GUISystem:mousepressed(x, y, button, istouch, presses)
   if ui:mousepressed(x, y, button, istouch, presses) then
     return
   end
-  globalX, globalY = self.camera:toWorld(x, y)
-  local position = self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY))
+  local globalX, globalY = self.camera:toWorld(x, y)
   self.overseerSystem:enactClick(self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY)))
 end
 
-function GUISystem:keypressed(pressedKey, scancode, isrepeat)
+function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
   for menuName, menuItem in pairs(self.menuHierarchy) do
     if menuItem.shortCut == pressedKey then
       menuItem.selected = not menuItem.selected
-      if menuItem.selected then self.overseerSystem:setSelectedAction(menuName) else self.overseerSystem:setSelectedAction("") end
+      if menuItem.selected then
+        self.overseerSystem:setSelectedAction(menuName)
+      else
+        self.overseerSystem:setSelectedAction("")
+      end
     end
     if menuItem.subItems then
       local subIndex = 1
@@ -124,17 +125,17 @@ function GUISystem:keypressed(pressedKey, scancode, isrepeat)
         if tonumber(pressedKey) == subIndex then
           subItem.selected = not subItem.selected
         end
-        subIndex = subIndex + 1 
+        subIndex = subIndex + 1
       end
     end
   end
 end
 
-function GUISystem:mousereleased(x, y, button, istouch, presses)
+function GUISystem:mousereleased(x, y, button, istouch, presses) --luacheck: ignore
   ui:mousereleased(x, y, button, istouch, presses)
 end
 
-function GUISystem:mousemoved(x, y, dx, dy, istouch)
+function GUISystem:mousemoved(x, y, dx, dy, istouch) --luacheck: ignore
   ui:mousemoved(x, y, dx, dy, istouch)
 end
 

@@ -1,11 +1,12 @@
---local cpml = require('libs/cpml')
 local Vector = require('libs/brinevector/brinevector')
-local inspect = require('libs/inspect')
 local commonComponents = require('components/common')
 
 local settlerSpeed = 200
 
-local SettlerSystem = ECS.System({commonComponents.Settler, commonComponents.Worker, commonComponents.Position, commonComponents.Velocity}, {commonComponents.BluePrint, "blueprints"})
+local SettlerSystem = ECS.System(
+  {commonComponents.Settler, commonComponents.Worker, commonComponents.Position, commonComponents.Velocity},
+  {commonComponents.BluePrint, "blueprints"}
+)
 
 function SettlerSystem:init(mapSystem)
   self.mapSystem = mapSystem
@@ -15,9 +16,10 @@ function SettlerSystem:init(mapSystem)
 end
 
 function SettlerSystem:initalizeTestSettlers()
-  for i = 1,30,1 do
+  for _ = 1,30,1 do
     local settler = ECS.Entity()
     local worldSize = self.mapSystem:getSize()
+    local position
     while true do
       position = self.mapSystem:clampToWorldBounds(Vector(math.random(worldSize.x), math.random(worldSize.y)))
       if self.mapSystem:isCellAvailable(position) then
@@ -39,8 +41,8 @@ function SettlerSystem:initalizeTestSettlers()
 end
 
 -- Marked for optimization
-function SettlerSystem:update(dt)
-  if love.timer.getTime() - self.lastAssigned > self.assignWaitTime then 
+function SettlerSystem:update(dt) --luacheck: ignore
+  if love.timer.getTime() - self.lastAssigned > self.assignWaitTime then
     self:assignJobForNextAvailable()
     self.lastAssigned = love.timer.getTime()
   end
@@ -57,7 +59,6 @@ function SettlerSystem:update(dt)
       local job = jobEntity:get(commonComponents.Job)
       if job.target and not job.finished then
         if job.target:has(commonComponents.Position) and entity:has(commonComponents.Path) then
-          local finalPosition = job.target:get(commonComponents.Position)
           local pathComponent = entity:get(commonComponents.Path)
 
           if not pathComponent.path then
@@ -78,18 +79,15 @@ function SettlerSystem:update(dt)
             end
 
             if nextGridPosition then
-              nextPosition = self.mapSystem:gridPositionToPixels(nextGridPosition, "center")
+              local nextPosition = self.mapSystem:gridPositionToPixels(nextGridPosition, "center")
               local angle = math.atan2(nextPosition.y - position.vector.y, nextPosition.x - position.vector.x)
               velocity.vector = Vector(math.cos(angle), math.sin(angle)).normalized
 
               if self.mapSystem:pixelsToGridCoordinates(position.vector) == nextGridPosition then
-                --local distance = Vector.dist(position.vector, nextPosition)
-                --if distance < 1.5 then
                 pathComponent.currentIndex = pathComponent.currentIndex + 1
 
                 if pathComponent.currentIndex == table.getn(pathComponent.path._nodes)+1 then
                   job.finished = true
-                  --entity:get(commonComponents.Worker).available = true
                   entity:remove(commonComponents.Path)
                   entity:remove(commonComponents.Work):apply()
                   self:getInstance():emit("bluePrintFinished", job.target)
@@ -160,7 +158,9 @@ function SettlerSystem:assignJobForNextAvailable()
     if table.getn(availableWorkers) > 0 then
       local availableWorker = availableWorkers[math.random(1, #availableWorkers)]
       local position = self.mapSystem:pixelsToGridCoordinates(availableWorker:get(commonComponents.Position).vector)
-      local targetPosition = self.mapSystem:pixelsToGridCoordinates(jobComponent.target:get(commonComponents.Position).vector)
+      local targetPosition = self.mapSystem:pixelsToGridCoordinates(
+        jobComponent.target:get(commonComponents.Position).vector
+      )
       local path = self.mapSystem:getPath(position, targetPosition)
 
       if not path then

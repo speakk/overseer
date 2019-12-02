@@ -1,9 +1,3 @@
-local Vector = require('libs/brinevector/brinevector')
-local cpml = require('libs/cpml')
-local lume = require('libs/lume')
-local inspect = require('libs/inspect')
-local commonComponents = require('components/common')
-
 local OverseerSystem = ECS.System()
 
 local constructionTypes = require('data/constructionTypes')
@@ -39,7 +33,7 @@ function OverseerSystem:getSelectedAction()
   return self.selectedAction
 end
 
-function OverseerSystem:update(dt)
+function OverseerSystem:update(dt) --luacheck: ignore
 end
 
 function OverseerSystem:enactClick(gridCoordinates)

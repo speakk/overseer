@@ -13,8 +13,7 @@ function PlayerInputSystem:init(overseerSystem, mapSystem, camera)
 end
 
 function PlayerInputSystem:update(dt)
-  -- velocity = commonComponents.Velocity(0, 0)
-  vector = Vector(0, 0)
+  local vector = Vector(0, 0)
   if love.keyboard.isDown("w") then
     vector.y = -1
   end
@@ -28,7 +27,7 @@ function PlayerInputSystem:update(dt)
     vector.x = 1
   end
   vector = vector.normalized * cameraSpeed
-  x, y = self.camera:getPosition()
+  local x, y = self.camera:getPosition()
   self.camera:setPosition(x + vector.x*dt, y + vector.y*dt)
   for _, entity in ipairs(self.pool.objects) do
     if entity:has(commonComponents.Velocity) then
@@ -38,7 +37,7 @@ function PlayerInputSystem:update(dt)
 
 end
 
-function PlayerInputSystem:mousepressed(x, y, button, istouch, presses)
+function PlayerInputSystem:mousepressed(x, y, button, istouch, presses) --luacheck: ignore
   -- ADD CAM TRANSFORM TO COORDINATES
   -- globalX, globalY = self.camera:toWorld(x, y)
   -- local position = self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY))
@@ -46,7 +45,7 @@ function PlayerInputSystem:mousepressed(x, y, button, istouch, presses)
   --self.bluePrintSystem:placeBlueprint(self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY)))
 end
 
-function PlayerInputSystem:wheelmoved(x, y)
+function PlayerInputSystem:wheelmoved(x, y) --luacheck: ignore
   local zoomSpeed = 0.3
   local maxZoom = 4
   local minZoom = 0.1
