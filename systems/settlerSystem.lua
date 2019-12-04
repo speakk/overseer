@@ -45,55 +45,51 @@ end
 function SettlerSystem:findNextTarget(settler)
   --print ("Finding for", inspect(settler))
   local path = nil
-  if settler:has(commonComponents.Work) then
-    local work = settler:get(commonComponents.Work)
-    local jobEntity = work.job
-    local job = jobEntity:get(commonComponents.Job)
-    if job.target and not job.finished then
-      local jobTarget = job.target
-      local itemData = jobTarget:get(commonComponents.Item).itemData
-      if itemData.requirements then
-        local inventory = settler:get(commonComponents.Inventory).contents
-        -- Loop through requirements. If requirement not in inventory,
-        -- mark it in the missing variable
-        local missingSelector = nil
-        for key, amount in pairs(itemData.requirements) do
-          local match = lume.match(inventory,
-            function(invItem) return invItem:get(commonComponents.Selector).selector == key end)
-          if not match then
-            missingSelector = key
-            break
-          end
+  local work = settler:get(commonComponents.Work)
+  local jobEntity = work.job
+  local job = jobEntity:get(commonComponents.Job)
+  if job.target and not job.finished then
+    local jobTarget = job.target
+    local itemData = jobTarget:get(commonComponents.Item).itemData
+    if itemData.requirements then
+      local inventory = settler:get(commonComponents.Inventory).contents
+      -- Loop through requirements. If requirement not in inventory,
+      -- mark it in the missing variable
+      local missingSelector = nil
+      for key, amount in pairs(itemData.requirements) do
+        local match = lume.match(inventory,
+        function(invItem) return invItem:get(commonComponents.Selector).selector == key end)
+        if not match then
+          missingSelector = key
+          break
         end
+      end
 
-        if missingSelector then
-          local itemsOnMap = self.itemSystem:getItemsFromGroundBySelector(missingSelector)
-          if itemsOnMap then
-            -- TODO: Get closest item to settler, for now just pick first from list
-            local itemOnMap = itemsOnMap[1]
-            path = self.mapSystem:getPath(
-              settler:get(commonComponents.Position).vector,
-              itemOnMap:get(commonComponents.Position).vector
-              )
-          end
-        else
-          path = self:findDirectPathForJobTarget(settler, job)
+      if missingSelector then
+        local itemsOnMap = self.itemSystem:getItemsFromGroundBySelector(missingSelector)
+        if itemsOnMap then
+          -- TODO: Get closest item to settler, for now just pick first from list
+          local itemOnMap = itemsOnMap[1]
+          path = self.mapSystem:getPath(
+          settler:get(commonComponents.Position).vector,
+          itemOnMap:get(commonComponents.Position).vector
+          )
         end
       else
         path = self:findDirectPathForJobTarget(settler, job)
       end
+    else
+      path = self:findDirectPathForJobTarget(settler, job)
     end
-
-    if path then
-      job.reserved = true
-      settler:give(commonComponents.Work, job)
-      settler:set(commonComponents.Path, path)
-    end
-
-    return path
-  else
-    return nil
   end
+
+  if path then
+    job.reserved = true
+    settler:give(commonComponents.Work, job)
+    settler:set(commonComponents.Path, path)
+  end
+
+  return path
 end
 
 function SettlerSystem:findDirectPathForJobTarget(settler, job)
@@ -107,6 +103,43 @@ function SettlerSystem:findDirectPathForJobTarget(settler, job)
 
   return true
 end
+
+function SettlerSystem:updateSettlerJobs()
+  local nextJobEntity = self:getNextJob()
+  if not nextJobEntity then return end
+  local job = nextJobEntity:get(commonComponents.Job)
+  local target = job.target
+  local itemData = target:get(commonComponents.Item).itemData
+  local nextRequirement = nil
+  if itemData.requirements then
+    for key, amount in pairs(itemData.requirements) do
+      if amount > 0 then
+        nextRequirement = key
+        break
+      end
+    end
+  end
+
+  if not nextRequirement then return end
+
+
+--  Find unfinished jobs ->
+--    Get list of requirements ->
+--      Unsatisfied requirement ->
+--        Find available settler (TODO: get one from close-by)
+--          Set requirement as "reserved" (So that we don't get duplicate jobs)
+--          Add job for settler ("ex: Fetch requirements and bring them over")
+
+--  Find settlers with jobs ->
+--    Find path for job
+
+--  LATER TODO:
+--  Invalidate paths when world changes
+--    -> (probably go through coordinates paths use and invalidate if coordinate state changes)
+--  As mentioned above, use a quadtree or something to find settlers close-by to required jobs
+
+--  What is a job?
+--    May have subJobs
 
 -- Marked for optimization
 function SettlerSystem:update(dt) --luacheck: ignore
@@ -187,6 +220,10 @@ function SettlerSystem:getAvailableWorkers()
   end
 
   return availableWorkers
+end
+
+function SettlerSystem:addJobToQueue(job)
+
 end
 
 function SettlerSystem:blueprintActivated(bluePrint)

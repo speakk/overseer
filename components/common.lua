@@ -10,15 +10,16 @@ common.Draw = ECS.Component(function(e, color, size)
   e.size = size or Vector(32, 32)
 end)
 common.Settler = ECS.Component()
-common.Work = ECS.Component(function(e, job) e.job = job or nil end)
+common.Work = ECS.Component(function(e, job) e.job = job or nil end) -- Settler work
 common.Path = ECS.Component(function(e, path, currentIndex)
   e.path = path
   e.currentIndex = currentIndex or 1
 end)
-common.Job = ECS.Component(function(e, target, reserved, finished)
+common.Job = ECS.Component(function(e, target, reserved, finished, subJobs)
   e.target = target or nil
   e.reserved = reserved or false
   e.finished = finished or false
+  e.subJobs = subJobs or nil
 end)
 common.Worker = ECS.Component(function(e, available) e.available = available or true end)
 common.BluePrint = ECS.Component()
