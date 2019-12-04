@@ -129,6 +129,43 @@ function SettlerSystem:findDirectPathForJobTarget(settler, job)
   return true
 end
 
+function SettlerSystem:updateSettlerJobs()
+  local nextJobEntity = self:getNextJob()
+  if not nextJobEntity then return end
+  local job = nextJobEntity:get(commonComponents.Job)
+  local target = job.target
+  local itemData = target:get(commonComponents.Item).itemData
+  local nextRequirement = nil
+  if itemData.requirements then
+    for key, amount in pairs(itemData.requirements) do
+      if amount > 0 then
+        nextRequirement = key
+        break
+      end
+    end
+  end
+
+  if not nextRequirement then return end
+
+
+--  Find unfinished jobs ->
+--    Get list of requirements ->
+--      Unsatisfied requirement ->
+--        Find available settler (TODO: get one from close-by)
+--          Set requirement as "reserved" (So that we don't get duplicate jobs)
+--          Add job for settler ("ex: Fetch requirements and bring them over")
+
+--  Find settlers with jobs ->
+--    Find path for job
+
+--  LATER TODO:
+--  Invalidate paths when world changes
+--    -> (probably go through coordinates paths use and invalidate if coordinate state changes)
+--  As mentioned above, use a quadtree or something to find settlers close-by to required jobs
+
+--  What is a job?
+--    May have subJobs
+
 -- Marked for optimization
 function SettlerSystem:update(dt) --luacheck: ignore
   if love.timer.getTime() - self.lastAssigned > self.assignWaitTime then
@@ -208,6 +245,10 @@ function SettlerSystem:getAvailableWorkers()
   end
 
   return availableWorkers
+end
+
+function SettlerSystem:addJobToQueue(job)
+
 end
 
 function SettlerSystem:blueprintActivated(bluePrint)
