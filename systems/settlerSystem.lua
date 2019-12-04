@@ -42,58 +42,79 @@ function SettlerSystem:initalizeTestSettlers()
 
 end
 
+-- What is a job?
+--  Job can have properties like:
+--    What happens when the job is finished
+--    What does the job require for it to be finished
+--      Job can have subjobs
+--    Sometimes these subjobs need to be in order, sometimes not?
+--    Examples of jobs:
+--      - Fetch job (get x amount if items from a, bring them to b).
+--        - Even one fetch job can be split into multiple,
+--          if settlers can't carry everything at once.
+--          Or is it one job for each material type?
+--        - Maybe when a fetch-material job is taken by a settler who can't complete it fully, the job is split:
+--          - Fetch job requires 50 wood. Settler "reserves" 30 wood knowing where to find those.
+--            - This get added as a split job?? Parallel to original fetch job or as a subJob?
+--              If this attempt gets invalidated, what happens? There's no easy way to merge these jobs together again?
+--              This hints at a need to model "fetch-job requires x amount" maybe separately from the concept of job?
+--        - Or should jobs be created based on a Need?
+--          - Need = "These materials need to be here"
+--          - Job would be created in real time in update "Hey, I can get some of these materials"
+--          - Could this be modeled as sub-jobs instead?
+--      - Build job (once stuff is fetched, construct the thing)
+--        - This sounds like "Need" is not maybe needed, maybe the "main job" is the need, and
+--          sub jobs are the way they get done
+--      - Heal someone (consists of: fetch healing material, then heal)
+
 function SettlerSystem:findNextTarget(settler)
   --print ("Finding for", inspect(settler))
   local path = nil
-  if settler:has(commonComponents.Work) then
-    local work = settler:get(commonComponents.Work)
-    local jobEntity = work.job
-    local job = jobEntity:get(commonComponents.Job)
-    if job.target and not job.finished then
-      local jobTarget = job.target
-      local itemData = jobTarget:get(commonComponents.Item).itemData
-      if itemData.requirements then
-        local inventory = settler:get(commonComponents.Inventory).contents
-        -- Loop through requirements. If requirement not in inventory,
-        -- mark it in the missing variable
-        local missingSelector = nil
-        for key, amount in pairs(itemData.requirements) do
-          local match = lume.match(inventory,
-            function(invItem) return invItem:get(commonComponents.Selector).selector == key end)
-          if not match then
-            missingSelector = key
-            break
-          end
+  local work = settler:get(commonComponents.Work)
+  local jobEntity = work.job
+  local job = jobEntity:get(commonComponents.Job)
+  if job.target and not job.finished then
+    local jobTarget = job.target
+    local itemData = jobTarget:get(commonComponents.Item).itemData
+    if itemData.requirements then
+      local inventory = settler:get(commonComponents.Inventory).contents
+      -- Loop through requirements. If requirement not in inventory,
+      -- mark it in the missing variable
+      local missingSelector = nil
+      for key, amount in pairs(itemData.requirements) do
+        local match = lume.match(inventory,
+        function(invItem) return invItem:get(commonComponents.Selector).selector == key end)
+        if not match then
+          missingSelector = key
+          break
         end
+      end
 
-        if missingSelector then
-          local itemsOnMap = self.itemSystem:getItemsFromGroundBySelector(missingSelector)
-          if itemsOnMap then
-            -- TODO: Get closest item to settler, for now just pick first from list
-            local itemOnMap = itemsOnMap[1]
-            path = self.mapSystem:getPath(
-              settler:get(commonComponents.Position).vector,
-              itemOnMap:get(commonComponents.Position).vector
-              )
-          end
-        else
-          path = self:findDirectPathForJobTarget(settler, job)
+      if missingSelector then
+        local itemsOnMap = self.itemSystem:getItemsFromGroundBySelector(missingSelector)
+        if itemsOnMap then
+          -- TODO: Get closest item to settler, for now just pick first from list
+          local itemOnMap = itemsOnMap[1]
+          path = self.mapSystem:getPath(
+          settler:get(commonComponents.Position).vector,
+          itemOnMap:get(commonComponents.Position).vector
+          )
         end
       else
         path = self:findDirectPathForJobTarget(settler, job)
       end
+    else
+      path = self:findDirectPathForJobTarget(settler, job)
     end
-
-    if path then
-      job.reserved = true
-      settler:give(commonComponents.Work, job)
-      settler:set(commonComponents.Path, path)
-    end
-
-    return path
-  else
-    return nil
   end
+
+  if path then
+    job.reserved = true
+    settler:give(commonComponents.Work, job)
+    settler:set(commonComponents.Path, path)
+  end
+
+  return path
 end
 
 function SettlerSystem:findDirectPathForJobTarget(settler, job)

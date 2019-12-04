@@ -9,7 +9,7 @@ function BluePrintSystem:generateBluePrint(gridPosition, constructionType)
   bluePrint:give(commonComponents.Item, constructionType)
   bluePrint:give(commonComponents.Position, self.mapSystem:gridPositionToPixels(gridPosition))
   bluePrint:give(commonComponents.Draw, constructionType.color)
-  bluePrint:give(commonComponents.BluePrint)
+  bluePrint:give(commonComponents.BluePrintJob)
   bluePrint:apply()
   return bluePrint
 end
