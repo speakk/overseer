@@ -95,6 +95,17 @@ function ItemSystem:getItemsFromGroundBySelector(itemSelector)
   end
 end
 
+function ItemSystem:removeItemFromGround(item)
+  local position = item:get(commonComponents.Position).vector
+  local gridPosition = self.mapSystem:pixelsToGridCoordinates(position)
+  local items = itemsOnGround[gridPosition.y][gridPosition.x]
+  local potentialItem = lume.match(items, function(it) return it == item end)
+
+  if potentialItem then
+    lume.remove(items, potentialItem)
+  end
+end
+
 function ItemSystem:update(dt) --luacheck: ignore
   -- for _, entity in ipairs(self.pool.objects) do
   -- end
