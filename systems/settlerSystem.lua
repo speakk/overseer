@@ -1,16 +1,18 @@
 local Vector = require('libs/brinevector/brinevector')
 --local inspect = require('libs/inspect')
 local lume = require('libs/lume')
+local inspect = require('libs/inspect')
 local commonComponents = require('components/common')
 
 local settlerSpeed = 200
 
 local SettlerSystem = ECS.System({commonComponents.Settler, commonComponents.Worker,
-                                  commonComponents.Position, commonComponents.Velocity})
+commonComponents.Position, commonComponents.Velocity})
 
-function SettlerSystem:init(mapSystem, jobSystem)
+function SettlerSystem:init(mapSystem, jobSystem, itemSystem)
   self.mapSystem = mapSystem
   self.jobSystem = jobSystem
+  self.itemSystem = itemSystem
   self.lastAssigned = 0
   self.assignWaitTime = 0.5
 end
@@ -22,7 +24,7 @@ function SettlerSystem:update(dt) --luacheck: ignore
   end
 
   for _, settler in ipairs(self.pool.objects) do
-    SettlerSystem:processSettlerUpdate(settler)
+    self:processSettlerUpdate(settler)
   end
 end
 
@@ -70,7 +72,6 @@ function SettlerSystem:processSettlerPathFinding(settler)
   local nextGridPosition
 
   for node, count in pathComponent.path:nodes() do
-    --print("currentIndex", pathComponent.currentIndex, "count", count)
     if count == pathComponent.currentIndex then
       nextGridPosition = Vector(node:getX(), node:getY())
       break
@@ -95,14 +96,15 @@ end
 
 function SettlerSystem:processSubJob(settler, job)
   -- TODO: Make this logic a map from component type to method (loop through components?)
-  if job:has(commonComponents.Fetch) then
+  if job:has(commonComponents.FetchJob) then
     local fetch = job:get(commonComponents.FetchJob)
     local selector = fetch.selector
-    local inventory = settler:get(commonComponents.Inventory).inventory
+    local inventoryComponent = settler:get(commonComponents.Inventory)
+    local inventory = settler:get(commonComponents.Inventory)
     -- TODO: At some point in the future make sure to invalidate paths if settler task gets canceled
-    if not settler.has(commonComponents.Path) then
-      local existingItem = inventory:getItemBySelector(selector)
-      if existingItem:has(commonComponents.Amount) and
+    if not settler:has(commonComponents.Path) then
+      local existingItem = inventoryComponent:getItemBySelector(selector)
+      if existingItem and existingItem:has(commonComponents.Amount) and
         existingItem:get(commonComponents.Amount).amount >= fetch.amount then
         local path = self.mapSystem.getPath(
         settler:get(commonComponents.Position).vector,
@@ -115,7 +117,7 @@ function SettlerSystem:processSubJob(settler, job)
         settler:give(commonComponents.Path, path)
       else
         local itemsOnMap = self.itemSystem:getItemsFromGroundBySelector(selector)
-        if itemsOnMap then
+        if itemsOnMap and #itemsOnMap > 0 then
           -- TODO: Get closest item to settler, for now just pick first from list
           local itemOnMap = itemsOnMap[1]
           local path = self.mapSystem:getPath(
@@ -136,7 +138,7 @@ function SettlerSystem:processSubJob(settler, job)
     end
   end
 
-  if job:has(commonComponents.BluePrint) then --luacheck: ignore
+  if job:has(commonComponents.BluePrintJob) then --luacheck: ignore
 
   end
 end
@@ -160,7 +162,6 @@ function SettlerSystem:initalizeTestSettlers()
     :give(commonComponents.Worker)
     :give(commonComponents.Velocity)
     :apply()
-    --print("Self", self)
     self:getInstance():addEntity(settler)
   end
 end
@@ -184,5 +185,7 @@ function SettlerSystem:assignJobsForSettlers()
     self:startJob(availableWorker, nextJob)
   end
 end
+
+
 
 return SettlerSystem

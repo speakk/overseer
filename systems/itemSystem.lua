@@ -24,16 +24,14 @@ end
 
 function ItemSystem:initializeTestItems()
   local mapSize = self.mapSystem:getSize()
-  local cellSize = self.mapSystem:getCellSize()
   local randomTable = {
     walls = { "wooden_wall", "iron_wall" },
     raw_materials = { "wood", "iron", "stone" }
   }
 
-  for i = 1,40,1 do
+  for i=1,40,1 do  --luacheck: ignore
     local item = ECS.Entity()
     local position = Vector(math.random(mapSize.x), math.random(mapSize.y))
-    local randomSelector =  ""
     local keys1 = lume.keys(randomTable)
     local key = keys1[math.random(#keys1)]
     local category = randomTable[key]
@@ -65,14 +63,12 @@ local function placeSelectorIndexedItem(item, position)
   table.insert(itemPositionsInGridIndexedBySelector[selector], position)
 end
 
-function ItemSystem:placeItemOnGround(item, gridPosition)
-  --print("itemsOnGround", inspect(itemsOnGround))
-  print("gridPosition", inspect(gridPosition))
+function ItemSystem:placeItemOnGround(item, gridPosition) --luacheck: ignore
   table.insert(itemsOnGround[gridPosition.y][gridPosition.x], item)
   placeSelectorIndexedItem(item)
 end
 
-function ItemSystem:getItemFromGround(itemSelector, gridPosition)
+function ItemSystem:getItemFromGround(itemSelector, gridPosition) --luacheck: ignore
   local itemsInPosition = itemsOnGround[gridPosition.y][gridPosition.x]
   for _, item in ipairs(itemsInPosition) do
     local selector = item:get(commonComponents.Selector).selector
@@ -84,15 +80,17 @@ function ItemSystem:getItemFromGround(itemSelector, gridPosition)
   return nil -- Could not find item on ground
 end
 
-function ItemSystem:getItemPositionsFromGroundBySelector(itemSelector)
+function ItemSystem:getItemPositionsFromGroundBySelector(itemSelector) --luacheck: ignore
   return itemPositionsInGridIndexedBySelector[itemSelector]
 end
 
-function ItemSystem:getItemsFromGroundBySelector(itemSelector)
+function ItemSystem:getItemsFromGroundBySelector(itemSelector) --luacheck: ignore
   local items = {}
   for _, position in ipairs(itemPositionsInGridIndexedBySelector[itemSelector]) do
-    table.insert(itemsOnGround[position.y][position.x])
+    table.insert(items, itemsOnGround[position.y][position.x])
   end
+
+  return items
 end
 
 function ItemSystem:removeItemFromGround(item)
@@ -112,5 +110,3 @@ function ItemSystem:update(dt) --luacheck: ignore
 end
 
 return ItemSystem
-
-

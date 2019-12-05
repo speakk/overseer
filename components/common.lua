@@ -21,22 +21,31 @@ common.FetchJob = ECS.Component(function(e, target, selector, amount)
   e.selector = selector or error("Fetch has no selector!")
   e.amount = amount
 end)
-common.HealingJob = ECS.Component(function(e, target) end)
+common.HealingJob = ECS.Component()
 common.Job = ECS.Component(function(e, target, reserved, finished)
+  e.target = target or nil -- Not all jobs need targets
   e.reserved = reserved or false
   e.finished = finished or false
 end)
 common.Worker = ECS.Component(function(e, available) e.available = available or true end)
 common.BluePrintJob = ECS.Component()
-common.Inventory = ECS.Component(function(e, contents)
-  e.contents = contents or {}
-  e.getItemBySelector = function(selector)
-    local item = lume.match(e.contents, function(itemInInv) return itemInInv.selector == selector end)
-    return item
-  end
+common.Inventory = ECS.Component(function(e, inventory)
+  e.inventory = inventory or {}
 end)
+function common.Inventory:getItemBySelector(selector)
+  local item = lume.match(self.inventory, function(itemInInv) return itemInInv.selector == selector end)
+  return item
+end
 common.Selector = ECS.Component(function(e, selector) e.selector = selector or "" end)
 common.Item = ECS.Component(function(e, itemData) e.itemData = itemData or {} end)
+common.Parent = ECS.Component(function(e, parent)
+  e.parent = parent or error("Parent component needs parent entity")
+end)
+
+common.Children = ECS.Component(function(e, children)
+  e.children = children or error("Children component needs children(list of entities)")
+end)
+common.Amount = ECS.Component(function(e, amount) e.amount = amount or 0 end)
 
 return common
 

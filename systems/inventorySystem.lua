@@ -5,7 +5,7 @@ local InventorySystem = ECS.System({commonComponents.Inventory})
 function InventorySystem:init()  --luacheck: ignore
 end
 
-function InventorySystem:addItemToEntity(entity, item)
+function InventorySystem:addItemToEntity(entity, item) --luacheck: ignore
   local contents = entity:get(commonComponents.Inventory).contents
   table.insert(contents,item)
 end

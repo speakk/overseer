@@ -42,7 +42,6 @@ function MapSystem:init(camera)
   self.walkable = 0
   self.myFinder = Pathfinder(self.grid, 'JPS', self.walkable)
   self.myFinder:setMode('ORTHOGONAL')
-  print(inspect(self.myFinder:getModes()))
 
   camera:setWorld(self.cellSize, self.cellSize, self.width * self.cellSize, self.height * self.cellSize)
 end
@@ -110,7 +109,7 @@ end
 -- Marked for optimization
 function MapSystem:gridPositionToPixels(gridPosition, positionFlag, entitySize)
   positionFlag = positionFlag or "corner"
-  local tilePosition = Vector(gridPosition.x, gridPosition.y) * self.cellSize
+  local tilePosition = gridPosition * self.cellSize
 
   if positionFlag == "center" then
     entitySize = entitySize or 10
