@@ -88,7 +88,7 @@ function SettlerSystem:processSettlerPathFinding(settler)
       pathComponent.currentIndex = pathComponent.currentIndex + 1
 
       if pathComponent.currentIndex == table.getn(pathComponent.path._nodes)+1 then
-        pathComponent.finishedCallBack()
+        pathComponent.path.finishedCallBack()
       end
     end
   end
@@ -106,6 +106,7 @@ function SettlerSystem:processSubJob(settler, job)
       local existingItem = inventoryComponent:getItemBySelector(selector)
       if existingItem and existingItem:has(commonComponents.Amount) and
         existingItem:get(commonComponents.Amount).amount >= fetch.amount then
+        print("Has existing item!")
         local path = self.mapSystem.getPath(
         settler:get(commonComponents.Position).vector,
         fetch.target:get(commonComponents.Position).vector
@@ -117,16 +118,18 @@ function SettlerSystem:processSubJob(settler, job)
         settler:give(commonComponents.Path, path)
       else
         local itemsOnMap = self.itemSystem:getItemsFromGroundBySelector(selector)
+        print("itemsOnMap", itemsOnMap)
+        --print("No item, find items on map, amount: ", #itemsOnMap, selector)
         if itemsOnMap and #itemsOnMap > 0 then
           -- TODO: Get closest item to settler, for now just pick first from list
-          local itemOnMap = itemsOnMap[1]
+          local itemOnMap = itemsOnMap[1][1] -- TODO: WAIT WHAT
           local path = self.mapSystem:getPath(
-          settler:get(commonComponents.Position).vector,
-          itemOnMap:get(commonComponents.Position).vector
+            self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector),
+            self.mapSystem:pixelsToGridCoordinates(itemOnMap:get(commonComponents.Position).vector)
           )
           path.finishedCallBack = function()
             settler:remove(commonComponents.Path)
-            table.insert(inventory.contents, itemOnMap)
+            table.insert(inventory.inventory, itemOnMap)
             self.itemSystem:removeItemFromGround(itemOnMap)
             job.finished = true
           end
