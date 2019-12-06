@@ -1,4 +1,4 @@
-local inspect = require('libs/inspect')
+--local inspect = require('libs/inspect')
 local commonComponents = require('components/common')
 -- Create a draw System.
 local BluePrintSystem = ECS.System({commonComponents.BluePrint})
@@ -18,6 +18,7 @@ function BluePrintSystem:generateBluePrintJob(gridPosition, itemData)
     for selector, amount in pairs(itemData.requirements) do
       local subJob = ECS.Entity()
       subJob:give(commonComponents.Job)
+      subJob:give(commonComponents.Item, itemData)
       subJob:give(commonComponents.FetchJob, job, selector, amount)
       subJob:apply()
       table.insert(children, subJob)

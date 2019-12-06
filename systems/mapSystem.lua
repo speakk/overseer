@@ -1,5 +1,5 @@
 local cpml = require('libs/cpml')
-local inspect = require('libs/inspect')
+--local inspect = require('libs/inspect')
 local Vector = require('libs/brinevector/brinevector')
 local MapSystem = ECS.System()
 local utils = require('utils/utils')

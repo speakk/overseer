@@ -1,7 +1,6 @@
 local Vector = require('libs/brinevector/brinevector')
 --local inspect = require('libs/inspect')
 local lume = require('libs/lume')
-local inspect = require('libs/inspect')
 local commonComponents = require('components/common')
 
 local settlerSpeed = 200
@@ -106,9 +105,17 @@ function SettlerSystem:processSubJob(settler, job)
           settler:remove(commonComponents.Path)
           settler:remove(commonComponents.Work)
           settler:apply()
-          self.itemSystem:placeItemOnGround(existingItem, self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector))
-          -- TODO: Remove item from inventory here!
-          job.finished = true
+          self.itemSystem:placeItemOnGround(existingItem,
+          self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector))
+          local itemData = job:get(commonComponents.Item).itemData
+          local inventory = settler:get(commonComponents.Inventory)
+          for selector, amount in pairs(itemData.requirements) do --luacheck: ignore
+            local invItem = inventory:popItemBySelector(selector)
+            -- TODO: Add item onto ground again! (remember to check Position gets added)
+            print("Constructed items!", invItem)
+          end
+          job:get(commonComponents.Job).finished = true
+          print("Fetch fininshed!")
         end
         settler:give(commonComponents.Path, path)
       else
@@ -116,20 +123,21 @@ function SettlerSystem:processSubJob(settler, job)
         if itemsOnMap and #itemsOnMap > 0 then
           -- TODO: Get closest item to settler, for now just pick first from list
           local itemOnMap = itemsOnMap[love.math.random(#itemsOnMap)]
-          print("itemsOnMap!", itemOnMap)
-          local path = self.mapSystem:getPath(
+          if itemOnMap:has(commonComponents.Position) then
+            print("itemsOnMap!", itemOnMap)
+            local path = self.mapSystem:getPath(
             self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector),
             self.mapSystem:pixelsToGridCoordinates(itemOnMap:get(commonComponents.Position).vector))
 
-          path.finishedCallBack = function()
-            settler:remove(commonComponents.Path)
-            --settler:remove(commonComponents.Work)
-            settler:apply()
-            table.insert(inventory.inventory, itemOnMap)
-            self.itemSystem:removeItemFromGround(itemOnMap)
-            --job.finished = true
+            path.finishedCallBack = function()
+              settler:remove(commonComponents.Path)
+              settler:apply()
+              table.insert(inventory.inventory, itemOnMap)
+              self.itemSystem:removeItemFromGround(itemOnMap)
+              --job.finished = true
+            end
+            settler:give(commonComponents.Path, path)
           end
-          settler:give(commonComponents.Path, path)
         end
       end
     else --luacheck: ignore
@@ -141,14 +149,14 @@ function SettlerSystem:processSubJob(settler, job)
     -- TODO: Remove requirements-items from inventory
     local itemData = job:get(commonComponents.Item).itemData
     local inventory = settler:get(commonComponents.Inventory)
-    for selector, amount in pairs(itemData.requirements) do
+    for selector, amount in pairs(itemData.requirements) do --luacheck: ignore
       local invItem = inventory.popItemBySelector(selector)
       -- TODO: Add item onto ground again! (remember to check Position gets added)
       print("Constructed items!", invItem)
     end
+  print("BluePrintJob!")
   end
 
-  print("BluePrintJob!")
 end
 
 function SettlerSystem:initalizeTestSettlers()
@@ -175,10 +183,12 @@ function SettlerSystem:initalizeTestSettlers()
 end
 
 function SettlerSystem:startJob(settler, job) -- luacheck: ignore
-  print("Starting job", settler, "children: ", job:has(commonComponents.Children), " fetch: ", job:has(commonComponents.FetchJob))
+  --print("Starting job", settler, "children: ",
+  --job:has(commonComponents.Children), " fetch: ",
+  --job:has(commonComponents.FetchJob))
   job:get(commonComponents.Job).reserved = true
-  --print("Has fetch", job:has(commonComponents.FetchJob), job:has(commonComponents.Children))
-  
+  --print("Has fetch", job:has(commonComponents.FetchJob),
+  --job:has(commonComponents.Children))
   settler:give(commonComponents.Work, job)
 end
 
@@ -186,13 +196,13 @@ end
 function SettlerSystem:assignJobsForSettlers()
 
   while true do
-    local availableWorkers = lume.filter(self.pool.objects,
+    local availableWorker = lume.match(self.pool.objects,
       function(potentialSettler)
         return not potentialSettler:has(commonComponents.Work)
       end
     )
 
-    if #availableWorkers == 0 then break end
+    if not availableWorker then break end
     -- nextJob = self.jobSystem:getNextUnreservedJob()
     -- if not nextJob then break end
     -- nextSubJob = self.jobSystem:getFirstSubJob(nextJob)
@@ -202,11 +212,8 @@ function SettlerSystem:assignJobsForSettlers()
     if not nextJob then break end
     --print("nextSubJob", i, nextSubJob)
 
-    for i, availableWorker in ipairs(availableWorkers) do
-      print("Starting job", availableWorker, nextJob)
-      self:startJob(availableWorker, nextJob)
-      break
-    end
+    print("Starting job", availableWorker, nextJob)
+    self:startJob(availableWorker, nextJob)
   end
 end
 
