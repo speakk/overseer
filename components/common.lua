@@ -30,12 +30,19 @@ common.Job = ECS.Component(function(e, target, reserved, finished, allJobsOrNoth
 end)
 common.Worker = ECS.Component(function(e, available) e.available = available or true end)
 common.BluePrintJob = ECS.Component()
+common.ConstructionJob = ECS.Component()
 common.Inventory = ECS.Component(function(e, inventory)
   e.inventory = inventory or {}
 end)
 function common.Inventory:getItemBySelector(selector)
   local item = lume.match(self.inventory, function(itemInInv)
     return itemInInv:get(common.Selector).selector == selector end)
+  return item
+end
+-- TODO: Add "Amount" parameter, split the item as needed
+function common.Inventory:popItemBySelector(selector)
+  item = self.getItemBySelector(selector)
+  lume.remove(self.inventory, item)
   return item
 end
 common.Selector = ECS.Component(function(e, selector) e.selector = selector or "" end)

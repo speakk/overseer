@@ -27,11 +27,15 @@ function DrawSystem:draw()
           local color = draw.color
           love.graphics.setColor(color[1]*0.3, color[2]*0.3, color[3]*0.3)
           local gridCornerPos = self.mapSystem:snapPixelToGrid(positionVector)
+          local size = self.mapSystem:getCellSize()
+          if entity:has(commonComponents.Item) and not entity:has(commonComponents.BluePrintJob) then
+            size = 16
+          end
           love.graphics.rectangle("fill",
-          gridCornerPos.x,
-          gridCornerPos.y,
-          self.mapSystem:getCellSize(),
-          self.mapSystem:getCellSize()
+            gridCornerPos.x,
+            gridCornerPos.y,
+            size,
+            size
           )
           love.graphics.setColor(color[1], color[2], color[3])
           love.graphics.rectangle("fill",

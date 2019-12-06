@@ -8,7 +8,7 @@ local data = {
         name = "Wooden wall",
         requirements = {
           ["raw_materials.wood"] = 10,
-          ["raw_materials.metal"] = 1
+          ["raw_materials.steel"] = 1
         },
         color = {0.9, 0.7, 0.1},
         hp = 100
@@ -17,7 +17,7 @@ local data = {
         name = "Iron wall",
         requirements = {
           ["raw_materials.wood"] = 10,
-          ["raw_materials.metal"] = 1
+          ["raw_materials.steel"] = 1
         },
         color = {0.5, 0.5, 0.55},
         hp = 500
@@ -51,7 +51,7 @@ local data = {
       turrent = {
         name = "Turret",
         requirements = {
-          ["raw_materials.metal"] = 3
+          ["raw_materials.steel"] = 3
         },
         color = { 0.6, 0.5, 0.1 },
         hp = 300
@@ -70,8 +70,8 @@ local data = {
       stone = {
         name = "Stone"
       },
-      metal = {
-        name = "Metal"
+      steel = {
+        name = "Steel"
       }
     }
   }

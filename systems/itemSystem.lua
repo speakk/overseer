@@ -24,7 +24,7 @@ function ItemSystem:initializeTestItems()
   local mapSize = self.mapSystem:getSize()
   local randomTable = {
     walls = { "wooden_wall", "iron_wall" },
-    raw_materials = { "wood", "iron", "stone" }
+    raw_materials = { "wood", "iron", "stone", "steel" }
   }
 
   for i=1,40,1 do  --luacheck: ignore
@@ -61,11 +61,13 @@ function ItemSystem:placeSelectorIndexedItem(item, position)
   end
 
   table.insert(self.itemPositionsInGridIndexedBySelector[selector], position)
-  print("Huh", inspect(self.itemPositionsInGridIndexedBySelector[selector]))
 end
 
 function ItemSystem:placeItemOnGround(item, gridPosition) --luacheck: ignore
-  print("Adding item", item, inspect(gridPosition))
+  local pixelPosition = self.mapSystem:gridPositionToPixels(gridPosition)
+  print("Item", item)
+  item:give(commonComponents.Position, pixelPosition)
+  item:apply()
   table.insert(self.itemsOnGround[gridPosition.y][gridPosition.x], item)
   self:placeSelectorIndexedItem(item, gridPosition)
 end
@@ -88,13 +90,16 @@ end
 
 function ItemSystem:getItemsFromGroundBySelector(itemSelector) --luacheck: ignore
   local items = {}
-  for _, position in ipairs(self:getItemPositionsFromGroundBySelector(itemSelector)) do
-    local selectorItems = lume.filter(self.itemsOnGround[position.y][position.x], function(item)
-      local selector = item:get(commonComponents.Selector).selector
-      return selector == itemSelector
-    end)
-    for _, item in ipairs(selectorItems) do
-      table.insert(items, item)
+  local positions = self:getItemPositionsFromGroundBySelector(itemSelector)
+  if positions and #positions > 0 then
+    for _, position in ipairs(positions) do
+      local selectorItems = lume.filter(self.itemsOnGround[position.y][position.x], function(item)
+        local selector = item:get(commonComponents.Selector).selector
+        return selector == itemSelector
+      end)
+      for _, item in ipairs(selectorItems) do
+        table.insert(items, item)
+      end
     end
   end
 
@@ -102,13 +107,19 @@ function ItemSystem:getItemsFromGroundBySelector(itemSelector) --luacheck: ignor
 end
 
 function ItemSystem:removeItemFromGround(item)
-  local position = item:get(commonComponents.Position).vector
-  local gridPosition = self.mapSystem:pixelsToGridCoordinates(position)
-  local items = self.itemsOnGround[gridPosition.y][gridPosition.x]
-  local potentialItem = lume.match(items, function(it) return it == item end)
+  print("Removing item from ground", item:has(commonComponents.Position))
+  if item:has(commonComponents.Position) then
+    local position = item:get(commonComponents.Position).vector
+    local gridPosition = self.mapSystem:pixelsToGridCoordinates(position)
+    local items = self.itemsOnGround[gridPosition.y][gridPosition.x]
+    local potentialItem = lume.match(items, function(it) return it == item end)
 
-  if potentialItem then
-    lume.remove(items, potentialItem)
+    if potentialItem then
+      print("Actually removing", potentialItem)
+      potentialItem:remove(commonComponents.Position)
+      potentialItem:apply()
+      lume.remove(items, potentialItem)
+    end
   end
 end
 

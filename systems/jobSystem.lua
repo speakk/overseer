@@ -9,18 +9,50 @@ function JobSystem:init(mapSystem)
 end
 
 function JobSystem:getNextUnreservedJob()
-  local unreservedJob = nil
-
-  for _, job in ipairs(self.jobs) do
+  print("Jobs length", #self.jobs)
+  for i, job in ipairs(self.jobs) do
     local jobComponent = job:get(commonComponents.Job)
+    print("jobComponent", i, job, jobComponent)
     if not jobComponent.reserved and not jobComponent.finished then
-      unreservedJob = job
-      break
+      local firstSubJob = self:getFirstSubJob(job)
+      if firstSubJob then
+        local subJobComponent = firstSubJob:get(commonComponents.Job)
+        --return firstSubJob
+        if not subJobComponent.reserved then return firstSubJob end
+      end
+    end
+  end
+end
+
+function JobSystem:getFirstSubJob(job, recursionLevel)
+  recursionLevel = recursionLevel or 0
+  print("recursionLevel", recursionLevel)
+  local jobComponent = job:get(commonComponents.Job)
+  if jobComponent.reserved or jobComponent.finished then return nil end
+  --if jobComponent.finished then return nil end
+  if not job:has(commonComponents.Children) then return job end
+
+  local children = job:get(commonComponents.Children).children
+
+  local allChildrenFinished = true
+
+  for _, child in ipairs(children) do
+    local firstChildJob = self:getFirstSubJob(child)
+    if firstChildJob then
+      local firstChildJobComponent = firstChildJob:get(commonComponents.Job)
+      if not firstChildJobComponent.finished then allChildrenFinished = false end
+      print("Foundchildjob!", firstChildJob)
+      if firstChildJobComponent and not firstChildJobComponent.finished and not firstChildJobComponent.reserved then return firstChildJob end
+    else
+      allChildrenFinished = false
     end
   end
 
-  return unreservedJob
+  print("allChildrenFinished", allChildrenFinished)
+  if allChildrenFinished then return job end
+  return nil -- If got through children-loop without hits, return job itself
 end
+
 
 function JobSystem:addJob(job)
   print("Adding job", job)

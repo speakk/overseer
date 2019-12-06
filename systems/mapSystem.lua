@@ -12,8 +12,8 @@ local mapColors = {}
 
 
 function MapSystem:init(camera)
-  self.width = 100
-  self.height = 100
+  self.width = 40
+  self.height = 30
   self.cellSize = 30
   self.padding = 0
   self.camera = camera
