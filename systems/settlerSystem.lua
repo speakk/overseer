@@ -42,6 +42,8 @@ local function getFirstSubJob(job)
 end
 
 function SettlerSystem:processSettlerUpdate(settler)
+  local velocityComponent = settler:get(commonComponents.Velocity)
+  velocityComponent.vector = Vector(0, 0)
   if settler:has(commonComponents.Work) then
     local work = settler:get(commonComponents.Work)
     if not work.currentSubJob then
@@ -59,7 +61,6 @@ function SettlerSystem:processSettlerUpdate(settler)
     self:processSettlerPathFinding(settler)
   end
 
-  local velocityComponent = settler:get(commonComponents.Velocity)
   velocityComponent.vector = velocityComponent.vector.normalized * settlerSpeed
 end
 
@@ -74,6 +75,7 @@ function SettlerSystem:processSettlerPathFinding(settler)
   for node, count in pathComponent.path:nodes() do
     if count == pathComponent.currentIndex then
       nextGridPosition = Vector(node:getX(), node:getY())
+      --print("pos", position.x, position.y)
       break
     end
   end
@@ -91,7 +93,9 @@ function SettlerSystem:processSettlerPathFinding(settler)
         pathComponent.path.finishedCallBack()
       end
     end
+    velocityComponent.vector = velocityComponent.vector.normalized * settlerSpeed
   end
+
 end
 
 function SettlerSystem:processSubJob(settler, job)
@@ -106,32 +110,36 @@ function SettlerSystem:processSubJob(settler, job)
       local existingItem = inventoryComponent:getItemBySelector(selector)
       if existingItem and existingItem:has(commonComponents.Amount) and
         existingItem:get(commonComponents.Amount).amount >= fetch.amount then
-        print("Has existing item!")
-        local path = self.mapSystem.getPath(
-        settler:get(commonComponents.Position).vector,
-        fetch.target:get(commonComponents.Position).vector
+        local path = self.mapSystem:getPath(
+        self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector),
+        self.mapSystem:pixelsToGridCoordinates(fetch.target:get(commonComponents.Position).vector)
         )
 
         path.finishedCallBack = function()
           settler:remove(commonComponents.Path)
+          settler:remove(commonComponents.Work)
+          settler:apply()
+          job.finished = true
         end
         settler:give(commonComponents.Path, path)
       else
         local itemsOnMap = self.itemSystem:getItemsFromGroundBySelector(selector)
-        print("itemsOnMap", itemsOnMap)
-        --print("No item, find items on map, amount: ", #itemsOnMap, selector)
         if itemsOnMap and #itemsOnMap > 0 then
           -- TODO: Get closest item to settler, for now just pick first from list
-          local itemOnMap = itemsOnMap[1][1] -- TODO: WAIT WHAT
+          local itemOnMap = itemsOnMap[love.math.random(#itemsOnMap)]
           local path = self.mapSystem:getPath(
             self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector),
             self.mapSystem:pixelsToGridCoordinates(itemOnMap:get(commonComponents.Position).vector)
           )
+
           path.finishedCallBack = function()
+            print("Finished call!")
             settler:remove(commonComponents.Path)
+            --settler:remove(commonComponents.Work)
+            settler:apply()
             table.insert(inventory.inventory, itemOnMap)
             self.itemSystem:removeItemFromGround(itemOnMap)
-            job.finished = true
+            --job.finished = true
           end
           settler:give(commonComponents.Path, path)
         end

@@ -22,10 +22,11 @@ common.FetchJob = ECS.Component(function(e, target, selector, amount)
   e.amount = amount
 end)
 common.HealingJob = ECS.Component()
-common.Job = ECS.Component(function(e, target, reserved, finished)
+common.Job = ECS.Component(function(e, target, reserved, finished, allJobsOrNothing)
   e.target = target or nil -- Not all jobs need targets
   e.reserved = reserved or false
   e.finished = finished or false
+  e.allJobsOrNothing = allJobsOrNothing or false
 end)
 common.Worker = ECS.Component(function(e, available) e.available = available or true end)
 common.BluePrintJob = ECS.Component()
@@ -33,7 +34,8 @@ common.Inventory = ECS.Component(function(e, inventory)
   e.inventory = inventory or {}
 end)
 function common.Inventory:getItemBySelector(selector)
-  local item = lume.match(self.inventory, function(itemInInv) return itemInInv.selector == selector end)
+  local item = lume.match(self.inventory, function(itemInInv)
+    return itemInInv:get(common.Selector).selector == selector end)
   return item
 end
 common.Selector = ECS.Component(function(e, selector) e.selector = selector or "" end)

@@ -41,6 +41,7 @@ function ItemSystem:initializeTestItems()
     :give(commonComponents.Selector, selector)
     :give(commonComponents.Item, itemData)
     :give(commonComponents.Draw, color)
+    :give(commonComponents.Amount, 100)
     :apply()
     self:getInstance():addEntity(item)
     self:placeItemOnGround(item, position)
@@ -82,15 +83,19 @@ function ItemSystem:getItemFromGround(itemSelector, gridPosition) --luacheck: ig
 end
 
 function ItemSystem:getItemPositionsFromGroundBySelector(itemSelector) --luacheck: ignore
-  print("Getting", self.itemPositionsInGridIndexedBySelector[itemSelector])
   return self.itemPositionsInGridIndexedBySelector[itemSelector]
 end
 
 function ItemSystem:getItemsFromGroundBySelector(itemSelector) --luacheck: ignore
   local items = {}
-  print("Uh")
   for _, position in ipairs(self:getItemPositionsFromGroundBySelector(itemSelector)) do
-    table.insert(items, self.itemsOnGround[position.y][position.x])
+    local selectorItems = lume.filter(self.itemsOnGround[position.y][position.x], function(item)
+      local selector = item:get(commonComponents.Selector).selector
+      return selector == itemSelector
+    end)
+    for _, item in ipairs(selectorItems) do
+      table.insert(items, item)
+    end
   end
 
   return items
