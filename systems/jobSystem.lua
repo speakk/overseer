@@ -16,7 +16,7 @@ function JobSystem:getNextUnreservedJob()
       if firstSubJob then
         local subJobComponent = firstSubJob:get(commonComponents.Job)
         --return firstSubJob
-        if not subJobComponent.reserved then return firstSubJob end
+        if not subJobComponent.reserved and not subJobComponent.finished then return firstSubJob end
       end
     end
   end
@@ -24,9 +24,13 @@ end
 
 function JobSystem:getFirstSubJob(job)
   local jobComponent = job:get(commonComponents.Job)
-  if jobComponent.reserved or jobComponent.finished then return nil end
+  if jobComponent.reserved then return nil end
   --if jobComponent.finished then return nil end
-  if not job:has(commonComponents.Children) then return job end
+  if not job:has(commonComponents.Children) then
+    return job 
+  -- else
+  --   if jobComponent.reserved or jobComponent.finished then return nil end
+  end
 
   local children = job:get(commonComponents.Children).children
 
@@ -45,9 +49,9 @@ function JobSystem:getFirstSubJob(job)
     end
   end
 
-  --print("allChildrenFinished", allChildrenFinished)
+  print("allChildrenFinished", allChildrenFinished, job:has(commonComponents.BluePrintJob))
   if allChildrenFinished then return job end
-  return nil -- If got through children-loop without hits, return job itself
+  return nil
 end
 
 

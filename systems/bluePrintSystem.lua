@@ -12,7 +12,6 @@ function BluePrintSystem:generateBluePrintJob(gridPosition, itemData)
   job:give(commonComponents.Position, self.mapSystem:gridPositionToPixels(gridPosition))
 
   if itemData.requirements then
-    print("Adding children");
     job:give(commonComponents.Children, {})
     local children = job:get(commonComponents.Children).children
     for selector, amount in pairs(itemData.requirements) do

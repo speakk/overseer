@@ -42,7 +42,6 @@ end
 -- TODO: Add "Amount" parameter, split the item as needed
 function common.Inventory:popItemBySelector(selector)
   local item = self:getItemBySelector(selector)
-  print("Removing item from inv", item)
   lume.remove(self.inventory, item)
   return item
 end

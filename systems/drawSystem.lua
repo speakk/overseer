@@ -31,6 +31,11 @@ function DrawSystem:draw()
           if entity:has(commonComponents.Item) and not entity:has(commonComponents.BluePrintJob) then
             size = 16
           end
+          if entity:has(commonComponents.BluePrintJob) then
+            if entity:get(commonComponents.Job).finished then
+              color = { 0, 0, 1 }
+            end
+          end
           love.graphics.rectangle("fill",
             gridCornerPos.x,
             gridCornerPos.y,

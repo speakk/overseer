@@ -112,10 +112,9 @@ function SettlerSystem:processSubJob(settler, job)
           for selector, amount in pairs(itemData.requirements) do --luacheck: ignore
             local invItem = inventory:popItemBySelector(selector)
             -- TODO: Add item onto ground again! (remember to check Position gets added)
-            print("Constructed items!", invItem)
           end
           job:get(commonComponents.Job).finished = true
-          print("Fetch fininshed!")
+          job:get(commonComponents.Job).reserved = false
         end
         settler:give(commonComponents.Path, path)
       else
@@ -124,7 +123,6 @@ function SettlerSystem:processSubJob(settler, job)
           -- TODO: Get closest item to settler, for now just pick first from list
           local itemOnMap = itemsOnMap[love.math.random(#itemsOnMap)]
           if itemOnMap:has(commonComponents.Position) then
-            print("itemsOnMap!", itemOnMap)
             local path = self.mapSystem:getPath(
             self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector),
             self.mapSystem:pixelsToGridCoordinates(itemOnMap:get(commonComponents.Position).vector))
@@ -146,15 +144,14 @@ function SettlerSystem:processSubJob(settler, job)
   end
 
   if job:has(commonComponents.BluePrintJob) and job:has(commonComponents.Item) then --luacheck: ignore
-    -- TODO: Remove requirements-items from inventory
     local itemData = job:get(commonComponents.Item).itemData
     local inventory = settler:get(commonComponents.Inventory)
     for selector, amount in pairs(itemData.requirements) do --luacheck: ignore
-      local invItem = inventory.popItemBySelector(selector)
+      local invItem = inventory:popItemBySelector(selector)
       -- TODO: Add item onto ground again! (remember to check Position gets added)
-      print("Constructed items!", invItem)
     end
-  print("BluePrintJob!")
+    job:get(commonComponents.Job).finished = true
+    job:get(commonComponents.Job).reserved = false
   end
 
 end
@@ -183,12 +180,7 @@ function SettlerSystem:initalizeTestSettlers()
 end
 
 function SettlerSystem:startJob(settler, job) -- luacheck: ignore
-  --print("Starting job", settler, "children: ",
-  --job:has(commonComponents.Children), " fetch: ",
-  --job:has(commonComponents.FetchJob))
   job:get(commonComponents.Job).reserved = true
-  --print("Has fetch", job:has(commonComponents.FetchJob),
-  --job:has(commonComponents.Children))
   settler:give(commonComponents.Work, job)
 end
 
@@ -203,16 +195,9 @@ function SettlerSystem:assignJobsForSettlers()
     )
 
     if not availableWorker then break end
-    -- nextJob = self.jobSystem:getNextUnreservedJob()
-    -- if not nextJob then break end
-    -- nextSubJob = self.jobSystem:getFirstSubJob(nextJob)
-    -- if not nextSubJob then break end
     local nextJob = self.jobSystem:getNextUnreservedJob()
-    print("nextJob?", nextJob)
     if not nextJob then break end
-    --print("nextSubJob", i, nextSubJob)
 
-    print("Starting job", availableWorker, nextJob)
     self:startJob(availableWorker, nextJob)
   end
 end
