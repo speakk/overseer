@@ -35,29 +35,6 @@ commonComponents.Collision = ECS.Component()
 commonComponents.Inventory = ECS.Component(function(e, inventory)
   e.inventory = inventory or {}
 end)
-function commonComponents.Inventory:getItemBySelector(selector)
-  local itemEnt = lume.match(self.inventory, function(itemInInv)
-    return itemInInv:get(commonComponents.Item).selector == selector end)
-  return itemEnt
-end
--- TODO: Add "Amount" parameter, split the item as needed
-function commonComponents.Inventory:popItemBySelector(selector, amount)
-  print("selector", selector)
-  local item = self:getItemBySelector(selector)
-  if item then
-    local currentAmount = item:get(commonComponents.Amount).amount
-    local diff = currentAmount - amount
-    if diff <= 0 then
-      lume.remove(self.inventory, item)
-      return item
-    end
-
-    item:give(commonComponents.Amount, diff)
-    local itemCopy = table.deepcopy(item)
-    itemCopy:give(commonComponents.Amount, amount)
-    return itemCopy
-  end
-end
 --commonComponents.Selector = ECS.Component(function(e, selector) e.selector = selector or "" end)
 commonComponents.Item = ECS.Component(function(e, itemData, selector)
   e.itemData = itemData or {}

@@ -143,8 +143,6 @@ end
 
 function MapSystem:entityAddedTo(entity, pool)
   if pool == self.collision then
-    print("Entity added", entity:has(commonComponents.Position), pool)
-    print("Entity added", inspect(entity:get(commonComponents.Position).vector), pool)
     position = self:pixelsToGridCoordinates(entity:get(commonComponents.Position).vector)
     map[position.y][position.x] = 1
     self:recalculateGrid(map)
@@ -153,7 +151,6 @@ end
 
 function MapSystem:entityRemovedFrom(entity, pool)
   if pool == self.collision then
-    print("Entity removed", entity, pool)
     position = self:pixelsToGridCoordinates(entity:get(commonComponents.Position).vector)
     map[position.y][position.x] = 0
     self:recalculateGrid(map)

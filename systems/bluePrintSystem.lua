@@ -19,6 +19,7 @@ function BluePrintSystem:generateBluePrintJob(gridPosition, itemData)
       local subJob = ECS.Entity()
       subJob:give(commonComponents.Job)
       subJob:give(commonComponents.Item, itemData)
+      subJob:give(commonComponents.Parent, job)
       subJob:give(commonComponents.FetchJob, job, selector, amount)
       subJob:apply()
       table.insert(children, subJob)
@@ -31,19 +32,6 @@ function BluePrintSystem:generateBluePrintJob(gridPosition, itemData)
 
   return job
 end
-
--- function BluePrintSystem:generateBluePrint(gridPosition, constructionType)
---   print("constructionType", inspect(constructionType))
---   local bluePrint = ECS.Entity()
---   bluePrint:give(commonComponents.Item, constructionType)
---   bluePrint:give(commonComponents.Position, self.mapSystem:gridPositionToPixels(gridPosition))
---   bluePrint:give(commonComponents.Draw, constructionType.color)
---   bluePrint:give(commonComponents.BluePrintJob)
---   bluePrint:give(commonComponents.BluePrintJob)
---   bluePrint:apply()
---   return bluePrint
--- end
-
 
 function BluePrintSystem:init(mapSystem)
   self.mapSystem = mapSystem
@@ -62,7 +50,6 @@ end
 function BluePrintSystem:placeBluePrint(gridPosition, constructionType)
     gridPosition = self.mapSystem:clampToWorldBounds(gridPosition)
     if self.mapSystem:isCellAvailable(gridPosition) then
-      --print("gridPosition", inspect(gridPosition))
       local bluePrint = self:generateBluePrintJob(gridPosition, constructionType)
       self:getInstance():emit("blueprintActivated", bluePrint)
     end

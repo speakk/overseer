@@ -91,9 +91,6 @@ function SettlerSystem:invalidatePaths()
     settler:apply()
     settler.searched_for_path = false
   end
-  
-  print("Deleted cached paths")
-
 end
 
 function SettlerSystem:processSubJob(settler, job)
@@ -102,13 +99,13 @@ function SettlerSystem:processSubJob(settler, job)
     local fetch = job:get(commonComponents.FetchJob)
     local selector = fetch.selector
     local inventoryComponent = settler:get(commonComponents.Inventory)
-    local inventory = settler:get(commonComponents.Inventory)
+    local inventory = inventoryComponent.inventory
     settler.searched_for_path = false
     -- TODO: At some point in the future make sure to invalidate paths if settler task gets canceled
     -- TODO: Add a timer so that path doesn't get fetched too often
     -- Actually, maybe the best idea would be to use events to invalidate the map?
     if not settler:has(commonComponents.Path) and not settler.searched_for_path then -- RIGHT ON THIS IF: Is global cache valid? If not then re-get path
-      local existingItem = inventoryComponent:getItemBySelector(selector)
+      local existingItem = self.itemSystem:getInventoryItemBySelector(inventory, selector)
       if existingItem and existingItem:has(commonComponents.Amount) and
         existingItem:get(commonComponents.Amount).amount >= fetch.amount then
         local path = self.mapSystem:getPath(
@@ -116,14 +113,11 @@ function SettlerSystem:processSubJob(settler, job)
         self.mapSystem:pixelsToGridCoordinates(fetch.target:get(commonComponents.Position).vector)
         )
 
-        print("Got path?", path)
-
         settler.searched_for_path = true
 
         if path then
 
           path.finishedCallBack = function()
-            print("Finished big")
             settler.searched_for_path = false
             settler:remove(commonComponents.Path)
             settler:remove(commonComponents.Work)
@@ -131,9 +125,9 @@ function SettlerSystem:processSubJob(settler, job)
             self.itemSystem:placeItemOnGround(existingItem,
             self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector))
             local itemData = job:get(commonComponents.Item).itemData
-            local inventory = settler:get(commonComponents.Inventory)
+            local inventory = settler:get(commonComponents.Inventory).inventory
             for selector, amount in pairs(itemData.requirements) do --luacheck: ignore
-              local invItem = inventory:popItemBySelector(selector, amount)
+              local invItem = self.itemSystem:popInventoryItemBySelector(inventory, selector, amount)
               -- TODO: Add item onto ground again! (remember to check Position gets added)
             end
             job:get(commonComponents.Job).finished = true
@@ -154,11 +148,10 @@ function SettlerSystem:processSubJob(settler, job)
             self.mapSystem:pixelsToGridCoordinates(itemOnMap:get(commonComponents.Position).vector))
 
             path.finishedCallBack = function()
-              print("Finished mid")
               settler.searched_for_path = false
               settler:remove(commonComponents.Path)
               settler:apply()
-              table.insert(inventory.inventory, itemOnMap)
+              table.insert(inventory, itemOnMap)
               self.itemSystem:removeItemFromGround(itemOnMap)
               --job.finished = true
             end
@@ -173,14 +166,16 @@ function SettlerSystem:processSubJob(settler, job)
 
   if job:has(commonComponents.BluePrintJob) and job:has(commonComponents.Item) then --luacheck: ignore
     local itemData = job:get(commonComponents.Item).itemData
-    local inventory = settler:get(commonComponents.Inventory)
+    local inventory = settler:get(commonComponents.Inventory).inventory
     for selector, amount in pairs(itemData.requirements) do --luacheck: ignore
-      local invItem = inventory:popItemBySelector(selector, amount)
+      local invItem = self.itemSystem:popInventoryItemBySelector(inventory, selector, amount)
       if not invItem then print("No inv to pop when trying to finish, strange", selector, amount) end 
       -- TODO: Add item onto ground again! (remember to check Position gets added)
     end
-    job:get(commonComponents.Job).finished = true
-    job:get(commonComponents.Job).reserved = false
+    -- job:get(commonComponents.Job).finished = true
+    -- job:get(commonComponents.Job).reserved = false
+    job:remove(commonComponents.Job)
+    job:apply()
   end
 
 end

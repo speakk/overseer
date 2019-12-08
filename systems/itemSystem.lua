@@ -2,6 +2,7 @@ local Vector = require('libs/brinevector/brinevector')
 local lume = require('libs/lume')
 --local inspect = require('libs/inspect')
 local commonComponents = require('components/common')
+local componentLoader = require('ecsLoaders/componentLoader')
 local constructionTypes = require('data/constructionTypes')
 
 local ItemSystem = ECS.System({commonComponents.Item})
@@ -35,16 +36,48 @@ function ItemSystem:initializeTestItems()
     local category = randomTable[key]
     local itemName = category[math.random(#category)]
     local selector = key .. "." .. itemName
-    local itemData = constructionTypes.getBySelector(selector)
-    local color = itemData.color or { 0.5, 0.5, 0.5 }
-    item:give(commonComponents.Position, self.mapSystem:gridPositionToPixels(position))
-    :give(commonComponents.Item, itemData, selector)
-    :give(commonComponents.Draw, color, Vector(16, 16))
-    :give(commonComponents.Amount, 100)
-    :apply()
-    self:getInstance():addEntity(item)
+    local amount = love.math.random(30)
+    local item = self:createItem(selector, amount)
     self:placeItemOnGround(item, position)
   end
+end
+
+-- function ItemSystem:createItem(selector, amount, gridPosition)
+--   amount = amount or 1
+-- 
+--   local item = ECS.Entity()
+--   local itemData = constructionTypes.getBySelector(selector)
+--   local color = itemData.color or { 0.5, 0.5, 0.5 }
+--   item:give(commonComponents.Item, itemData, selector)
+--   :give(commonComponents.Draw, color, Vector(16, 16))
+--   :give(commonComponents.Amount, 100)
+-- 
+--   if gridPosition then
+--     self:placeItemOnGround(item, gridPosition)
+--   end
+-- 
+--   item:give(commonComponents.Amount, amount)
+-- 
+--   item:apply()
+--   self:getInstance():addEntity(item)
+-- 
+--   return item
+-- end
+
+function ItemSystem:createItem(selector, amount)
+  amount = amount or 1
+
+  local item = ECS.Entity()
+  local itemData = constructionTypes.getBySelector(selector)
+  local color = itemData.color or { 0.5, 0.5, 0.5 }
+  item:give(commonComponents.Item, itemData, selector)
+  :give(commonComponents.Draw, color, Vector(16, 16))
+  :give(commonComponents.Amount, amount)
+
+  item:apply()
+  self:getInstance():addEntity(item)
+
+  return item
 end
 
 function ItemSystem:init(mapSystem)  --luacheck: ignore
@@ -57,6 +90,9 @@ function ItemSystem:placeItemOnGround(item, gridPosition) --luacheck: ignore
   if not self.itemsOnGround[selector] then
     self.itemsOnGround[selector] = {}
   end
+
+  item:give(commonComponents.Position, self.mapSystem:gridPositionToPixels(gridPosition))
+  item:apply()
 
   table.insert(self.itemsOnGround[selector], item)
 end
@@ -78,36 +114,37 @@ function ItemSystem:getItemsFromGroundBySelector(itemSelector) --luacheck: ignor
 end
 
 function ItemSystem:removeItemFromGround(item)
-  print("Removing!", item)
   if item:has(commonComponents.Position) then
     item:remove(commonComponents.Position)
     item:apply()
   end
   local selector = item:get(commonComponents.Item).selector
   lume.remove(self.itemsOnGround[selector], item)
-  -- for _, itemOnGroun in ipairs(self.itemsOnGround[selector]) do
-  --   if item == itemsOnGround then
-
-  -- end
-  -- print("Removing item from ground", item:has(commonComponents.Position))
-  -- if item:has(commonComponents.Position) then
-  --   local position = item:get(commonComponents.Position).vector
-  --   local gridPosition = self.mapSystem:pixelsToGridCoordinates(position)
-  --   local items = self.itemsOnGround[gridPosition.y][gridPosition.x]
-  --   local potentialItem = lume.match(items, function(it) return it == item end)
-
-  --   if potentialItem then
-  --     print("Actually removing", potentialItem)
-  --     potentialItem:remove(commonComponents.Position)
-  --     potentialItem:apply()
-  --     lume.remove(items, potentialItem)
-  --   end
-  -- end
 end
 
-function ItemSystem:update(dt) --luacheck: ignore
-  -- for _, entity in ipairs(self.pool.objects) do
-  -- end
+ItemSystem.Inventory = {}
+
+function ItemSystem:getInventoryItemBySelector(inventory, selector)
+  local itemEnt = lume.match(inventory, function(itemInInv)
+    return itemInInv:get(commonComponents.Item).selector == selector end)
+  return itemEnt
+end
+-- TODO: Add "Amount" parameter, split the item as needed
+function ItemSystem:popInventoryItemBySelector(inventory, selector, amount)
+  local item = self:getInventoryItemBySelector(inventory, selector)
+  if item then
+    local currentAmount = item:get(commonComponents.Amount).amount
+    local diff = currentAmount - amount
+    if diff <= 0 then
+      lume.remove(inventory, item)
+      return item
+    end
+
+    item:give(commonComponents.Amount, diff)
+    local itemCopy = self:createItem(selector, amount)
+    itemCopy:give(commonComponents.Amount, amount)
+    return itemCopy
+  end
 end
 
 return ItemSystem
