@@ -1,22 +1,26 @@
 local cpml = require('libs/cpml')
---local inspect = require('libs/inspect')
+local inspect = require('libs/inspect')
 local Vector = require('libs/brinevector/brinevector')
-local MapSystem = ECS.System()
 local utils = require('utils/utils')
 
 local Grid = require('libs/jumper.grid')
 local Pathfinder = require('libs/jumper.pathfinder')
 
+local commonComponents = require('components/common')
+
 local map = {}
 local mapColors = {}
 
+local MapSystem = ECS.System({commonComponents.Collision, "collision"})
 
 function MapSystem:init(camera)
-  self.width = 40
-  self.height = 30
+  self.width = 80
+  self.height = 60
   self.cellSize = 30
   self.padding = 0
   self.camera = camera
+
+  self._lastGridUpdateId = 0
 
   local grassNoiseScale = 0.05
 
@@ -38,10 +42,7 @@ function MapSystem:init(camera)
     mapColors[y] = colorRow
   end
 
-  self.grid = Grid(map)
-  self.walkable = 0
-  self.myFinder = Pathfinder(self.grid, 'JPS', self.walkable)
-  self.myFinder:setMode('ORTHOGONAL')
+  self:recalculateGrid(map, true)
 
   camera:setWorld(self.cellSize, self.cellSize, self.width * self.cellSize, self.height * self.cellSize)
 end
@@ -49,8 +50,16 @@ end
 function MapSystem:getPath(from, to)
   -- from = self:pixelsToGridCoordinates(from)
   -- to = self:pixelsToGridCoordinates(to)
-  local path = self.myFinder:getPath(from.x, from.y, to.x, to.y)
-  return path
+  local toNode = self.grid:getNodeAt(to.x, to.y)
+
+  local toNodesToCheck = self.grid:getNeighbours(toNode)
+  table.insert(toNodesToCheck, toNode)
+  for _, node in ipairs(toNodesToCheck) do
+    local path = self.myFinder:getPath(from.x, from.y, node:getX(), node:getY())
+    if path then return path end
+  end
+
+  return nil
 end
 
 function MapSystem:update(dt) --luacheck: ignore
@@ -71,8 +80,9 @@ function MapSystem:draw()
         local y2 = y1 + self.cellSize
         if utils.withinBounds(x1, y1, x2, y2, l, t, l+w, t+h, drawMargin) then
         --if x1 > l-drawMargin and x2 < l+w+drawMargin and y1 > t-drawMargin and y2 < t+h+drawMargin then
-          -- Don't draw solid stuff here
-          if cellValue == 0 then
+          -- Don't draw solid stuff here -- Haha gotcha, for now 
+          --if cellValue == 0 or cellValue == 1 then
+          if true then
             --love.graphics.setColor(cellValue*0.7, 0.2, 0.3)
             local color = mapColors[rowNum][cellNum]
             if color.grass == 1 then
@@ -129,6 +139,41 @@ end
 
 function MapSystem:isCellAvailable(gridPosition)
   return self.grid:isWalkableAt(gridPosition.x, gridPosition.y, self.walkable)
+end
+
+function MapSystem:entityAddedTo(entity, pool)
+  if pool == self.collision then
+    print("Entity added", entity:has(commonComponents.Position), pool)
+    print("Entity added", inspect(entity:get(commonComponents.Position).vector), pool)
+    position = self:pixelsToGridCoordinates(entity:get(commonComponents.Position).vector)
+    map[position.y][position.x] = 1
+    self:recalculateGrid(map)
+  end
+end
+
+function MapSystem:entityRemovedFrom(entity, pool)
+  if pool == self.collision then
+    print("Entity removed", entity, pool)
+    position = self:pixelsToGridCoordinates(entity:get(commonComponents.Position).vector)
+    map[position.y][position.x] = 0
+    self:recalculateGrid(map)
+  end
+end
+
+function MapSystem:recalculateGrid(map, stopEmit)
+  self.grid = Grid(map)
+  self.walkable = 0
+  self.myFinder = Pathfinder(self.grid, 'JPS', self.walkable)
+  self.myFinder:setMode('ORTHOGONAL')
+  self._lastGridUpdateId = self._lastGridUpdateId + 1
+
+  if not stopEmit then
+    self:getInstance():emit('gridUpdated')
+  end
+end
+
+function MapSystem:getLastGridUpdateId()
+  return self._lastGridUpdateId
 end
 
 return MapSystem

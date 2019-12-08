@@ -10,6 +10,7 @@ function BluePrintSystem:generateBluePrintJob(gridPosition, itemData)
   job:give(commonComponents.Draw, itemData.color)
   job:give(commonComponents.Item, itemData)
   job:give(commonComponents.Position, self.mapSystem:gridPositionToPixels(gridPosition))
+  job:give(commonComponents.Collision)
 
   if itemData.requirements then
     job:give(commonComponents.Children, {})

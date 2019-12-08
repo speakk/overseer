@@ -75,12 +75,24 @@ function SettlerSystem:processSettlerPathFinding(settler)
     if self.mapSystem:pixelsToGridCoordinates(position) == nextGridPosition then
       pathComponent.currentIndex = pathComponent.currentIndex + 1
 
-      if pathComponent.currentIndex == table.getn(pathComponent.path._nodes)+1 then
+      -- if pathComponent.currentIndex == table.getn(pathComponent.path._nodes)+1 then -- Would be +1 if wanted to reach final always
+      if pathComponent.currentIndex == table.getn(pathComponent.path._nodes) then
         pathComponent.path.finishedCallBack()
       end
     end
     velocityComponent.vector = velocityComponent.vector.normalized * settlerSpeed
   end
+
+end
+
+function SettlerSystem:invalidatePaths()
+  for _, settler in ipairs(self.pool.objects) do
+    settler:remove(commonComponents.Path)
+    settler:apply()
+    settler.searched_for_path = false
+  end
+  
+  print("Deleted cached paths")
 
 end
 
@@ -91,8 +103,11 @@ function SettlerSystem:processSubJob(settler, job)
     local selector = fetch.selector
     local inventoryComponent = settler:get(commonComponents.Inventory)
     local inventory = settler:get(commonComponents.Inventory)
+    settler.searched_for_path = false
     -- TODO: At some point in the future make sure to invalidate paths if settler task gets canceled
-    if not settler:has(commonComponents.Path) then
+    -- TODO: Add a timer so that path doesn't get fetched too often
+    -- Actually, maybe the best idea would be to use events to invalidate the map?
+    if not settler:has(commonComponents.Path) and not settler.searched_for_path then -- RIGHT ON THIS IF: Is global cache valid? If not then re-get path
       local existingItem = inventoryComponent:getItemBySelector(selector)
       if existingItem and existingItem:has(commonComponents.Amount) and
         existingItem:get(commonComponents.Amount).amount >= fetch.amount then
@@ -101,22 +116,33 @@ function SettlerSystem:processSubJob(settler, job)
         self.mapSystem:pixelsToGridCoordinates(fetch.target:get(commonComponents.Position).vector)
         )
 
-        path.finishedCallBack = function()
-          settler:remove(commonComponents.Path)
-          settler:remove(commonComponents.Work)
-          settler:apply()
-          self.itemSystem:placeItemOnGround(existingItem,
-          self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector))
-          local itemData = job:get(commonComponents.Item).itemData
-          local inventory = settler:get(commonComponents.Inventory)
-          for selector, amount in pairs(itemData.requirements) do --luacheck: ignore
-            local invItem = inventory:popItemBySelector(selector)
-            -- TODO: Add item onto ground again! (remember to check Position gets added)
+        print("Got path?", path)
+
+        settler.searched_for_path = true
+
+        if path then
+
+          path.finishedCallBack = function()
+            print("Finished big")
+            settler.searched_for_path = false
+            settler:remove(commonComponents.Path)
+            settler:remove(commonComponents.Work)
+            settler:apply()
+            self.itemSystem:placeItemOnGround(existingItem,
+            self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector))
+            local itemData = job:get(commonComponents.Item).itemData
+            local inventory = settler:get(commonComponents.Inventory)
+            for selector, amount in pairs(itemData.requirements) do --luacheck: ignore
+              local invItem = inventory:popItemBySelector(selector, amount)
+              -- TODO: Add item onto ground again! (remember to check Position gets added)
+            end
+            job:get(commonComponents.Job).finished = true
+            job:get(commonComponents.Job).reserved = false
+            job:remove(commonComponents.Job) -- TODO: Experiment with this??
+            job:apply()
           end
-          job:get(commonComponents.Job).finished = true
-          job:get(commonComponents.Job).reserved = false
+          settler:give(commonComponents.Path, path)
         end
-        settler:give(commonComponents.Path, path)
       else
         local itemsOnMap = self.itemSystem:getItemsFromGroundBySelector(selector)
         if itemsOnMap and #itemsOnMap > 0 then
@@ -128,6 +154,8 @@ function SettlerSystem:processSubJob(settler, job)
             self.mapSystem:pixelsToGridCoordinates(itemOnMap:get(commonComponents.Position).vector))
 
             path.finishedCallBack = function()
+              print("Finished mid")
+              settler.searched_for_path = false
               settler:remove(commonComponents.Path)
               settler:apply()
               table.insert(inventory.inventory, itemOnMap)
@@ -147,7 +175,8 @@ function SettlerSystem:processSubJob(settler, job)
     local itemData = job:get(commonComponents.Item).itemData
     local inventory = settler:get(commonComponents.Inventory)
     for selector, amount in pairs(itemData.requirements) do --luacheck: ignore
-      local invItem = inventory:popItemBySelector(selector)
+      local invItem = inventory:popItemBySelector(selector, amount)
+      if not invItem then print("No inv to pop when trying to finish, strange", selector, amount) end 
       -- TODO: Add item onto ground again! (remember to check Position gets added)
     end
     job:get(commonComponents.Job).finished = true

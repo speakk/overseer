@@ -25,28 +25,31 @@ function DrawSystem:draw()
         l, t, l+w, t+h, sizeVector.x)
         then
           local color = draw.color
-          love.graphics.setColor(color[1]*0.3, color[2]*0.3, color[3]*0.3)
           local gridCornerPos = self.mapSystem:snapPixelToGrid(positionVector)
-          local size = self.mapSystem:getCellSize()
-          if entity:has(commonComponents.Item) and not entity:has(commonComponents.BluePrintJob) then
-            size = 16
-          end
-          if entity:has(commonComponents.BluePrintJob) then
-            if entity:get(commonComponents.Job).finished then
-              color = { 0, 0, 1 }
-            end
-          end
-          love.graphics.rectangle("fill",
-            gridCornerPos.x,
-            gridCornerPos.y,
-            size,
-            size
-          )
-          love.graphics.setColor(color[1], color[2], color[3])
+          local size = draw.size
+          --if entity:has(commonComponents.Item) and not entity:has(commonComponents.BluePrintJob) then
+          --  size = 16
+          --end
+          --if entity:has(commonComponents.BluePrintJob) then
+          --  if entity:get(commonComponents.Job).finished then
+          --    color = { 0, 0, 1 }
+          --  end
+          --end
+          --love.graphics.setColor(color[1]*0.3, color[2]*0.3, color[3]*0.3)
+          -- love.graphics.rectangle("fill",
+          --   gridCornerPos.x,
+          --   gridCornerPos.y,
+          --   size,
+          --   size
+          -- )
+          if entity:has(commonComponents.Job) then
+            color[4] = 0.5
+          else color[4] = 1.0 end
+          love.graphics.setColor(color[1], color[2], color[3], color[4])
           love.graphics.rectangle("fill",
           positionVector.x,
           positionVector.y,
-          10, 10)
+          size.x, size.y)
 
           if DEBUG then
             if (entity:has(commonComponents.Path)) then

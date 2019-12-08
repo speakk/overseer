@@ -8,6 +8,7 @@ function MoveSystem:update(dt)
     local position = entity:get(commonComponents.Position)
     local velocity = entity:get(commonComponents.Velocity)
     position.vector = position.vector + velocity.vector * dt
+
   end
 end
 

@@ -27,7 +27,7 @@ function ItemSystem:initializeTestItems()
     raw_materials = { "wood", "iron", "stone", "steel" }
   }
 
-  for i=1,40,1 do  --luacheck: ignore
+  for i=1,200,1 do  --luacheck: ignore
     local item = ECS.Entity()
     local position = Vector(math.random(mapSize.x), math.random(mapSize.y))
     local keys1 = lume.keys(randomTable)
@@ -38,9 +38,8 @@ function ItemSystem:initializeTestItems()
     local itemData = constructionTypes.getBySelector(selector)
     local color = itemData.color or { 0.5, 0.5, 0.5 }
     item:give(commonComponents.Position, self.mapSystem:gridPositionToPixels(position))
-    :give(commonComponents.Selector, selector)
-    :give(commonComponents.Item, itemData)
-    :give(commonComponents.Draw, color)
+    :give(commonComponents.Item, itemData, selector)
+    :give(commonComponents.Draw, color, Vector(16, 16))
     :give(commonComponents.Amount, 100)
     :apply()
     self:getInstance():addEntity(item)
@@ -54,7 +53,7 @@ function ItemSystem:init(mapSystem)  --luacheck: ignore
 end
 
 function ItemSystem:placeItemOnGround(item, gridPosition) --luacheck: ignore
-  local selector = item:get(commonComponents.Selector).selector
+  local selector = item:get(commonComponents.Item).selector
   if not self.itemsOnGround[selector] then
     self.itemsOnGround[selector] = {}
   end
@@ -84,7 +83,7 @@ function ItemSystem:removeItemFromGround(item)
     item:remove(commonComponents.Position)
     item:apply()
   end
-  local selector = item:get(commonComponents.Selector).selector
+  local selector = item:get(commonComponents.Item).selector
   lume.remove(self.itemsOnGround[selector], item)
   -- for _, itemOnGroun in ipairs(self.itemsOnGround[selector]) do
   --   if item == itemsOnGround then

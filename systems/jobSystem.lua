@@ -1,4 +1,5 @@
 --local inspect = require('libs/inspect')
+local lume = require('libs/lume')
 local commonComponents = require('components/common')
 
 local JobSystem = ECS.System({commonComponents.Job})
@@ -24,7 +25,7 @@ end
 
 function JobSystem:getFirstSubJob(job)
   local jobComponent = job:get(commonComponents.Job)
-  if jobComponent.reserved then return nil end
+  if not jobComponent or jobComponent.reserved then return nil end
   --if jobComponent.finished then return nil end
   if not job:has(commonComponents.Children) then
     return job 
@@ -49,20 +50,32 @@ function JobSystem:getFirstSubJob(job)
     end
   end
 
-  print("allChildrenFinished", allChildrenFinished, job:has(commonComponents.BluePrintJob))
+  --print("allChildrenFinished", allChildrenFinished, job:has(commonComponents.BluePrintJob))
   if allChildrenFinished then return job end
   return nil
 end
 
-
-function JobSystem:addJob(job)
-  print("Adding job", job)
+function JobSystem:entityAdded(job)
   table.insert(self.jobs, job)
 end
 
-
-function JobSystem:blueprintActivated(bluePrint)
-  self:addJob(bluePrint)
+function JobSystem:entityRemoved(job)
+  lume.remove(self.jobs, job)
 end
+
+-- function JobSystem:addJob(job)
+--   print("Adding job", job)
+--   table.insert(self.jobs, job)
+-- end
+
+function JobSystem:finishJob(job)
+  local jobComponent = job:get(commonComponents.Job)
+  jobComponent.finished = true
+  jobComponent.reserved = false
+end
+
+-- function JobSystem:blueprintActivated(bluePrint)
+--   self:addJob(bluePrint)
+-- end
 
 return JobSystem
