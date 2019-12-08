@@ -75,7 +75,6 @@ function SettlerSystem:processSettlerPathFinding(settler)
     if self.mapSystem:pixelsToGridCoordinates(position) == nextGridPosition then
       pathComponent.currentIndex = pathComponent.currentIndex + 1
 
-      -- if pathComponent.currentIndex == table.getn(pathComponent.path._nodes)+1 then -- Would be +1 if wanted to reach final always
       if pathComponent.currentIndex == table.getn(pathComponent.path._nodes) then
         pathComponent.path.finishedCallBack()
       end
@@ -104,7 +103,8 @@ function SettlerSystem:processSubJob(settler, job)
     -- TODO: At some point in the future make sure to invalidate paths if settler task gets canceled
     -- TODO: Add a timer so that path doesn't get fetched too often
     -- Actually, maybe the best idea would be to use events to invalidate the map?
-    if not settler:has(commonComponents.Path) and not settler.searched_for_path then -- RIGHT ON THIS IF: Is global cache valid? If not then re-get path
+    if not settler:has(commonComponents.Path) and
+      not settler.searched_for_path then -- RIGHT ON THIS IF: Is global cache valid? If not then re-get path
       local existingItem = self.itemSystem:getInventoryItemBySelector(inventory, selector)
       if existingItem and existingItem:has(commonComponents.Amount) and
         existingItem:get(commonComponents.Amount).amount >= fetch.amount then
@@ -125,9 +125,8 @@ function SettlerSystem:processSubJob(settler, job)
             self.itemSystem:placeItemOnGround(existingItem,
             self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector))
             local itemData = job:get(commonComponents.Item).itemData
-            local inventory = settler:get(commonComponents.Inventory).inventory
             for selector, amount in pairs(itemData.requirements) do --luacheck: ignore
-              local invItem = self.itemSystem:popInventoryItemBySelector(inventory, selector, amount)
+              local invItem = self.itemSystem:popInventoryItemBySelector(inventory, selector, amount) -- luacheck: ignore
               -- TODO: Add item onto ground again! (remember to check Position gets added)
             end
             job:get(commonComponents.Job).finished = true
@@ -169,7 +168,7 @@ function SettlerSystem:processSubJob(settler, job)
     local inventory = settler:get(commonComponents.Inventory).inventory
     for selector, amount in pairs(itemData.requirements) do --luacheck: ignore
       local invItem = self.itemSystem:popInventoryItemBySelector(inventory, selector, amount)
-      if not invItem then print("No inv to pop when trying to finish, strange", selector, amount) end 
+      if not invItem then print("No inv to pop when trying to finish, strange", selector, amount) end
       -- TODO: Add item onto ground again! (remember to check Position gets added)
     end
     -- job:get(commonComponents.Job).finished = true
@@ -213,9 +212,9 @@ function SettlerSystem:assignJobsForSettlers()
 
   while true do
     local availableWorker = lume.match(self.pool.objects,
-      function(potentialSettler)
-        return not potentialSettler:has(commonComponents.Work)
-      end
+    function(potentialSettler)
+      return not potentialSettler:has(commonComponents.Work)
+    end
     )
 
     if not availableWorker then break end

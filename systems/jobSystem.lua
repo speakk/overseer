@@ -1,16 +1,14 @@
 --local inspect = require('libs/inspect')
-local lume = require('libs/lume')
 local commonComponents = require('components/common')
 
 local JobSystem = ECS.System({commonComponents.Job})
 
 function JobSystem:init(mapSystem)
-  --self.jobs = {}
   self.mapSystem = mapSystem
 end
 
 function JobSystem:getNextUnreservedJob()
-  for i, job in ipairs(self.pool.objects) do
+  for _, job in ipairs(self.pool.objects) do
     if not job:has(commonComponents.Parent) then -- Only go through tree roots
       local jobComponent = job:get(commonComponents.Job)
       if not jobComponent.reserved and not jobComponent.finished then
@@ -60,7 +58,7 @@ function JobSystem:getFirstSubJob(job)
   return job
 end
 
-function JobSystem:finishJob(job)
+function JobSystem:finishJob(job) --luacheck: ignore
   local jobComponent = job:get(commonComponents.Job)
   jobComponent.finished = true
   jobComponent.reserved = false

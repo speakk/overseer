@@ -1,5 +1,5 @@
 local cpml = require('libs/cpml')
-local inspect = require('libs/inspect')
+--local inspect = require('libs/inspect')
 local Vector = require('libs/brinevector/brinevector')
 local utils = require('utils/utils')
 
@@ -72,31 +72,27 @@ end
 function MapSystem:draw()
   self.camera:draw(function(l,t,w,h)
     for rowNum, row in ipairs(map) do
-      for cellNum, cellValue in ipairs(row) do
+      for cellNum, cellValue in ipairs(row) do --luacheck: ignore
         local drawMargin = self.cellSize
         local x1 = (cellNum * self.cellSize)
         local x2 = x1 + self.cellSize
         local y1 = rowNum * self.cellSize
         local y2 = y1 + self.cellSize
         if utils.withinBounds(x1, y1, x2, y2, l, t, l+w, t+h, drawMargin) then
-        --if x1 > l-drawMargin and x2 < l+w+drawMargin and y1 > t-drawMargin and y2 < t+h+drawMargin then
-          -- Don't draw solid stuff here -- Haha gotcha, for now 
-          --if cellValue == 0 or cellValue == 1 then
-          if true then
-            --love.graphics.setColor(cellValue*0.7, 0.2, 0.3)
-            local color = mapColors[rowNum][cellNum]
-            if color.grass == 1 then
-              love.graphics.setColor(0.35, 0.4+(color.c*0.1), 0.1)
-            else
-              love.graphics.setColor(color.a*0.1+0.5, color.a*0.1+0.3, color.c*0.05+0.15)
-            end
-            love.graphics.rectangle("fill",
-            cellNum*self.cellSize,
-            rowNum*self.cellSize,
-            self.cellSize - self.padding,
-            self.cellSize - self.padding
-            )
+          --if x1 > l-drawMargin and x2 < l+w+drawMargin and y1 > t-drawMargin and y2 < t+h+drawMargin then
+          --love.graphics.setColor(cellValue*0.7, 0.2, 0.3)
+          local color = mapColors[rowNum][cellNum]
+          if color.grass == 1 then
+            love.graphics.setColor(0.35, 0.4+(color.c*0.1), 0.1)
+          else
+            love.graphics.setColor(color.a*0.1+0.5, color.a*0.1+0.3, color.c*0.05+0.15)
           end
+          love.graphics.rectangle("fill",
+          cellNum*self.cellSize,
+          rowNum*self.cellSize,
+          self.cellSize - self.padding,
+          self.cellSize - self.padding
+          )
         end
       end
     end
@@ -143,7 +139,7 @@ end
 
 function MapSystem:entityAddedTo(entity, pool)
   if pool == self.collision then
-    position = self:pixelsToGridCoordinates(entity:get(commonComponents.Position).vector)
+    local position = self:pixelsToGridCoordinates(entity:get(commonComponents.Position).vector)
     map[position.y][position.x] = 1
     self:recalculateGrid(map)
   end
@@ -151,14 +147,15 @@ end
 
 function MapSystem:entityRemovedFrom(entity, pool)
   if pool == self.collision then
-    position = self:pixelsToGridCoordinates(entity:get(commonComponents.Position).vector)
+    local position = self:pixelsToGridCoordinates(entity:get(commonComponents.Position).vector)
     map[position.y][position.x] = 0
     self:recalculateGrid(map)
   end
 end
 
-function MapSystem:recalculateGrid(map, stopEmit)
-  self.grid = Grid(map)
+function MapSystem:recalculateGrid(newMap, stopEmit)
+  self.map = newMap
+  self.grid = Grid(newMap)
   self.walkable = 0
   self.myFinder = Pathfinder(self.grid, 'JPS', self.walkable)
   self.myFinder:setMode('ORTHOGONAL')

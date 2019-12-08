@@ -1,5 +1,4 @@
 local Vector = require('libs/brinevector/brinevector')
-local lume = require('libs/lume')
 local commonComponents = {}
 
 commonComponents.Position = ECS.Component(function(e, vector) e.vector = vector or Vector(0, 0) end)

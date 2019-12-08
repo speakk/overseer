@@ -2,24 +2,9 @@ local Vector = require('libs/brinevector/brinevector')
 local lume = require('libs/lume')
 --local inspect = require('libs/inspect')
 local commonComponents = require('components/common')
-local componentLoader = require('ecsLoaders/componentLoader')
 local constructionTypes = require('data/constructionTypes')
 
 local ItemSystem = ECS.System({commonComponents.Item})
-
-
--- local function initializeItemsOnGroundTable(size)
---   local array = {}
---   for y = 1,size.y,1 do
---     local row = {}
---     for x = 1,size.x,1 do
---       row[x] = {}
---     end
---     array[y] = row
---   end
---
---   return array
--- end
 
 function ItemSystem:initializeTestItems()
   local mapSize = self.mapSystem:getSize()
@@ -29,7 +14,6 @@ function ItemSystem:initializeTestItems()
   }
 
   for i=1,200,1 do  --luacheck: ignore
-    local item = ECS.Entity()
     local position = Vector(math.random(mapSize.x), math.random(mapSize.y))
     local keys1 = lume.keys(randomTable)
     local key = keys1[math.random(#keys1)]
@@ -41,28 +25,6 @@ function ItemSystem:initializeTestItems()
     self:placeItemOnGround(item, position)
   end
 end
-
--- function ItemSystem:createItem(selector, amount, gridPosition)
---   amount = amount or 1
--- 
---   local item = ECS.Entity()
---   local itemData = constructionTypes.getBySelector(selector)
---   local color = itemData.color or { 0.5, 0.5, 0.5 }
---   item:give(commonComponents.Item, itemData, selector)
---   :give(commonComponents.Draw, color, Vector(16, 16))
---   :give(commonComponents.Amount, 100)
--- 
---   if gridPosition then
---     self:placeItemOnGround(item, gridPosition)
---   end
--- 
---   item:give(commonComponents.Amount, amount)
--- 
---   item:apply()
---   self:getInstance():addEntity(item)
--- 
---   return item
--- end
 
 function ItemSystem:createItem(selector, amount)
   amount = amount or 1
@@ -124,7 +86,7 @@ end
 
 ItemSystem.Inventory = {}
 
-function ItemSystem:getInventoryItemBySelector(inventory, selector)
+function ItemSystem:getInventoryItemBySelector(inventory, selector) -- luacheck: ignore
   local itemEnt = lume.match(inventory, function(itemInInv)
     return itemInInv:get(commonComponents.Item).selector == selector end)
   return itemEnt

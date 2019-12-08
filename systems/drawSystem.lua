@@ -14,7 +14,7 @@ function DrawSystem:draw()
   love.graphics.setColor(1, 1, 1)
   love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
   self.camera:draw(function(l,t,w,h)
-    for i, entity in ipairs(self.pool.objects) do
+    for _, entity in ipairs(self.pool.objects) do
       local positionVector = entity:get(commonComponents.Position).vector
       local draw = entity:get(commonComponents.Draw)
       local sizeVector = draw.size
@@ -25,7 +25,7 @@ function DrawSystem:draw()
         l, t, l+w, t+h, sizeVector.x)
         then
           local color = draw.color
-          local gridCornerPos = self.mapSystem:snapPixelToGrid(positionVector)
+          --local gridCornerPos = self.mapSystem:snapPixelToGrid(positionVector)
           local size = draw.size
           --if entity:has(commonComponents.Item) and not entity:has(commonComponents.BluePrintJob) then
           --  size = 16
@@ -63,7 +63,8 @@ function DrawSystem:draw()
           end
           if entity:has(commonComponents.Amount) then
             love.graphics.setColor(1, 1, 1)
-            love.graphics.print(" " .. tostring(entity:get(commonComponents.Amount).amount), positionVector.x+10, positionVector.y+10)
+            love.graphics.print(" " .. tostring(entity:get(commonComponents.Amount).amount),
+              positionVector.x+10, positionVector.y+10)
           end
 
           if DEBUG then
