@@ -1,4 +1,5 @@
 --local inspect = require('libs/inspect')
+local Vector = require('libs/brinevector/brinevector')
 local commonComponents = require('components/common')
 -- Create a draw System.
 local BluePrintSystem = ECS.System({commonComponents.BluePrint})
@@ -47,13 +48,15 @@ function BluePrintSystem:bluePrintFinished(bluePrint) --luacheck: ignore
   end
 end
 
-function BluePrintSystem:placeBluePrint(gridPosition, constructionType)
-    gridPosition = self.mapSystem:clampToWorldBounds(gridPosition)
-    if self.mapSystem:isCellAvailable(gridPosition) then
-      local bluePrint = self:generateBluePrintJob(gridPosition, constructionType)
-      self:getInstance():emit("blueprintActivated", bluePrint)
+function BluePrintSystem:placeBluePrints(nodes, constructionType)
+    for node, count in nodes do
+      print(node, count)
+      local gridPosition = self.mapSystem:clampToWorldBounds(Vector(node:getX(), node:getY()))
+      if self.mapSystem:isCellAvailable(gridPosition) then
+        local bluePrint = self:generateBluePrintJob(gridPosition, constructionType)
+        self:getInstance():emit("blueprintActivated", bluePrint)
+      end
     end
-
 end
 
 return BluePrintSystem

@@ -14,8 +14,8 @@ local mapColors = {}
 local MapSystem = ECS.System({commonComponents.Collision, "collision"})
 
 function MapSystem:init(camera)
-  self.width = 80
-  self.height = 60
+  self.width = 150
+  self.height = 150
   self.cellSize = 30
   self.padding = 0
   self.camera = camera
@@ -67,6 +67,12 @@ end
 
 function MapSystem:getCellSize()
   return self.cellSize
+end
+
+-- For documentation:
+--https://htmlpreview.github.io/?https://raw.githubusercontent.com/Yonaba/Jumper/master/docs/modules/grid.html#Grid:iter
+function MapSystem:iter(lx, ly, ex, ey)
+  return self.grid:iter(lx, ly, ex, ey)
 end
 
 function MapSystem:draw()
