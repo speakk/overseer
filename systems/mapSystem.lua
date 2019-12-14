@@ -14,13 +14,15 @@ local mapColors = {}
 local MapSystem = ECS.System({commonComponents.Collision, "collision"})
 
 function MapSystem:init(camera)
-  self.width = 150
-  self.height = 150
+  self.width = 60
+  self.height = 60
   self.cellSize = 30
   self.padding = 0
   self.camera = camera
 
   self._lastGridUpdateId = 0
+  self._lastGridUpdateTime = 0
+  self._gridUpdateInterval = 2
 
   local grassNoiseScale = 0.05
 
@@ -48,6 +50,7 @@ function MapSystem:init(camera)
 end
 
 function MapSystem:getPath(from, to)
+  print("Getting path", from, to)
   -- from = self:pixelsToGridCoordinates(from)
   -- to = self:pixelsToGridCoordinates(to)
   local toNode = self.grid:getNodeAt(to.x, to.y)
@@ -62,7 +65,33 @@ function MapSystem:getPath(from, to)
   return nil
 end
 
+function MapSystem:isInPosition(position, comparePosition, acceptNeighbours)
+  if position == comparePosition then return true end
+  print("Pos vs comp", position.x, position.y, comparePosition.x, comparePosition.y)
+
+  if acceptNeighbours then
+    local toNode = self.grid:getNodeAt(comparePosition.x, comparePosition.y)
+    --local toNodesToCheck = self.grid:around(toNode)
+    for clearance = 1,2 do
+      for node in self.grid:around(toNode, clearance) do
+        print("Checking if match", node:getX(), node:getY(), position.x, position.y)
+        if Vector(node:getX(), node:getY()) == position then return true end
+      end
+    end
+  end
+
+  return false
+end
+
 function MapSystem:update(dt) --luacheck: ignore
+  if self.gridInvalidated then
+    local time = love.timer.getTime()
+    if time - self._lastGridUpdateTime > self._gridUpdateInterval then
+      self:recalculateGrid(map)
+      self.gridInvalidated = false
+      self._lastGridUpdateTime = time
+    end
+  end
 end
 
 function MapSystem:getCellSize()
@@ -132,7 +161,7 @@ function MapSystem:gridPositionToPixels(gridPosition, positionFlag, entitySize)
 end
 
 function MapSystem:snapPixelToGrid(pixelPosition, positionFlag, entitySize)
-  return self:gridPositionToPixels(self:pixelsToGridCoordinates(pixelPosition, positionFlag, entitySize))
+  return self:gridPositionToPixels(self:pixelsToGridCoordinates(pixelPosition), positionFlag, entitySize)
 end
 
 function MapSystem:pixelsToGridCoordinates(pixelPosition)
@@ -147,7 +176,7 @@ function MapSystem:entityAddedTo(entity, pool)
   if pool == self.collision then
     local position = self:pixelsToGridCoordinates(entity:get(commonComponents.Position).vector)
     map[position.y][position.x] = 1
-    self:recalculateGrid(map)
+    self.gridInvalidated = true
   end
 end
 
@@ -155,7 +184,7 @@ function MapSystem:entityRemovedFrom(entity, pool)
   if pool == self.collision then
     local position = self:pixelsToGridCoordinates(entity:get(commonComponents.Position).vector)
     map[position.y][position.x] = 0
-    self:recalculateGrid(map)
+    self.gridInvalidated = true
   end
 end
 

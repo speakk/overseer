@@ -110,6 +110,10 @@ function GUISystem:mousepressed(x, y, button, istouch, presses)
 end
 
 function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
+  if pressedKey == 'z' then
+    DEBUG = not DEBUG
+  end
+
   for menuName, menuItem in pairs(self.menuHierarchy) do
     if menuItem.shortCut == pressedKey then
       menuItem.selected = not menuItem.selected

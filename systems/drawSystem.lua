@@ -5,14 +5,16 @@ local utils = require('utils/utils')
 -- Create a draw System.
 local DrawSystem = ECS.System({commonComponents.Position, commonComponents.Draw})
 
-function DrawSystem:init(mapSystem, camera)
+function DrawSystem:init(mapSystem, jobSystem, camera)
   self.mapSystem = mapSystem
+  self.jobSystem = jobSystem
   self.camera = camera
 end
 
 function DrawSystem:draw()
-  love.graphics.setColor(1, 1, 1)
-  love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
+  love.graphics.setColor(1, 1, 0)
+  love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10, 0, 1.3, 1.3)
+  love.graphics.print("Amount of jobs: "..tostring(#self.jobSystem.pool.objects), 10, 40, 0, 1.3, 1.3)
   self.camera:draw(function(l,t,w,h)
     for _, entity in ipairs(self.pool.objects) do
       local positionVector = entity:get(commonComponents.Position).vector
@@ -25,23 +27,8 @@ function DrawSystem:draw()
         l, t, l+w, t+h, sizeVector.x)
         then
           local color = draw.color
-          --local gridCornerPos = self.mapSystem:snapPixelToGrid(positionVector)
           local size = draw.size
-          --if entity:has(commonComponents.Item) and not entity:has(commonComponents.BluePrintJob) then
-          --  size = 16
-          --end
-          --if entity:has(commonComponents.BluePrintJob) then
-          --  if entity:get(commonComponents.Job).finished then
-          --    color = { 0, 0, 1 }
-          --  end
-          --end
-          --love.graphics.setColor(color[1]*0.3, color[2]*0.3, color[3]*0.3)
-          -- love.graphics.rectangle("fill",
-          --   gridCornerPos.x,
-          --   gridCornerPos.y,
-          --   size,
-          --   size
-          -- )
+
           love.graphics.setColor(color[1], color[2], color[3], color[4])
           love.graphics.rectangle("fill",
           positionVector.x,
@@ -51,13 +38,14 @@ function DrawSystem:draw()
           if entity:has(commonComponents.Job) then
             if entity:has(commonComponents.BluePrintJob) then
               love.graphics.setColor(1, 1, 1)
-              love.graphics.print("Unfinished", positionVector.x, positionVector.y)
+              local progress = entity:get(commonComponents.BluePrintJob).buildProgress
+              love.graphics.print(" " .. string.format("%d", progress) .. "%", positionVector.x, positionVector.y)
             end
             color[4] = 0.5
           else
             if entity:has(commonComponents.BluePrintJob) then
               love.graphics.setColor(1, 1, 1)
-              love.graphics.print("Finished", positionVector.x, positionVector.y)
+              --love.graphics.print("", positionVector.x, positionVector.y)
             end
             color[4] = 1.0
           end

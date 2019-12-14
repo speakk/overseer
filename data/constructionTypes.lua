@@ -7,8 +7,7 @@ local data = {
       wooden_wall = {
         name = "Wooden wall",
         requirements = {
-          ["raw_materials.wood"] = 10,
-          ["raw_materials.steel"] = 1
+          ["raw_materials.wood"] = 2
         },
         color = {0.9, 0.7, 0.1},
         hp = 100
@@ -16,7 +15,6 @@ local data = {
       iron_wall = {
         name = "Iron wall",
         requirements = {
-          ["raw_materials.wood"] = 10,
           ["raw_materials.steel"] = 1
         },
         color = {0.5, 0.5, 0.55},
@@ -30,7 +28,7 @@ local data = {
       wooden_door = {
         name = "Wooden door",
         requirements = {
-          ["raw_materials.wood"] = 3
+          ["raw_materials.wood"] = 1
         },
         color = {0.9, 0.7, 0.1},
         hp = 100
@@ -38,7 +36,7 @@ local data = {
       stone_door = {
         name = "Stone door",
         requirements = {
-          ["raw_materials.stone"] = 3
+          ["raw_materials.stone"] = 1
         },
         color = {0.8, 0.8, 0.8},
         hp = 200

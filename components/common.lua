@@ -9,16 +9,22 @@ commonComponents.Draw = ECS.Component(function(e, color, size)
   e.color = color or { 1, 0, 0 }
   e.size = size or Vector(32, 32)
 end)
-commonComponents.Settler = ECS.Component()
+commonComponents.Settler = ECS.Component(function(e, name)
+  e.name = name or "Lucy"
+  e.skills = {
+    construction = 5
+  }
+end)
 commonComponents.Work = ECS.Component(function(e, job) e.job = job or nil end) -- Settler work
 commonComponents.Path = ECS.Component(function(e, path, currentIndex)
   e.path = path
   e.currentIndex = currentIndex or 1
 end)
-commonComponents.FetchJob = ECS.Component(function(e, target, selector, amount)
+commonComponents.FetchJob = ECS.Component(function(e, target, selector, amount, finishedCallBack)
   e.target = target or error("Fetch has no target!")
   e.selector = selector or error("Fetch has no selector!")
   e.amount = amount
+  e.finishedCallBack = finishedCallBack
 end)
 commonComponents.HealingJob = ECS.Component()
 commonComponents.Job = ECS.Component(function(e, target, reserved, finished, allJobsOrNothing)
@@ -28,7 +34,10 @@ commonComponents.Job = ECS.Component(function(e, target, reserved, finished, all
   e.allJobsOrNothing = allJobsOrNothing or false
 end)
 commonComponents.Worker = ECS.Component(function(e, available) e.available = available or true end)
-commonComponents.BluePrintJob = ECS.Component()
+commonComponents.BluePrintJob = ECS.Component(function(e)
+  e.materialsConsumed = {} 
+  e.buildProgress = 0 -- 0/100
+end)
 commonComponents.ConstructionJob = ECS.Component()
 commonComponents.Collision = ECS.Component()
 commonComponents.Inventory = ECS.Component(function(e, inventory)
@@ -37,7 +46,7 @@ end)
 --commonComponents.Selector = ECS.Component(function(e, selector) e.selector = selector or "" end)
 commonComponents.Item = ECS.Component(function(e, itemData, selector)
   e.itemData = itemData or {}
-  e.selector = selector or ""
+  e.selector = selector or error("Item needs data selector!")
 end)
 -- This method is supposed to be maybe overriden at will to answer the question
 -- "How unique is unique enough?" for combining items

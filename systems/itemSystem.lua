@@ -73,15 +73,22 @@ end
 
 function ItemSystem:getItemsFromGroundBySelector(itemSelector) --luacheck: ignore
   return self.itemsOnGround[itemSelector]
+  --return self:splitItemStackIfNeeded(item)
 end
 
-function ItemSystem:removeItemFromGround(item)
-  if item:has(commonComponents.Position) then
-    item:remove(commonComponents.Position)
-    item:apply()
+function ItemSystem:takeItemFromGround(originalItem, amount)
+  local selector = originalItem:get(commonComponents.Item).selector
+  local item, wasSplit = self:splitItemStackIfNeeded(originalItem, amount)
+
+  if not wasSplit then
+    lume.remove(self.itemsOnGround[selector], originalItem)
+    if originalItem:has(commonComponents.Position) then
+      originalItem:remove(commonComponents.Position)
+      originalItem:apply()
+    end
   end
-  local selector = item:get(commonComponents.Item).selector
-  lume.remove(self.itemsOnGround[selector], item)
+
+  return item
 end
 
 ItemSystem.Inventory = {}
@@ -91,22 +98,33 @@ function ItemSystem:getInventoryItemBySelector(inventory, selector) -- luacheck:
     return itemInInv:get(commonComponents.Item).selector == selector end)
   return itemEnt
 end
--- TODO: Add "Amount" parameter, split the item as needed
-function ItemSystem:popInventoryItemBySelector(inventory, selector, amount)
-  local item = self:getInventoryItemBySelector(inventory, selector)
-  if item then
-    local currentAmount = item:get(commonComponents.Amount).amount
-    local diff = currentAmount - amount
-    if diff <= 0 then
-      lume.remove(inventory, item)
-      return item
-    end
 
-    item:give(commonComponents.Amount, diff)
-    local itemCopy = self:createItem(selector, amount)
-    itemCopy:give(commonComponents.Amount, amount)
-    return itemCopy
+-- Return item, wasSplit
+function ItemSystem:splitItemStackIfNeeded(item, amount)
+  if not item then error("Trying to split nil item") end
+  local currentAmount = item:get(commonComponents.Amount).amount
+  local diff = currentAmount - amount
+  if diff <= 0 then
+    return item, false
   end
+
+  local selector = item:get(commonComponents.Item).selector
+  item:give(commonComponents.Amount, diff)
+  local itemCopy = self:createItem(selector, amount)
+  itemCopy:give(commonComponents.Amount, amount)
+  return itemCopy, true
+end
+
+function ItemSystem:popInventoryItemBySelector(inventory, selector, amount)
+  local originalItem = self:getInventoryItemBySelector(inventory, selector)
+  print("Getting selection", selector, originalItem)
+  if not originalItem then return end
+  local item, wasSplit = self:splitItemStackIfNeeded(originalItem, amount)
+  if not wasSplit then
+    lume.remove(inventory, item)
+  end
+
+  return item
 end
 
 return ItemSystem
