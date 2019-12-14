@@ -67,14 +67,12 @@ end
 
 function MapSystem:isInPosition(position, comparePosition, acceptNeighbours)
   if position == comparePosition then return true end
-  print("Pos vs comp", position.x, position.y, comparePosition.x, comparePosition.y)
 
   if acceptNeighbours then
     local toNode = self.grid:getNodeAt(comparePosition.x, comparePosition.y)
     --local toNodesToCheck = self.grid:around(toNode)
     for clearance = 1,2 do
       for node in self.grid:around(toNode, clearance) do
-        print("Checking if match", node:getX(), node:getY(), position.x, position.y)
         if Vector(node:getX(), node:getY()) == position then return true end
       end
     end

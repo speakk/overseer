@@ -5,10 +5,62 @@ local JobSystem = ECS.System({commonComponents.Job})
 
 function JobSystem:init(mapSystem)
   self.mapSystem = mapSystem
+  self.jobs = {}
+end
+
+function printJob(job, level, y)
+  local name = job:get(commonComponents.Name).name
+  local space = 15
+  local jobComponent = job:get(commonComponents.Job)
+
+  if job:has(commonComponents.Children) then
+    love.graphics.setColor(0, 1, 0)
+  else
+    love.graphics.setColor(1, 0, 0)
+  end
+  if jobComponent.finished then
+    love.graphics.setColor(1, 1, 1)
+    name = "x " .. name
+  end
+
+  if jobComponent.reserved then
+    name = name .. " - reserved by " .. tostring(jobComponent.reserved)
+  end
+
+  if job:has(commonComponents.BluePrintJob) then
+    local bluePrintComponent = job:get(commonComponents.BluePrintJob)
+    name = name .. " Consumed: "
+    for selector, item in pairs(bluePrintComponent.materialsConsumed) do
+      name = name .. "| " .. selector .. " | "
+    end
+  end
+
+  love.graphics.print(name, 40 + level * space, 40 + y * space, 0, 1.1, 1.1)
+
+  if job:has(commonComponents.Children) then
+    local children = job:get(commonComponents.Children).children
+
+    if children then
+      for i, child in ipairs(children) do
+        printJob(child, level + 1, y + 1)
+      end
+    else
+    end
+  else
+  end
+
+end
+
+function JobSystem:draw()
+  if DEBUG then
+    for i, job in ipairs(self.jobs) do
+      printJob(job, 0, i*3)
+    end
+  end
 end
 
 function JobSystem:getNextUnreservedJob()
-  for _, job in ipairs(self.pool.objects) do
+  for _, job in ipairs(self.jobs) do
     if not job:has(commonComponents.Parent) then -- Only go through tree roots
       local jobComponent = job:get(commonComponents.Job)
       if not jobComponent.reserved and not jobComponent.finished then
@@ -16,9 +68,7 @@ function JobSystem:getNextUnreservedJob()
         if firstSubJob then
           local subJobComponent = firstSubJob:get(commonComponents.Job)
           --return firstSubJob
-          if subJobComponent.finished then
-            firstSubJob.remove(commonComponents.Job)
-          else
+          if not subJobComponent.finished then
             if not subJobComponent.reserved and subJobComponent.canStart then return firstSubJob end
           end
         end
@@ -36,12 +86,10 @@ function JobSystem:getFirstSubJob(job)
       local firstChildJob = self:getFirstSubJob(child)
       if firstChildJob then
         local firstChildJobComponent = firstChildJob:get(commonComponents.Job)
-        if firstChildJobComponent then
-          if not firstChildJobComponent.finished then
-            allChildrenFinished = false
-            if not firstChildJobComponent.reserved then
-              return firstChildJob
-            end
+        if not firstChildJobComponent.finished then
+          allChildrenFinished = false
+          if not firstChildJobComponent.reserved then
+            return firstChildJob
           end
         end
       end
@@ -49,10 +97,8 @@ function JobSystem:getFirstSubJob(job)
   end
 
   if allChildrenFinished then
-    if job:has(commonComponents.Job) then
-      local jobComponent = job:get(commonComponents.Job)
-      jobComponent.canStart = true
-    end
+    local jobComponent = job:get(commonComponents.Job)
+    jobComponent.canStart = true
   end
 
   return job
@@ -62,6 +108,10 @@ function JobSystem:finishJob(job) --luacheck: ignore
   local jobComponent = job:get(commonComponents.Job)
   jobComponent.finished = true
   jobComponent.reserved = false
+end
+
+function JobSystem:addJob(job)
+  table.insert(self.jobs, job)
 end
 
 return JobSystem

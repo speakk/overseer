@@ -3,6 +3,7 @@ local commonComponents = {}
 
 commonComponents.Position = ECS.Component(function(e, vector) e.vector = vector or Vector(0, 0) end)
 commonComponents.Velocity = ECS.Component(function(e, vector) e.vector = vector or Vector(0, 0) end)
+commonComponents.Name = ECS.Component(function(e, name) e.name = name or "-" end)
 commonComponents.PlayerInput = ECS.Component()
 commonComponents.Camera = ECS.Component()
 commonComponents.Draw = ECS.Component(function(e, color, size)
@@ -17,7 +18,7 @@ commonComponents.Settler = ECS.Component(function(e, name)
 end)
 commonComponents.Work = ECS.Component(function(e, job) e.job = job or nil end) -- Settler work
 commonComponents.Path = ECS.Component(function(e, path, currentIndex)
-  e.path = path
+  e.path = path or error("No path for Path component!")
   e.currentIndex = currentIndex or 1
 end)
 commonComponents.FetchJob = ECS.Component(function(e, target, selector, amount, finishedCallBack)

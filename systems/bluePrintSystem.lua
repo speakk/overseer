@@ -7,6 +7,7 @@ local BluePrintSystem = ECS.System({commonComponents.BluePrint})
 function BluePrintSystem:generateBluePrintJob(gridPosition, itemData, bluePrintItemSelector)
   local job = ECS.Entity()
   job:give(commonComponents.Job)
+  job:give(commonComponents.Name, "BluePrintJob")
   job:give(commonComponents.BluePrintJob)
   job:give(commonComponents.Draw, itemData.color)
   job:give(commonComponents.Item, itemData, bluePrintItemSelector)
@@ -19,7 +20,7 @@ function BluePrintSystem:generateBluePrintJob(gridPosition, itemData, bluePrintI
     for selector, amount in pairs(itemData.requirements) do
       local subJob = ECS.Entity()
       subJob:give(commonComponents.Job)
-      print("Selector", selector)
+      subJob:give(commonComponents.Name, "FetchJob")
       subJob:give(commonComponents.Item, itemData, selector)
       subJob:give(commonComponents.Parent, job)
       local finishedCallBack = function()
@@ -34,31 +35,36 @@ function BluePrintSystem:generateBluePrintJob(gridPosition, itemData, bluePrintI
 
   job:apply()
   self:getInstance():addEntity(job)
+  
+  self.jobSystem:addJob(job)
 
   return job
 end
 
-function BluePrintSystem:init(mapSystem)
+function BluePrintSystem:init(mapSystem, jobSystem)
   self.mapSystem = mapSystem
+  self.jobSystem = jobSystem
 end
 
 function BluePrintSystem:update(dt) --luacheck: ignore
 end
 
 function BluePrintSystem:consumeRequirement(bluePrint, item)
-  print("Consuming requirement!", item:get(commonComponents.Item).selector)
   local bluePrintComponent = bluePrint:get(commonComponents.BluePrintJob)
   bluePrintComponent.materialsConsumed[item:get(commonComponents.Item).selector] = item
 end
 
 function BluePrintSystem:isBluePrintReadyToBuild(bluePrint)
+  if bluePrint:get(commonComponents.Job).finished then return false end
+
   local bluePrintComponent = bluePrint:get(commonComponents.BluePrintJob)
   local materialsConsumed = bluePrintComponent.materialsConsumed
   local requirements = bluePrint:get(commonComponents.Item).itemData.requirements
 
   for selector, item in pairs(requirements) do
-    print("Is materialsConsumed", selector, materialsConsumed[selector])
-    if not materialsConsumed[selector] then return false end
+    if not materialsConsumed[selector] then
+      return false
+    end
   end
 
   return true
@@ -73,7 +79,6 @@ end
 
 function BluePrintSystem:placeBluePrints(nodes, constructionType, selector)
     for node, count in nodes do
-      print(node, count)
       local gridPosition = self.mapSystem:clampToWorldBounds(Vector(node:getX(), node:getY()))
       if self.mapSystem:isCellAvailable(gridPosition) then
         local bluePrint = self:generateBluePrintJob(gridPosition, constructionType, selector)

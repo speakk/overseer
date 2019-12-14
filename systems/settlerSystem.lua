@@ -49,7 +49,9 @@ function SettlerSystem:processSettlerPathFinding(settler)
 
   local pathComponent = settler:get(commonComponents.Path)
 
-  if not pathComponent.path then return end
+  if not pathComponent.path then
+    return
+  end
 
   local position = settler:get(commonComponents.Position).vector
   local nextGridPosition
@@ -73,6 +75,7 @@ function SettlerSystem:processSettlerPathFinding(settler)
       if pathComponent.currentIndex == table.getn(pathComponent.path._nodes) then
         pathComponent.path.finishedCallBack()
         settler:remove(commonComponents.Path)
+        settler:apply()
       end
     end
     velocityComponent.vector = velocityComponent.vector.normalized * settlerSpeed
@@ -129,9 +132,7 @@ function SettlerSystem:processSubJob(settler, job, dt)
             --   self.itemSystem:placeItemOnGround(invItem,
             --   self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector))
             -- end
-            job:get(commonComponents.Job).finished = true
-            job:get(commonComponents.Job).reserved = false
-            job:remove(commonComponents.Job) -- TODO: Experiment with this??
+            self.jobSystem:finishJob(job)
             job:apply()
           end
           settler:give(commonComponents.Path, path)
@@ -165,18 +166,15 @@ function SettlerSystem:processSubJob(settler, job, dt)
   end
 
   if job:has(commonComponents.BluePrintJob) and job:has(commonComponents.Item) then --luacheck: ignore
-    --print("Trying to do BluePrintJob")
     local bluePrintComponent = job:get(commonComponents.BluePrintJob)
     local settlerGridPosition = self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector)
     local bluePrintGridPosition = self.mapSystem:pixelsToGridCoordinates(job:get(commonComponents.Position).vector)
     if self.mapSystem:isInPosition(settlerGridPosition, bluePrintGridPosition, true) then
-      print("In position")
       if self.bluePrintSystem:isBluePrintReadyToBuild(job) then
         local constructionSkill = settler:get(commonComponents.Settler).skills.construction
         bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + constructionSkill * dt
         if bluePrintComponent.buildProgress >= 100 then
-          job:remove(commonComponents.Job)
-          job:apply()
+          self.jobSystem:finishJob(job)
           settler:remove(commonComponents.Work)
           settler:apply()
         end
@@ -186,24 +184,13 @@ function SettlerSystem:processSubJob(settler, job, dt)
       if not settler.searched_for_path then -- RIGHT ON THIS IF: Is global cache valid? If not then re-get path
         local path = self.mapSystem:getPath(settlerGridPosition, bluePrintGridPosition)
         settler.searched_for_path = true
-        path.finishedCallBack = function()
-          settler.searched_for_path = false
+        if path then
+          path.finishedCallBack = function()
+            settler.searched_for_path = false
+          end
+          settler:give(commonComponents.Path, path)
         end
-        settler:give(commonComponents.Path)
       end
-
-      -- local itemData = job:get(commonComponents.Item).itemData
-      -- local inventory = settler:get(commonComponents.Inventory).inventory
-      -- -- for selector, amount in pairs(itemData.requirements) do --luacheck: ignore
-      -- --   local invItem = self.itemSystem:popInventoryItemBySelector(inventory, selector, amount)
-      -- --   self.bluePrintSystem:consumeRequirement(job, invItem)
-      -- --   if not invItem then print("No inv to pop when trying to finish, strange", selector, amount) end
-      -- --   -- TODO: Add item onto ground again! (remember to check Position gets added)
-      -- -- end
-      -- -- job:get(commonComponents.Job).finished = true
-      -- -- job:get(commonComponents.Job).reserved = false
-      -- job:remove(commonComponents.Job)
-      -- job:apply()
     end
   end
 
@@ -234,7 +221,7 @@ function SettlerSystem:initalizeTestSettlers()
 end
 
 function SettlerSystem:startJob(settler, job) -- luacheck: ignore
-  job:get(commonComponents.Job).reserved = true
+  job:get(commonComponents.Job).reserved = settler
   settler:give(commonComponents.Work, job)
 end
 

@@ -15,7 +15,8 @@ local data = {
       iron_wall = {
         name = "Iron wall",
         requirements = {
-          ["raw_materials.steel"] = 1
+          ["raw_materials.steel"] = 1,
+          ["raw_materials.wood"] = 1
         },
         color = {0.5, 0.5, 0.55},
         hp = 500

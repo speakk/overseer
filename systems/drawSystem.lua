@@ -29,31 +29,46 @@ function DrawSystem:draw()
           local color = draw.color
           local size = draw.size
 
+
+          if entity:has(commonComponents.Job) then
+            if entity:has(commonComponents.BluePrintJob) then
+              local jobComponent = entity:get(commonComponents.Job)
+              if jobComponent.finished then
+                color[4] = 1.0
+              else
+                color[4] = 0.5
+                love.graphics.setColor(1, 1, 1, 1)
+                local progress = entity:get(commonComponents.BluePrintJob).buildProgress
+                love.graphics.print(" " .. string.format("%d", progress) .. "%", positionVector.x, positionVector.y)
+               end
+            end
+          end
+
           love.graphics.setColor(color[1], color[2], color[3], color[4])
           love.graphics.rectangle("fill",
           positionVector.x,
           positionVector.y,
           size.x, size.y)
-
-          if entity:has(commonComponents.Job) then
-            if entity:has(commonComponents.BluePrintJob) then
-              love.graphics.setColor(1, 1, 1)
-              local progress = entity:get(commonComponents.BluePrintJob).buildProgress
-              love.graphics.print(" " .. string.format("%d", progress) .. "%", positionVector.x, positionVector.y)
-            end
-            color[4] = 0.5
-          else
-            if entity:has(commonComponents.BluePrintJob) then
-              love.graphics.setColor(1, 1, 1)
-              --love.graphics.print("", positionVector.x, positionVector.y)
-            end
-            color[4] = 1.0
-          end
-          if entity:has(commonComponents.Amount) then
-            love.graphics.setColor(1, 1, 1)
-            love.graphics.print(" " .. tostring(entity:get(commonComponents.Amount).amount),
-              positionVector.x+10, positionVector.y+10)
-          end
+-- 
+--             if entity:has(commonComponents.BluePrintJob) then
+--               love.graphics.setColor(1, 1, 1)
+--               local progress = entity:get(commonComponents.BluePrintJob).buildProgress
+--               love.graphics.print(" " .. string.format("%d", progress) .. "%", positionVector.x, positionVector.y)
+--             end
+--             color[4] = 0.5
+--           else
+--             if entity:has(commonComponents.BluePrintJob) then
+--               love.graphics.setColor(1, 1, 1)
+--               --love.graphics.print("", positionVector.x, positionVector.y)
+--             end
+--             color[4] = 1.0
+--           end
+--         end
+           if entity:has(commonComponents.Amount) then
+             love.graphics.setColor(1, 1, 1)
+             love.graphics.print(" " .. tostring(entity:get(commonComponents.Amount).amount),
+               positionVector.x+10, positionVector.y+10)
+           end
 
           if DEBUG then
             if (entity:has(commonComponents.Path)) then
