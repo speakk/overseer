@@ -36,6 +36,7 @@ function OverseerSystem:draw()
     -- TODO: Now adding cellSize to make sure visuals correspond to actual. Find out why this needs to happen, probably has to do with how rounding is done in "pixelsToGridCoordinates"
     local gridSnappedMouse = self.mapSystem:snapPixelToGrid(Vector(globalX+cellSize, globalY+cellSize))
     self.camera:draw(function(l,t,w,h)
+      love.graphics.setColor(1, 1, 1, 1)
       love.graphics.rectangle("line",
         startPoint.x,
         startPoint.y,
