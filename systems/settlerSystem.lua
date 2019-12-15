@@ -85,9 +85,14 @@ end
 
 function SettlerSystem:invalidatePaths()
   for _, settler in ipairs(self.pool.objects) do
-    settler:remove(commonComponents.Path)
-    settler:apply()
-    settler.searched_for_path = false
+    if settler:has(commonComponents.Path) then
+      local path = settler:get(commonComponents.Path).path
+      if not self.mapSystem:pathStillValid(path) then
+        settler:remove(commonComponents.Path)
+        settler:apply()
+        settler.searched_for_path = false
+      end
+    end
   end
 end
 
@@ -102,10 +107,7 @@ function SettlerSystem:processSubJob(settler, job, dt)
     local inventoryComponent = settler:get(commonComponents.Inventory)
     local inventory = inventoryComponent.inventory
     settler.searched_for_path = false
-    -- TODO: At some point in the future make sure to invalidate paths if settler task gets canceled
-    -- TODO: Add a timer so that path doesn't get fetched too often
-    -- Actually, maybe the best idea would be to use events to invalidate the map?
-    if not settler.searched_for_path then -- RIGHT ON THIS IF: Is global cache valid? If not then re-get path
+    if not settler.searched_for_path then
       local existingItem = self.itemSystem:getInventoryItemBySelector(inventory, selector)
       -- If already have the item, then place item on ground at target site
       if existingItem and existingItem:has(commonComponents.Amount) and
@@ -124,14 +126,7 @@ function SettlerSystem:processSubJob(settler, job, dt)
             settler:remove(commonComponents.Work)
             settler:apply()
             local invItem = self.itemSystem:popInventoryItemBySelector(inventory, selector, amount) -- luacheck: ignore
-            -- self.itemSystem:placeItemOnGround(invItem,
-            -- self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector))
             job:get(commonComponents.FetchJob).finishedCallBack()
-            -- for selector, amount in pairs(itemData.requirements) do --luacheck: ignore
-            --   local invItem = self.itemSystem:popInventoryItemBySelector(inventory, selector, amount) -- luacheck: ignore
-            --   self.itemSystem:placeItemOnGround(invItem,
-            --   self.mapSystem:pixelsToGridCoordinates(settler:get(commonComponents.Position).vector))
-            -- end
             self.jobSystem:finishJob(job)
             job:apply()
           end
@@ -155,7 +150,6 @@ function SettlerSystem:processSubJob(settler, job, dt)
                 settler:apply()
                 table.insert(inventory, itemOnMap)
                 self.itemSystem:takeItemFromGround(itemOnMap, amount)
-                --job.finished = true
               end
               settler:give(commonComponents.Path, path)
             end

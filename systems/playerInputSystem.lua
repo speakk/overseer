@@ -9,6 +9,7 @@ local cameraSpeed = 500
 function PlayerInputSystem:init(overseerSystem, mapSystem, camera)
   self.overseerSystem = overseerSystem
   self.mapSystem = mapSystem
+  self.lightWorld = mapSystem:getLightWorld()
   self.camera = camera
 end
 
@@ -28,7 +29,12 @@ function PlayerInputSystem:update(dt)
   end
   vector = vector.normalized * cameraSpeed
   local x, y = self.camera:getPosition()
-  self.camera:setPosition(x + vector.x*dt, y + vector.y*dt)
+  local posX = x + vector.x*dt
+  local posY = y + vector.y*dt
+  self.camera:setPosition(posX, posY)
+  print("x y scale", posX, posY, self.camera:getScale())
+  self.lightWorld:update(dt)
+  self.lightWorld:setTranslation(posX, posY, self.camera:getScale())
   for _, entity in ipairs(self.pool.objects) do
     if entity:has(commonComponents.Velocity) then
       entity:get(commonComponents.Velocity).vector = vector
@@ -53,6 +59,7 @@ function PlayerInputSystem:wheelmoved(x, y) --luacheck: ignore
   print(self.camera:getScale())
   currentScale = cpml.utils.clamp(currentScale + y * zoomSpeed, minZoom, maxZoom)
   self.camera:setScale(currentScale)
+  --self.lightWorld:setScale(currentScale)
 end
 
 return PlayerInputSystem

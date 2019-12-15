@@ -10,6 +10,7 @@ end
 
 function CameraSystem:resize(w, h)
   self.camera:setWindow(0, 0, w, h)
+  self.lightWorld:refreshScreenSize(w,h)
 end
 
 return CameraSystem
