@@ -14,15 +14,15 @@ local mapColors = {}
 
 local MapSystem = ECS.System({commonComponents.Collision, "collision"})
 
-function MapSystem:init(camera, lightWorld)
+function MapSystem:init(camera)
   self.width = 60
   self.height = 60
   self.cellSize = 30
   self.padding = 0
   self.camera = camera
-  self.lightWorld = LightWorld({
-    ambient = {1,1,1},         --the general ambient light in the environment
-  })
+  -- self.lightWorld = LightWorld({
+  --   ambient = {1,1,1},         --the general ambient light in the environment
+  -- })
 
   self._lastGridUpdateId = 0
   self._lastGridUpdateTime = 0
@@ -53,9 +53,9 @@ function MapSystem:init(camera, lightWorld)
   camera:setWorld(self.cellSize, self.cellSize, self.width * self.cellSize, self.height * self.cellSize)
 end
 
-function MapSystem:getLightWorld()
-  return self.lightWorld
-end
+-- function MapSystem:getLightWorld()
+--   return self.lightWorld
+-- end
 
 function MapSystem:getPath(from, to)
   print("Getting path", from, to)
@@ -104,6 +104,14 @@ function MapSystem:getCellSize()
   return self.cellSize
 end
 
+function MapSystem:getPadding()
+  return self.padding
+end
+
+function MapSystem:getMapColorArray()
+  return mapColors
+end
+
 -- For documentation:
 --https://htmlpreview.github.io/?https://raw.githubusercontent.com/Yonaba/Jumper/master/docs/modules/grid.html#Grid:iter
 function MapSystem:iter(lx, ly, ex, ey)
@@ -113,42 +121,46 @@ end
 -- Window resize
 function MapSystem:resize(w, h)
   self.camera:setWindow(0, 0, w, h)
-  self.lightWorld:refreshScreenSize(w,h)
+  -- self.lightWorld:refreshScreenSize(w,h)
 end
 
-function MapSystem:draw()
-  love.graphics.push()
-  self.camera:draw(function(l,t,w,h)
-    self.lightWorld:draw(function()
-      for rowNum, row in ipairs(map) do
-        for cellNum, cellValue in ipairs(row) do --luacheck: ignore
-          local drawMargin = self.cellSize
-          local x1 = (cellNum * self.cellSize)
-          local x2 = x1 + self.cellSize
-          local y1 = rowNum * self.cellSize
-          local y2 = y1 + self.cellSize
-          if utils.withinBounds(x1, y1, x2, y2, l, t, l+w, t+h, drawMargin) then
-            --if x1 > l-drawMargin and x2 < l+w+drawMargin and y1 > t-drawMargin and y2 < t+h+drawMargin then
-            --love.graphics.setColor(cellValue*0.7, 0.2, 0.3)
-            local color = mapColors[rowNum][cellNum]
-            if color.grass == 1 then
-              love.graphics.setColor(0.35, 0.4+(color.c*0.1), 0.1)
-            else
-              love.graphics.setColor(color.a*0.1+0.5, color.a*0.1+0.3, color.c*0.05+0.15)
-            end
-            love.graphics.rectangle("fill",
-            cellNum*self.cellSize,
-            rowNum*self.cellSize,
-            self.cellSize - self.padding,
-            self.cellSize - self.padding
-            )
-          end
-        end
-      end
-    end)
-  end)
-  love.graphics.pop()
+function MapSystem:getMap()
+  return map
 end
+
+-- function MapSystem:draw()
+--   love.graphics.push()
+--   self.camera:draw(function(l,t,w,h)
+--     self.lightWorld:draw(function()
+--       for rowNum, row in ipairs(map) do
+--         for cellNum, cellValue in ipairs(row) do --luacheck: ignore
+--           local drawMargin = self.cellSize
+--           local x1 = (cellNum * self.cellSize)
+--           local x2 = x1 + self.cellSize
+--           local y1 = rowNum * self.cellSize
+--           local y2 = y1 + self.cellSize
+--           if utils.withinBounds(x1, y1, x2, y2, l, t, l+w, t+h, drawMargin) then
+--             --if x1 > l-drawMargin and x2 < l+w+drawMargin and y1 > t-drawMargin and y2 < t+h+drawMargin then
+--             --love.graphics.setColor(cellValue*0.7, 0.2, 0.3)
+--             local color = mapColors[rowNum][cellNum]
+--             if color.grass == 1 then
+--               love.graphics.setColor(0.35, 0.4+(color.c*0.1), 0.1)
+--             else
+--               love.graphics.setColor(color.a*0.1+0.5, color.a*0.1+0.3, color.c*0.05+0.15)
+--             end
+--             love.graphics.rectangle("fill",
+--             cellNum*self.cellSize,
+--             rowNum*self.cellSize,
+--             self.cellSize - self.padding,
+--             self.cellSize - self.padding
+--             )
+--           end
+--         end
+--       end
+--     end)
+--   end)
+--   love.graphics.pop()
+-- end
 
 function MapSystem:isPositionWithinBounds(position)
   local left_x, left_y, right_x, right_y = self.grid:getBounds()

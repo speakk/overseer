@@ -13,7 +13,7 @@ end)
 commonComponents.Settler = ECS.Component(function(e, name)
   e.name = name or "Lucy"
   e.skills = {
-    construction = 5
+    construction = 15
   }
 end)
 commonComponents.Work = ECS.Component(function(e, job) e.job = job or nil end) -- Settler work

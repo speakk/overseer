@@ -9,7 +9,7 @@ local cameraSpeed = 500
 function PlayerInputSystem:init(overseerSystem, mapSystem, camera)
   self.overseerSystem = overseerSystem
   self.mapSystem = mapSystem
-  self.lightWorld = mapSystem:getLightWorld()
+  --self.lightWorld = mapSystem:getLightWorld()
   self.camera = camera
 end
 
@@ -32,9 +32,9 @@ function PlayerInputSystem:update(dt)
   local posX = x + vector.x*dt
   local posY = y + vector.y*dt
   self.camera:setPosition(posX, posY)
-  print("x y scale", posX, posY, self.camera:getScale())
-  self.lightWorld:update(dt)
-  self.lightWorld:setTranslation(posX, posY, self.camera:getScale())
+  --print("x y scale", posX, posY, self.camera:getScale())
+  -- self.lightWorld:update(dt)
+  -- self.lightWorld:setTranslation(posX, posY, self.camera:getScale())
   for _, entity in ipairs(self.pool.objects) do
     if entity:has(commonComponents.Velocity) then
       entity:get(commonComponents.Velocity).vector = vector
