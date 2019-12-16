@@ -25,7 +25,8 @@ vec4 effect(vec4 color, Image image, vec2 uvs, vec2 screen_coords){
     vec4 pixel = Texel(image, uvs);
     //pixel = pixel * vec4(0.4 * dayTime + 0.7, 0.4 * dayTime + 0.7, 1.0, 1);
     // Ambient light
-    vec3 diffuse = vec3(dayTime*0.2, dayTime*0.2, dayTime*0.4);
+    vec3 diffuse = vec3(dayTime*0.4+0.6, dayTime*0.4+0.6, dayTime*0.1+0.9);
+    //pixel = pixel * vec4(vec3(0.5 + dayTime*0.5), 1);
     vec2 screen = love_ScreenSize.xy;
 
     for (int i = 0; i < num_lights; i++) {
@@ -37,6 +38,7 @@ vec4 effect(vec4 color, Image image, vec2 uvs, vec2 screen_coords){
         diffuse += light.diffuse * attenuation;
     }
     diffuse = clamp(diffuse, 0.0, 1.0);
+    //diffuse = vec3(1.0)
     //return pixel * vec4(0.4 * dayTime + 0.7, 0.4 * dayTime + 0.7, 1.0, 1) * vec4(diffuse, 1.0);
     return pixel * vec4(diffuse, 1.0);
 }
@@ -55,7 +57,7 @@ function DrawSystem:init(mapSystem, jobSystem, camera, dayCycleSystem, lightSyst
   love.graphics.setCanvas(mapTexture)
   love.graphics.clear()
   --love.graphics.setBlendMode("alpha")
-  love.graphics.setColor(0, 1, 0, 1)
+  love.graphics.setColor(0.4, 0.6, 0.2, 1)
   love.graphics.rectangle('fill', 0, 0, 100, 100)
   love.graphics.setCanvas()
   self.mapTexture = mapTexture
@@ -163,7 +165,6 @@ function DrawSystem:draw()
     self.shader:send("num_lights", #lights)
     self.shader:send("transform", transform )
     self.shader:send("scale", scale)
-    print(l, t, w, h, transformX, transformY)
     for i, light in ipairs(lights) do
       local lightComponent = light:get(commonComponents.Light)
       local lightName = "lights[" .. i-1 .. "]";
@@ -171,7 +172,6 @@ function DrawSystem:draw()
       self.shader:send(lightName .. ".position", { position.x, position.y })
       self.shader:send(lightName .. ".diffuse", lightComponent.color)
       self.shader:send(lightName .. ".power", lightComponent.power)
-      --print("Sent", lightName .. ".position", position.x, position.y, inspect(lightComponent.color), lightComponent.power)
     end
 
     self:drawMap(l, t, w, h, self.mapSystem:getMap())
