@@ -25,6 +25,7 @@ Concord.addInstance(instance)
 
 local moveSystem = require('systems/moveSystem')()
 local dayCycleSystem = require('systems/dayCycleSystem')()
+local lightSystem = require('systems/lightSystem')()
 local mapSystem = require('systems/mapSystem')(camera)
 local itemSystem = require('systems/itemSystem')(mapSystem)
 local jobSystem = require('systems/jobSystem')(mapSystem)
@@ -33,12 +34,13 @@ local overseerSystem = require('systems/overseerSystem')(bluePrintSystem, mapSys
 local guiSystem = require('systems/guiSystem')(overseerSystem, mapSystem, camera)
 local playerInputSystem = require('systems/playerInputSystem')(overseerSystem, mapSystem, camera)
 local settlerSystem = require('systems/settlerSystem')(mapSystem, jobSystem, itemSystem, bluePrintSystem)
-local drawSystem = require('systems/drawSystem')(mapSystem, jobSystem, camera, dayCycleSystem)
+local drawSystem = require('systems/drawSystem')(mapSystem, jobSystem, camera, dayCycleSystem, lightSystem)
 
 local function load()
   love.graphics.setColor(255, 0, 0)
 
   instance:addSystem(dayCycleSystem, "update")
+  instance:addSystem(lightSystem)
   instance:addSystem(guiSystem, "keypressed")
   instance:addSystem(guiSystem, "mousepressed")
   instance:addSystem(guiSystem, "mousereleased")
@@ -64,6 +66,7 @@ local function load()
 
   settlerSystem:initalizeTestSettlers()
   itemSystem:initializeTestItems()
+  lightSystem:initializeTestLights()
 
   -- local profilerSystem = require('systems/profilerSystem')()
   -- instance:addSystem(profilerSystem, "update")

@@ -74,6 +74,7 @@ end
 -- Public interface
 
 function gamera.new(l,t,w,h)
+  transform = love.math.newTransform(l, t)
 
   local sw,sh = love.graphics.getWidth(), love.graphics.getHeight()
 
@@ -81,6 +82,7 @@ function gamera.new(l,t,w,h)
     x=0, y=0,
     scale=1,
     angle=0, sin=math.sin(0), cos=math.cos(0),
+    transform=transform,
     l=0, t=0, w=sw, h=sh, w2=sw*0.5, h2=sh*0.5
   }, gameraMt)
 
@@ -180,6 +182,9 @@ function gamera:draw(f)
     love.graphics.rotate(-self.angle)
     love.graphics.translate(-self.x, -self.y)
 
+    -- self.transform:setTransformation(love.graphics.getWidth()/2, love.graphics.getHeight()/2, self.angle, self.scale, self.scale, self.x, self.y)
+    -- love.graphics.applyTransform(self.transform)
+
     f(self:getVisible())
 
   love.graphics.pop()
@@ -199,6 +204,10 @@ function gamera:toScreen(x,y)
   x,y = x - self.x, y - self.y
   x,y = cos*x + sin*y, -sin*x + cos*y
   return scale * x + self.w2 + self.l, scale * y + self.h2 + self.t
+end
+
+function gamera:getViewMatrix()
+  return self.transform:getMatrix()
 end
 
 return gamera

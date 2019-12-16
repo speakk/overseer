@@ -62,6 +62,10 @@ commonComponents.Children = ECS.Component(function(e, children)
   e.children = children or error("Children component needs children(list of entities)")
 end)
 commonComponents.Amount = ECS.Component(function(e, amount) e.amount = amount or 0 end)
+commonComponents.Light = ECS.Component(function(e, color, power)
+  e.color = color or { 1, 1, 1 }
+  e.power = power or 64
+end)
 
 return commonComponents
 
