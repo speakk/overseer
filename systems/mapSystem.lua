@@ -14,15 +14,19 @@ local mapColors = {}
 
 local MapSystem = ECS.System({commonComponents.Collision, "collision"})
 
+function getQuad(column, row, tileSize, imageWidth, imageHeight)
+  local x = column * (tileSize + 1) + 1
+  local y = row * tileSize + 1
+  print(x, y)
+  return love.graphics.newQuad(x, y, tileSize, tileSize, imageWidth, imageHeight)
+end
+
 function MapSystem:init(camera)
   self.width = 60
   self.height = 60
   self.cellSize = 30
   self.padding = 0
   self.camera = camera
-  -- self.lightWorld = LightWorld({
-  --   ambient = {1,1,1},         --the general ambient light in the environment
-  -- })
 
   self._lastGridUpdateId = 0
   self._lastGridUpdateTime = 0
@@ -50,8 +54,33 @@ function MapSystem:init(camera)
 
   self:recalculateGrid(map, true)
 
+  mapTexture = love.graphics.newCanvas(128, 128)
+  love.graphics.setCanvas(mapTexture)
+  love.graphics.clear()
+  --love.graphics.setBlendMode("alpha")
+  love.graphics.setColor(0.4, 0.6, 0.2, 1)
+  love.graphics.rectangle('fill', 0, 0, 100, 100)
+  love.graphics.setCanvas()
+  self.mapTexture = mapTexture
+  self.cellQuad = love.graphics.newQuad(0, 0, 32, 32, mapTexture:getDimensions())
+
+
+  --local tilesetImage = love.graphics.newImage("media/tiles.png")
+  local generateTileName = function(name) return 'media/tiles/' .. name .. '.png' end
+  local tiles = {
+    generateTileName('grass01'),
+    generateTileName('grass02'),
+    generateTileName('dirt01')
+  }
+  local image = love.graphics.newArrayImage(tiles)
+  image:setFilter("nearest", "linear") -- this "linear filter" removes some artifacts if we were to scale the tiles
+  tileSize = 16
+
+  self.tilesetBatch = love.graphics.newSpriteBatch(image, 1000)
+
   camera:setWorld(self.cellSize, self.cellSize, self.width * self.cellSize, self.height * self.cellSize)
 end
+
 
 -- function MapSystem:getLightWorld()
 --   return self.lightWorld
@@ -241,6 +270,40 @@ function MapSystem:pathStillValid(path)
   end
 
   return true
+end
+
+function MapSystem:generateSpriteBatch(l, t, w, h)
+  self.tilesetBatch:clear()
+
+  local cellSize = self:getCellSize()
+  local padding = self:getPadding()
+  for rowNum, row in ipairs(map) do
+    for cellNum, cellValue in ipairs(row) do --luacheck: ignore
+      local drawMargin = cellSize
+      local x1 = (cellNum * cellSize)
+      local x2 = x1 + cellSize
+      local y1 = rowNum * cellSize
+      local y2 = y1 + cellSize
+      if utils.withinBounds(x1, y1, x2, y2, l, t, l+w, t+h, drawMargin) then
+        local color = mapColors[rowNum][cellNum]
+        local imageArrayIndex = 3
+        if color.grass == 1 then
+          imageArrayIndex = math.floor(math.random()+0.5)+1
+        end
+        -- if color.grass == 1 then
+        --   love.graphics.setColor(0.35, 0.4+(color.c*0.1), 0.1)
+        -- else
+        --   love.graphics.setColor(color.a*0.1+0.5, color.a*0.1+0.3, color.c*0.05+0.15)
+        -- end
+        --love.graphics.draw(self.mapTexture, self.cellQuad, cellNum*cellSize, rowNum*cellSize)
+        --self.tilesetBatch:add(self.tileQuads[quadIndex], cellNum*cellSize, rowNum*cellSize, 0, 2, 2)
+        self.tilesetBatch:addLayer(imageArrayIndex, cellNum*cellSize, rowNum*cellSize, 0, 2, 2)
+         --tilesetBatch:add(tileQuads[map[x+mapX][y+mapY]], x*tileSize, y*tileSize)
+      end
+    end
+  end
+
+  return self.tilesetBatch
 end
 
 return MapSystem

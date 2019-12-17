@@ -31,7 +31,7 @@ function PlayerInputSystem:update(dt)
   local x, y = self.camera:getPosition()
   local posX = x + vector.x*dt
   local posY = y + vector.y*dt
-  self.camera:setPosition(posX, posY)
+  self.camera:setPosition(math.floor(posX), math.floor(posY))
   --print("x y scale", posX, posY, self.camera:getScale())
   -- self.lightWorld:update(dt)
   -- self.lightWorld:setTranslation(posX, posY, self.camera:getScale())

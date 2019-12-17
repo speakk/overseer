@@ -34,7 +34,7 @@ local overseerSystem = require('systems/overseerSystem')(bluePrintSystem, mapSys
 local guiSystem = require('systems/guiSystem')(overseerSystem, mapSystem, camera)
 local playerInputSystem = require('systems/playerInputSystem')(overseerSystem, mapSystem, camera)
 local settlerSystem = require('systems/settlerSystem')(mapSystem, jobSystem, itemSystem, bluePrintSystem)
-local drawSystem = require('systems/drawSystem')(mapSystem, jobSystem, camera, dayCycleSystem, lightSystem)
+local drawSystem = require('systems/drawSystem')(mapSystem, jobSystem, camera, dayCycleSystem, lightSystem, settlerSystem)
 
 local function load()
   love.graphics.setColor(255, 0, 0)
@@ -64,7 +64,7 @@ local function load()
   instance:addSystem(moveSystem, "update")
   instance:addSystem(guiSystem, "draw")
 
-  settlerSystem:initalizeTestSettlers()
+  settlerSystem:initializeTestSettlers()
   itemSystem:initializeTestItems()
   lightSystem:initializeTestLights()
 

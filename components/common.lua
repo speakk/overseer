@@ -10,6 +10,12 @@ commonComponents.Draw = ECS.Component(function(e, color, size)
   e.color = color or { 1, 0, 0 }
   e.size = size or Vector(32, 32)
 end)
+commonComponents.Sprite = ECS.Component(function(e, arrayIndex)
+  e.arrayIndex = arrayIndex or error("Sprite needs arrayIndex")
+  -- e.image = image or error("Sprite needs image")
+  -- e.x = x or error("Sprite needs x image coordinate")
+  -- e.y = y or error("Sprite needs y image coordinate")
+end)
 commonComponents.Settler = ECS.Component(function(e, name)
   e.name = name or "Lucy"
   e.skills = {
