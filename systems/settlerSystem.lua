@@ -18,7 +18,7 @@ function SettlerSystem:init(mapSystem, jobSystem, itemSystem, bluePrintSystem)
   self.lastAssigned = 0
   self.assignWaitTime = 0.5
 
-  self.tilesetBatch = love.graphics.newSpriteBatch(media.tileMaps.characters, 1000)
+  self.tilesetBatch = love.graphics.newSpriteBatch(media.tileMaps.characters, 200)
 end
 
 function SettlerSystem:update(dt) --luacheck: ignore

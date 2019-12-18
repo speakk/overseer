@@ -11,8 +11,8 @@ local characters_names = {
 
 local tiles = love.graphics.newArrayImage(tiles_names)
 local characters = love.graphics.newArrayImage(characters_names)
-tiles:setFilter("nearest", "linear") -- this "linear filter" removes some artifacts if we were to scale the tiles
-characters:setFilter("nearest", "linear") -- this "linear filter" removes some artifacts if we were to scale the tiles
+tiles:setFilter("nearest", "nearest") -- this "linear filter" removes some artifacts if we were to scale the tiles
+characters:setFilter("nearest", "nearest") -- this "linear filter" removes some artifacts if we were to scale the tiles
 
 local tileMaps = {
   characters = characters,

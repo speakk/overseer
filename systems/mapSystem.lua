@@ -76,7 +76,7 @@ function MapSystem:init(camera)
   image:setFilter("nearest", "linear") -- this "linear filter" removes some artifacts if we were to scale the tiles
   tileSize = 16
 
-  self.tilesetBatch = love.graphics.newSpriteBatch(image, 1000)
+  self.tilesetBatch = love.graphics.newSpriteBatch(image, 500)
 
   camera:setWorld(self.cellSize, self.cellSize, self.width * self.cellSize, self.height * self.cellSize)
 end
