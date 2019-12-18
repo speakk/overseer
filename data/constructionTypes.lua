@@ -6,6 +6,7 @@ local data = {
     subItems = {
       wooden_wall = {
         name = "Wooden wall",
+        sprite = "tiles.wall_wood01",
         requirements = {
           ["raw_materials.wood"] = 2
         },
@@ -14,6 +15,7 @@ local data = {
       },
       iron_wall = {
         name = "Iron wall",
+        sprite = "tiles.wall_iron01",
         requirements = {
           ["raw_materials.steel"] = 1,
           ["raw_materials.wood"] = 1
@@ -28,6 +30,7 @@ local data = {
     subItems = {
       wooden_door = {
         name = "Wooden door",
+        sprite = "tiles.door_wood01",
         requirements = {
           ["raw_materials.wood"] = 1
         },
@@ -36,6 +39,7 @@ local data = {
       },
       stone_door = {
         name = "Stone door",
+        sprite = "tiles.wall_stone01",
         requirements = {
           ["raw_materials.stone"] = 1
         },
@@ -61,16 +65,20 @@ local data = {
     name = "Raw materials",
     subItems = {
       wood = {
-        name = "Wood"
+        name = "Wood",
+        sprite = "resources.wood01"
       },
       iron = {
-        name = "Iron"
+        name = "Iron",
+        sprite = "resources.iron01"
       },
       stone = {
-        name = "Stone"
+        name = "Stone",
+        sprite = "resources.stone01"
       },
       steel = {
-        name = "Steel"
+        name = "Steel",
+        sprite = "resources.steel01"
       }
     }
   }

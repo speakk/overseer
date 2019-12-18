@@ -8,7 +8,7 @@ function JobSystem:init(mapSystem)
   self.jobs = {}
 end
 
-function printJob(job, level, y)
+local function printJob(job, level, y)
   local name = job:get(commonComponents.Name).name
   local space = 15
   local jobComponent = job:get(commonComponents.Job)

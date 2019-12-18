@@ -4,7 +4,6 @@ local Vector = require('libs/brinevector/brinevector')
 local utils = require('utils/utils')
 
 local Grid = require('libs/jumper.grid')
-local LightWorld = require('libs/light_world')
 local Pathfinder = require('libs/jumper.pathfinder')
 
 local commonComponents = require('components/common')
@@ -14,12 +13,12 @@ local mapColors = {}
 
 local MapSystem = ECS.System({commonComponents.Collision, "collision"})
 
-function getQuad(column, row, tileSize, imageWidth, imageHeight)
-  local x = column * (tileSize + 1) + 1
-  local y = row * tileSize + 1
-  print(x, y)
-  return love.graphics.newQuad(x, y, tileSize, tileSize, imageWidth, imageHeight)
-end
+-- function getQuad(column, row, tileSize, imageWidth, imageHeight)
+--   local x = column * (tileSize + 1) + 1
+--   local y = row * tileSize + 1
+--   print(x, y)
+--   return love.graphics.newQuad(x, y, tileSize, tileSize, imageWidth, imageHeight)
+-- end
 
 function MapSystem:init(camera)
   self.width = 60
@@ -54,15 +53,15 @@ function MapSystem:init(camera)
 
   self:recalculateGrid(map, true)
 
-  mapTexture = love.graphics.newCanvas(128, 128)
-  love.graphics.setCanvas(mapTexture)
-  love.graphics.clear()
-  --love.graphics.setBlendMode("alpha")
-  love.graphics.setColor(0.4, 0.6, 0.2, 1)
-  love.graphics.rectangle('fill', 0, 0, 100, 100)
-  love.graphics.setCanvas()
-  self.mapTexture = mapTexture
-  self.cellQuad = love.graphics.newQuad(0, 0, 32, 32, mapTexture:getDimensions())
+  -- local mapTexture = love.graphics.newCanvas(128, 128)
+  -- love.graphics.setCanvas(mapTexture)
+  -- love.graphics.clear()
+  -- --love.graphics.setBlendMode("alpha")
+  -- love.graphics.setColor(0.4, 0.6, 0.2, 1)
+  -- love.graphics.rectangle('fill', 0, 0, 100, 100)
+  -- love.graphics.setCanvas()
+  -- self.mapTexture = mapTexture
+  -- self.cellQuad = love.graphics.newQuad(0, 0, 32, 32, mapTexture:getDimensions())
 
 
   --local tilesetImage = love.graphics.newImage("media/tiles.png")
@@ -74,7 +73,6 @@ function MapSystem:init(camera)
   }
   local image = love.graphics.newArrayImage(tiles)
   image:setFilter("nearest", "linear") -- this "linear filter" removes some artifacts if we were to scale the tiles
-  tileSize = 16
 
   self.tilesetBatch = love.graphics.newSpriteBatch(image, 500)
 

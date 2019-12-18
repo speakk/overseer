@@ -1,6 +1,6 @@
 local DayCycleSystem = ECS.System({})
 
-local daySpeed = 0.02
+local daySpeed = 0.001
 local currentTime = 0 -- Timer that runs and progresses world time
 
 function DayCycleSystem:init()

@@ -1,24 +1,84 @@
+local inspect = require('libs/inspect')
+local lume = require('libs/lume')
+
 local generateTileName = function(category, name) return 'media/' .. category .. '/' .. name .. '.png' end
-local tiles_names = {
-  generateTileName('tiles', 'grass01'),
-  generateTileName('tiles', 'grass02'),
-  generateTileName('tiles', 'dirt01')
+-- local tiles_names = {
+--   generateTileName('tiles', 'grass01'),
+--   generateTileName('tiles', 'grass02'),
+--   generateTileName('tiles', 'dirt01'),
+--   generateTileName('characters', 'settler')
+--   generateTileName('tiles', 'dirt01'),
+-- }
+
+local mediaDB = {
+  {
+    name = "tiles",
+    items = { 'grass01', 'grass02', 'dirt01', 'wall_wood01', 'wall_iron01', 'door_stone01', 'door_wood01' },
+  },
+  {
+    name = "resources",
+    items = { 'wood01', 'iron01', 'steel01', 'stone01' },
+  },
+  {
+    name = "characters",
+    items = { 'settler' }
+  }
 }
 
-local characters_names = {
-  generateTileName('characters', 'settler')
-}
+local flatMediaDB = {}
+local fileList = {}
 
-local tiles = love.graphics.newArrayImage(tiles_names)
-local characters = love.graphics.newArrayImage(characters_names)
-tiles:setFilter("nearest", "nearest") -- this "linear filter" removes some artifacts if we were to scale the tiles
-characters:setFilter("nearest", "nearest") -- this "linear filter" removes some artifacts if we were to scale the tiles
+do
+  local index = 1
+  for _, category in ipairs(mediaDB) do
+    for _, name in ipairs(category.items) do
+      print("Index now", index)
+      local fileName = generateTileName(category.name, name)
+      flatMediaDB[category.name .. "." .. name] = {
+        index = index,
+        fileName = fileName
+      }
 
-local tileMaps = {
-  characters = characters,
-  tiles = tiles
-}
+      index = index + 1
+      table.insert(fileList, fileName)
+    end
+  end
+end
+
+print("flat", inspect(flatMediaDB))
+
+
+-- for _, flatItem in ipairs(flatMediaDB) do
+--   table.insert(fileList, flatItem.fileName)
+-- end
+
+print("fileList", inspect(fileList))
+local sprites = love.graphics.newArrayImage(fileList)
+sprites:setFilter("nearest", "nearest")
+
+function getSpriteIndex(selector)
+  --print(inspect(flatMediaDB[selector]))
+  if not selector then error("getSprite is missing selector") end
+
+  if not flatMediaDB[selector] then error("No sprite found with selector: " .. selector) end
+  return flatMediaDB[selector].index
+end
 
 return {
-  tileMaps = tileMaps
+  sprites = sprites,
+  getSpriteIndex = getSpriteIndex
 }
+
+-- local tiles = love.graphics.newArrayImage(tiles_names)
+-- local characters = love.graphics.newArrayImage(characters_names)
+-- tiles:setFilter("nearest", "nearest") -- this "linear filter" removes some artifacts if we were to scale the tiles
+-- characters:setFilter("nearest", "nearest") -- this "linear filter" removes some artifacts if we were to scale the tiles
+-- 
+-- local tileMaps = {
+--   characters = characters,
+--   tiles = tiles
+-- }
+
+-- return {
+--   tileMaps = tileMaps
+-- }

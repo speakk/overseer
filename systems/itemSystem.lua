@@ -9,7 +9,7 @@ local ItemSystem = ECS.System({commonComponents.Item})
 function ItemSystem:initializeTestItems()
   local mapSize = self.mapSystem:getSize()
   local randomTable = {
-    walls = { "wooden_wall", "iron_wall" },
+    --walls = { "wooden_wall", "iron_wall" },
     raw_materials = { "wood", "iron", "stone", "steel" }
   }
 
@@ -22,6 +22,7 @@ function ItemSystem:initializeTestItems()
     local selector = key .. "." .. itemName
     local amount = love.math.random(30)
     local item = self:createItem(selector, amount)
+    print("Creating item", selector)
     self:placeItemOnGround(item, position)
   end
 end
@@ -33,7 +34,7 @@ function ItemSystem:createItem(selector, amount)
   local itemData = constructionTypes.getBySelector(selector)
   local color = itemData.color or { 0.5, 0.5, 0.5 }
   item:give(commonComponents.Item, itemData, selector)
-  :give(commonComponents.Draw, color, Vector(16, 16))
+  :give(commonComponents.Sprite, itemData.sprite)
   :give(commonComponents.Amount, amount)
 
   item:apply()
