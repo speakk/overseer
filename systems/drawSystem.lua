@@ -39,9 +39,12 @@ void effect(){
         float ratio = screen.x / screen.y;
 
         float distance = length((light.position + transform)*scale - screen_coords) / light.power / scale;
-        float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
-        //diffuse += light.diffuse * attenuation;
-        diffuse += attenuation;
+        if (distance < light.power*2) {
+          float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
+          diffuse += attenuation;
+        } else {
+
+        }
     }
     diffuse = clamp(diffuse, 0.0, 1.0);
     love_PixelColor = Texel(MainTex, uvs) * vec4(diffuse, 1.0);
