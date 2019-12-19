@@ -1,12 +1,12 @@
-local commonComponents = require('components/common')
+local components = require('libs/concord').components
 
-local InventorySystem = ECS.System({commonComponents.Inventory})
+local InventorySystem = ECS.System("inventory", {components.inventory})
 
 function InventorySystem:init()  --luacheck: ignore
 end
 
 function InventorySystem:addItemToEntity(entity, item) --luacheck: ignore
-  local contents = entity:get(commonComponents.Inventory).contents
+  local contents = entity:get(components.inventory).contents
   table.insert(contents,item)
 end
 

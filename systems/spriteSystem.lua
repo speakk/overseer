@@ -1,9 +1,9 @@
 local utils = require('utils/utils')
 local media = require('utils/media')
-local commonComponents = require('components/common')
+local components = require('libs/concord').components
 local Vector = require('libs/brinevector/brinevector')
 
-local SpriteSystem = ECS.System({commonComponents.Sprite, commonComponents.Position})
+local SpriteSystem = ECS.System("sprite", {components.sprite, components.position})
 
 function SpriteSystem:init()
   self.tilesetBatch = love.graphics.newSpriteBatch(media.sprites, 500)
@@ -24,8 +24,8 @@ end
 
 
 function SpriteSystem:drawEntity(l, t, w, h, entity)
-  local positionVector = entity:get(commonComponents.Position).vector
-  --local draw = entity:get(commonComponents.Draw)
+  local positionVector = entity:get(components.position).vector
+  --local draw = entity:get(components.draw)
   local sizeVector = Vector(32, 32)
   if utils.withinBounds(positionVector.x,
     positionVector.y,
@@ -36,21 +36,21 @@ function SpriteSystem:drawEntity(l, t, w, h, entity)
     -- local size = draw.size
 
 
-    -- if entity:has(commonComponents.Job) then
-    --   if entity:has(commonComponents.BluePrintJob) then
-    --     local jobComponent = entity:get(commonComponents.Job)
+    -- if entity:has(components.job) then
+    --   if entity:has(components.bluePrintJob) then
+    --     local jobComponent = entity:get(components.job)
     --     if jobComponent.finished then
     --       color[4] = 1.0
     --     else
     --       color[4] = 0.5
     --       love.graphics.setColor(1, 1, 1, 1)
-    --       local progress = entity:get(commonComponents.BluePrintJob).buildProgress
+    --       local progress = entity:get(components.bluePrintJob).buildProgress
     --       love.graphics.print(" " .. string.format("%d", progress) .. "%", positionVector.x, positionVector.y)
     --     end
     --   end
     -- end
 
-    local spriteComponent = entity:get(commonComponents.Sprite)
+    local spriteComponent = entity:get(components.sprite)
     self.tilesetBatch:addLayer(media.getSpriteIndex(spriteComponent.selector), positionVector.x, positionVector.y, 0, 2, 2)
 
     -- love.graphics.setColor(color[1], color[2], color[3], color[4])
@@ -59,15 +59,15 @@ function SpriteSystem:drawEntity(l, t, w, h, entity)
     -- positionVector.y,
     -- size.x, size.y)
 
-    -- if entity:has(commonComponents.Amount) then
+    -- if entity:has(components.amount) then
     --   love.graphics.setColor(1, 1, 1)
-    --   love.graphics.print(" " .. tostring(entity:get(commonComponents.Amount).amount),
+    --   love.graphics.print(" " .. tostring(entity:get(components.amount).amount),
     --   positionVector.x+10, positionVector.y+10)
     -- end
 
     if DEBUG then
-      if (entity:has(commonComponents.Path)) then
-        local pathComponent = entity:get(commonComponents.Path)
+      if (entity:has(components.path)) then
+        local pathComponent = entity:get(components.path)
         if pathComponent.path then
           local vertices = {}
           for node, count in pathComponent.path:nodes() do --luacheck: ignore

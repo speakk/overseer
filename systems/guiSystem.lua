@@ -1,11 +1,13 @@
 local nuklear = require("nuklear")
 local Vector = require('libs/brinevector/brinevector')
 
+local gridUtils = require("utils/gridUtils")
+
 local constructionTypes = require('data/constructionTypes')
 
 local ui
 
-local GUISystem = ECS.System()
+local GUISystem = ECS.System("gui")
 
 local function buildMenuHierarchy(self, items, key, path)
   if path and string.len(path) > 0 then path = path .. "." .. key else path = key end
@@ -20,12 +22,12 @@ local function buildMenuHierarchy(self, items, key, path)
       requirements = requirements .. '-'
     end
 
-    local currentSelection = self.overseerSystem:getDataSelector()
-    local selectionMatch = path == currentSelection
+    local selectionMatch = path == self.dataSelector
     local sel = { value = selectionMatch}
     if ui:selectable(items.name .. ", " .. requirements, sel) then
       if sel.value then
-        self.overseerSystem:setDataSelector(path)
+
+        self:getWorld:emit("dataSelectorChanged", path)
       end
     end
   elseif type(items) == "table" then
@@ -40,12 +42,11 @@ local function buildMenuHierarchy(self, items, key, path)
   end
 end
 
-function GUISystem:init(overseerSystem, mapSystem, camera)
+function GUISystem:init(camera)
   ui = nuklear.newUI()
-  self.overseerSystem = overseerSystem
-  self.mapSystem = mapSystem
   self.camera = camera
-  self.currentMenu = nil
+  self.selectedAction = nil
+  self.dataSelector = nil
 
   self.menuHierarchy = {
     build = {
@@ -69,13 +70,12 @@ function GUISystem:update(dt) --luacheck: ignore
   if ui:windowBegin('actions_bar', 0, windowHeight-actionsBarHeight, windowWidth, actionsBarHeight) then
     ui:layoutRow('dynamic', actionsBarHeight-10, 10)
     for menuName, menuItem in pairs(self.menuHierarchy) do
-      local currentSelection = self.overseerSystem:getSelectedAction()
-      local sel = { value = menuName == currentSelection }
+      local sel = { value = menuName == self.selectedAction }
       if ui:selectable(menuItem.name .. ' (' .. (menuItem.shortCut or '') .. ')', sel) then
         if sel.value then
-          self.overseerSystem:setSelectedAction(menuName)
+          self:getWorld:emit("selectedModeChanged", menuName)
         else
-          self.overseerSystem:setSelectedAction("")
+          self:getWorld:emit("selectedModeChanged", "")
         end
       end
     end
@@ -85,7 +85,7 @@ function GUISystem:update(dt) --luacheck: ignore
   local menuSize = 200
   local menuWidth = 400
   for menuName, menuItem in pairs(self.menuHierarchy) do
-    if self.overseerSystem:getSelectedAction() == menuName then
+    if self.selectedAction == menuName then
       if ui:windowBegin('menu', 0, windowHeight-menuSize-actionsBarHeight, menuWidth, menuSize) then
         for key, subItem in pairs(menuItem.subItems) do
           buildMenuHierarchy(self, subItem, key)
@@ -106,7 +106,7 @@ function GUISystem:mousepressed(x, y, button, istouch, presses)
     return
   end
   local globalX, globalY = self.camera:toWorld(x, y)
-  self.overseerSystem:enactClick(self.mapSystem:pixelsToGridCoordinates(Vector(globalX, globalY)))
+  self:getWorld():emit("mapClicked", gridUtils.pixelsToGridCoordinates(Vector(globalX, globalY)))
 end
 
 function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
@@ -118,9 +118,9 @@ function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
     if menuItem.shortCut == pressedKey then
       menuItem.selected = not menuItem.selected
       if menuItem.selected then
-        self.overseerSystem:setSelectedAction(menuName)
+        self:getWorld:emit('selectedModeChanged', menuName)
       else
-        self.overseerSystem:setSelectedAction("")
+        self:getWorld:emit('selectedModeChanged', "")
       end
     end
     if menuItem.subItems then
@@ -133,6 +133,10 @@ function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
       end
     end
   end
+end
+
+function GUISystem:setDataSelector(selector)
+  self.dataSelector = selector
 end
 
 function GUISystem:mousereleased(x, y, button, istouch, presses) --luacheck: ignore

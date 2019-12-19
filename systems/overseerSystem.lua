@@ -1,9 +1,12 @@
-local OverseerSystem = ECS.System()
+local gridUtils = require('utils/gridUtils')
 
 local Vector = require('libs/brinevector/brinevector')
 
 local constructionTypes = require('data.constructionTypes')
 local settings = require('settings')
+
+local OverseerSystem = ECS.System("overseer")
+
 
 local drag = {
   startPoint = Vector(),
@@ -11,9 +14,7 @@ local drag = {
   active = false
 }
 
-function OverseerSystem:init(bluePrintSystem, mapSystem, camera)
-  self.bluePrintSystem = bluePrintSystem
-  self.mapSystem = mapSystem
+function OverseerSystem:init(camera)
   self.camera = camera
   self.resources = {
     wood = 30,
@@ -29,12 +30,12 @@ function OverseerSystem:init(bluePrintSystem, mapSystem, camera)
 end
 
 function OverseerSystem:draw()
-  local cellSize = self.mapSystem:getCellSize()
+  local cellSize = gridUtils.getCellSize()
   if drag.active then
-    local startPoint = self.mapSystem:gridPositionToPixels(drag.startPoint)
+    local startPoint = gridUtils.gridPositionToPixels(drag.startPoint)
     local globalX, globalY = self.camera:toWorld(love.mouse.getX(), love.mouse.getY())
     -- TODO: Now adding cellSize to make sure visuals correspond to actual. Find out why this needs to happen, probably has to do with how rounding is done in "pixelsToGridCoordinates"
-    local gridSnappedMouse = self.mapSystem:snapPixelToGrid(Vector(globalX+cellSize, globalY+cellSize))
+    local gridSnappedMouse = gridUtils.snapPixelToGrid(Vector(globalX+cellSize, globalY+cellSize))
     self.camera:draw(function(l,t,w,h)
       love.graphics.setColor(1, 1, 1, 1)
       love.graphics.rectangle("line",
@@ -49,6 +50,7 @@ end
 
 function OverseerSystem:setDataSelector(selector)
   self.dataSelector = selector
+  self:getWorld:emit("dataSelectorChanged", selector)
 end
 
 function OverseerSystem:getDataSelector()
@@ -67,7 +69,7 @@ function OverseerSystem:update(dt) --luacheck: ignore
 end
 
 function OverseerSystem:enactConstructionDrag(dragEvent)
-  local nodes = self.mapSystem:iter(
+  local nodes = gridUtils.iter(
   dragEvent.startPoint.x,
   dragEvent.startPoint.y,
   dragEvent.endPoint.x,
@@ -108,7 +110,7 @@ end
 
 function OverseerSystem:build(nodes)
   local data = constructionTypes.getBySelector(self.dataSelector)
-  self.bluePrintSystem:placeBluePrints(nodes, data, self.dataSelector)
+  self:getWorld():emit("bluePrintsPlaced", nodex, data, self.dataSelector)
 end
 
 return OverseerSystem

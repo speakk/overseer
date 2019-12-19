@@ -1,8 +1,8 @@
-local commonComponents = require('components/common')
+local components = require('libs/concord').components
 
 --local camera = require('camera')
 
-local CameraSystem = ECS.System({commonComponents.Position, commonComponents.Camera})
+local CameraSystem = ECS.System("camera", {components.position, components.Camera})
 
 function CameraSystem:init(camera)
   self.camera = camera

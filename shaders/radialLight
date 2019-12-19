@@ -1,0 +1,43 @@
+#define NUM_LIGHTS 32
+
+uniform ArrayImage MainTex;
+
+struct Light {
+    vec2 position;
+    vec3 diffuse;
+    float power;
+};
+extern Light lights[NUM_LIGHTS];
+extern int num_lights;
+extern vec2 transform;
+extern float scale;
+extern float dayTime;
+const float constant = 1.0;
+const float linear = 0.09;
+const float quadratic = 0.032;
+void effect(){
+    vec4 color = VaryingColor;
+    vec3 uvs = VaryingTexCoord.xyz; // includes the layer index as the z component
+    vec2 screen_coords = love_PixelCoord;
+
+    // Ambient light
+    vec3 diffuse = vec3(dayTime*0.4+0.6, dayTime*0.4+0.6, dayTime*0.1+0.9);
+    vec2 screen = love_ScreenSize.xy;
+
+    for (int i = 0; i < num_lights; i++) {
+        Light light = lights[i];
+        float ratio = screen.x / screen.y;
+
+        float distance = length((light.position + transform)*scale - screen_coords) / light.power / scale;
+        if (distance < light.power*2) {
+          float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
+          diffuse += attenuation;
+        } else {
+
+        }
+    }
+    diffuse = clamp(diffuse, 0.0, 1.0);
+    love_PixelColor = Texel(MainTex, uvs) * vec4(diffuse, 1.0);
+}
+]]
+

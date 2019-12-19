@@ -27,7 +27,7 @@ end
 -- @return True if the entity is eligible, false otherwise
 function Pool:eligible(e)
    for _, component in ipairs(self.filter) do
-      if not e.components[component] or e.removed[component] then
+      if not e[component] then
          return false
       end
    end
@@ -35,7 +35,25 @@ function Pool:eligible(e)
    return true
 end
 
+function Pool:add(e)
+   List.add(self, e)
+   self:onEntityAdded(e)
+end
+
+function Pool:remove(e)
+   List.remove(self, e)
+   self:onEntityRemoved(e)
+end
+
+function Pool:onEntityAdded(e) -- luacheck: ignore
+end
+
+function Pool:onEntityRemoved(e)  -- luacheck: ignore
+end
+
 return setmetatable(Pool, {
    __index = List,
-   __call  = function(_, ...) return Pool.new(...) end,
+   __call  = function(_, ...)
+      return Pool.new(...)
+   end,
 })

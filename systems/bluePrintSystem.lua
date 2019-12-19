@@ -1,88 +1,73 @@
 --local inspect = require('libs/inspect')
 local Vector = require('libs/brinevector/brinevector')
-local commonComponents = require('components/common')
+local components = require('libs/concord').components
+
+local gridUtils = require('utils/gridUtils')
 -- Create a draw System.
-local BluePrintSystem = ECS.System({commonComponents.BluePrint})
+local BluePrintSystem = ECS.System("bluePrint", {components.bluePrintJob})
 
 function BluePrintSystem:generateBluePrintJob(gridPosition, itemData, bluePrintItemSelector)
   local job = ECS.Entity()
-  job:give(commonComponents.Job)
-  job:give(commonComponents.Name, "BluePrintJob")
-  job:give(commonComponents.BluePrintJob)
-  job:give(commonComponents.Sprite, itemData.sprite)
-  job:give(commonComponents.Item, itemData, bluePrintItemSelector)
-  job:give(commonComponents.Position, self.mapSystem:gridPositionToPixels(gridPosition))
-  job:give(commonComponents.Collision)
+  job:give(components.job)
+  job:give(components.name, "BluePrintJob")
+  job:give(components.bluePrintJob)
+  job:give(components.sprite, itemData.sprite)
+  job:give(components.item, itemData, bluePrintItemSelector)
+  job:give(components.position, gridUtils.gridPositionToPixels(gridPosition))
+  job:give(components.collision)
 
   if itemData.requirements then
-    job:give(commonComponents.Children, {})
-    local children = job:get(commonComponents.Children).children
+    job:give(components.children, {})
+    local children = job:get(components.children).children
     for selector, amount in pairs(itemData.requirements) do
       local subJob = ECS.Entity()
-      subJob:give(commonComponents.Job)
-      subJob:give(commonComponents.Name, "FetchJob")
-      subJob:give(commonComponents.Item, itemData, selector)
-      subJob:give(commonComponents.Parent, job)
+      subJob:give(components.job)
+      subJob:give(components.name, "FetchJob")
+      subJob:give(components.item, itemData, selector)
+      subJob:give(components.parent, job)
       local finishedCallBack = function()
         self:consumeRequirement(job, subJob)
       end
-      subJob:give(commonComponents.FetchJob, job, selector, amount, finishedCallBack)
+      subJob:give(components.fetchJob, job, selector, amount, finishedCallBack)
       subJob:apply()
       table.insert(children, subJob)
-      self:getInstance():addEntity(subJob)
+      self:getWorld():addEntity(subJob)
     end
   end
 
   job:apply()
-  self:getInstance():addEntity(job)
+  self:getWorld():addEntity(job)
   
-  self.jobSystem:addJob(job)
+  self.getWorld():emit("jobAdded", job)
 
   return job
 end
 
-function BluePrintSystem:init(mapSystem, jobSystem)
-  self.mapSystem = mapSystem
-  self.jobSystem = jobSystem
+function BluePrintSystem:init()
 end
 
 function BluePrintSystem:update(dt) --luacheck: ignore
 end
 
 function BluePrintSystem:consumeRequirement(bluePrint, item)
-  local bluePrintComponent = bluePrint:get(commonComponents.BluePrintJob)
-  bluePrintComponent.materialsConsumed[item:get(commonComponents.Item).selector] = item
+  local bluePrintComponent = bluePrint:get(components.bluePrintJob)
+  bluePrintComponent.materialsConsumed[item:get(components.item).selector] = item
 end
 
-function BluePrintSystem:isBluePrintReadyToBuild(bluePrint)
-  if bluePrint:get(commonComponents.Job).finished then return false end
-
-  local bluePrintComponent = bluePrint:get(commonComponents.BluePrintJob)
-  local materialsConsumed = bluePrintComponent.materialsConsumed
-  local requirements = bluePrint:get(commonComponents.Item).itemData.requirements
-
-  for selector, item in pairs(requirements) do
-    if not materialsConsumed[selector] then
-      return false
-    end
-  end
-
-  return true
-end
 
 function BluePrintSystem:bluePrintFinished(bluePrint) --luacheck: ignore
-  if bluePrint:has(commonComponents.Draw) then
-    local draw = bluePrint:get(commonComponents.Draw)
+  if bluePrint:has(components.draw) then
+    local draw = bluePrint:get(components.draw)
     draw.color = { 1, 0, 0 }
   end
 end
 
 function BluePrintSystem:placeBluePrints(nodes, constructionType, selector)
     for node, count in nodes do
-      local gridPosition = self.mapSystem:clampToWorldBounds(Vector(node:getX(), node:getY()))
-      if self.mapSystem:isCellAvailable(gridPosition) then
+      local gridPosition = gridUtils.clampToWorldBounds(Vector(node:getX(), node:getY()))
+      if gridUtils.isCellAvailable(gridPosition) then
         local bluePrint = self:generateBluePrintJob(gridPosition, constructionType, selector)
-        self:getInstance():emit("blueprintActivated", bluePrint)
+        self:getWorld():emit("blueprintActivated", bluePrint)
       end
     end
 end

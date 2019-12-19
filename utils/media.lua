@@ -22,6 +22,10 @@ local mediaDB = {
   {
     name = "characters",
     items = { 'settler' }
+  },
+  {
+    name = "items",
+    items = { 'torch01' }
   }
 }
 

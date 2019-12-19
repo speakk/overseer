@@ -1,9 +1,9 @@
-local commonComponents = require('components/common')
+local components = require('libs/concord').components
 local Vector = require('libs/brinevector/brinevector')
 
 local utils = require('utils/utils')
 
-local LightSystem = ECS.System({commonComponents.Light})
+local LightSystem = ECS.System("light", {components.light})
 
 local shader_code = [[
 #define NUM_LIGHTS 32
@@ -49,8 +49,7 @@ void effect(){
 }
 ]]
 
-function LightSystem:init(dayCycleSystem, camera)
-  self.dayCycleSystem = dayCycleSystem
+function LightSystem:init(camera)
   self.camera = camera
   self.useShader = true
   self.shader = love.graphics.newShader(shader_code)
@@ -59,11 +58,12 @@ end
 function LightSystem:initializeTestLights()
   for i=1,31 do
     local light = ECS.Entity()
-    light:give(commonComponents.Position, Vector(love.math.random(love.graphics.getWidth()*2), love.math.random(love.graphics.getHeight()*2)))
-    --light:give(commonComponents.Light, { love.math.random(), love.math.random(), love.math.random() }, love.math.random(200))
-    light:give(commonComponents.Light, { 1, 1, 1 }, 8)
+    light:give(components.position, Vector(love.math.random(love.graphics.getWidth()*2), love.math.random(love.graphics.getHeight()*2)))
+    light:give(components.sprite, "items.torch01")
+    --light:give(components.light, { love.math.random(), love.math.random(), love.math.random() }, love.math.random(200))
+    light:give(components.light, { 1, 1, 1 }, 8)
     light:apply()
-    self:getInstance():addEntity(light)
+    self:getWorld():addEntity(light)
   end
 end
 
@@ -71,20 +71,29 @@ function LightSystem:getLights()
   return self.pool.objects
 end
 
+function LightSystem:timeOfDayChanged(timeOfDay)
+  if self.useShader then
+    self.shader:send("daytime", timeOfDay)
+  end
+end
+
+function LightSystem:cameraScaleChanged(scale)
+  if self.useShader then
+    self.shader:send("scale", scale)
+  end
+end
+
 function LightSystem:renderLights(l, t, w, h, f)
   love.graphics.setShader(self.shader)
   if self.useShader then
     love.graphics.setShader(self.shader)
-    self.shader:send("dayTime", self.dayCycleSystem:getTimeOfDay())
-    --local transformX, transformY = self.camera:getViewMatrix()
     local transform = { -l, -t }
-    local scale = self.camera:getScale()
 
     local allLights = self:getLights()
     local visibleLights = {}
     for i, light in ipairs(allLights) do
-      local lightComponent = light:get(commonComponents.Light)
-      local position = light:get(commonComponents.Position).vector
+      local lightComponent = light:get(components.light)
+      local position = light:get(components.position).vector
       local lightSize = Vector(128, 128)
       if utils.withinBounds(position.x,
         position.y,
@@ -97,11 +106,10 @@ function LightSystem:renderLights(l, t, w, h, f)
 
     self.shader:send("num_lights", #visibleLights)
     self.shader:send("transform", transform )
-    self.shader:send("scale", scale)
     for i, light in ipairs(visibleLights) do
-      local lightComponent = light:get(commonComponents.Light)
+      local lightComponent = light:get(components.light)
       local lightName = "lights[" .. i-1 .. "]";
-      local position = light:get(commonComponents.Position).vector
+      local position = light:get(components.position).vector
       self.shader:send(lightName .. ".position", { position.x, position.y })
       --self.shader:send(lightName .. ".diffuse", lightComponent.color)
       self.shader:send(lightName .. ".power", lightComponent.power)

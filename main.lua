@@ -1,17 +1,18 @@
 require("libs/deepcopy")
-local Concord = require("libs/Concord/lib").init({
-  useEvents = true,
-})
+local Concord = require("libs/concord")
+
+
+require('components.common').initializeComponents()
 
 DEBUG = false
 
 ECS = {}
-ECS.Component = require("libs/Concord/lib.component")
-ECS.System = require("libs/Concord/lib.system")
-ECS.Instance = require("libs/Concord/lib.instance")
-ECS.Entity = require("libs/Concord/lib.entity")
+ECS.Component = require("libs.concord.component")
+ECS.System = require("libs.concord.system")
+ECS.World = require("libs.concord.world")
+ECS.Entity = require("libs.concord.entity")
 
-local instance = ECS.Instance()
+local world = ECS.World()
 
 local windowWidth = 1000
 local windowHeight = 800
@@ -21,58 +22,104 @@ local gamera = require('libs/gamera/gamera')
 local camera = gamera.new(0, 0, 1000, 1000)
 
 -- Add the Instance to concord to make it active
-Concord.addInstance(instance)
+--Concord.addWorld(world)
 
 local moveSystem = require('systems/moveSystem')()
 local dayCycleSystem = require('systems/dayCycleSystem')()
 local spriteSystem = require('systems/spriteSystem')()
-local lightSystem = require('systems/lightSystem')(dayCycleSystem, camera)
+local lightSystem = require('systems/lightSystem')(camera)
 local mapSystem = require('systems/mapSystem')(camera)
-local itemSystem = require('systems/itemSystem')(mapSystem)
-local jobSystem = require('systems/jobSystem')(mapSystem)
-local bluePrintSystem = require('systems/bluePrintSystem')(mapSystem, jobSystem)
-local overseerSystem = require('systems/overseerSystem')(bluePrintSystem, mapSystem, camera)
-local guiSystem = require('systems/guiSystem')(overseerSystem, mapSystem, camera)
-local playerInputSystem = require('systems/playerInputSystem')(overseerSystem, mapSystem, camera)
-local settlerSystem = require('systems/settlerSystem')(mapSystem, jobSystem, itemSystem, bluePrintSystem)
-local drawSystem = require('systems/drawSystem')(mapSystem, jobSystem, camera, dayCycleSystem, lightSystem, spriteSystem)
+
+local mapUtils = require("utils/mapUtils").init()
+
+local itemSystem = require('systems/itemSystem')()
+local jobSystem = require('systems/jobSystem')()
+local bluePrintSystem = require('systems/bluePrintSystem')()
+local overseerSystem = require('systems/overseerSystem')(camera)
+local guiSystem = require('systems/guiSystem')(camera)
+local playerInputSystem = require('systems/playerInputSystem')(camera)
+local settlerSystem = require('systems/settlerSystem')()
+local drawSystem = require('systems/drawSystem')()
 
 local function load()
   love.graphics.setColor(255, 0, 0)
 
-  instance:addSystem(dayCycleSystem, "update")
-  instance:addSystem(spriteSystem)
-  instance:addSystem(lightSystem)
-  instance:addSystem(guiSystem, "keypressed")
-  instance:addSystem(guiSystem, "mousepressed")
-  instance:addSystem(guiSystem, "mousereleased")
-  instance:addSystem(guiSystem, "mousemoved")
-  instance:addSystem(guiSystem, "update")
-  instance:addSystem(playerInputSystem, "update")
-  instance:addSystem(playerInputSystem, "mousepressed")
-  instance:addSystem(playerInputSystem, "wheelmoved")
-  instance:addSystem(bluePrintSystem, "update")
-  instance:addSystem(bluePrintSystem, "bluePrintFinished")
-  instance:addSystem(settlerSystem, "update")
-  instance:addSystem(settlerSystem, "gridUpdated", "invalidatePaths")
-  instance:addSystem(itemSystem)
-  instance:addSystem(mapSystem, "resize") -- Window resize event
-  instance:addSystem(mapSystem, "update")
-  --instance:addSystem(mapSystem, "draw")
-  instance:addSystem(drawSystem, "draw")
-  instance:addSystem(overseerSystem, "update")
-  instance:addSystem(overseerSystem, "draw")
-  instance:addSystem(jobSystem, "draw")
-  instance:addSystem(moveSystem, "update")
-  instance:addSystem(guiSystem, "draw")
+  world:addSystem(dayCycleSystem, "update")
+  world:addSystem(spriteSystem)
+  world:addSystem(lightSystem, "timeOfDayChanged")
+  world:addSystem(guiSystem, "keypressed")
+  world:addSystem(guiSystem, "mousepressed")
+  world:addSystem(guiSystem, "mousereleased")
+  world:addSystem(guiSystem, "mousemoved")
+  world:addSystem(guiSystem, "update")
+  world:addSystem(playerInputSystem, "update")
+  world:addSystem(playerInputSystem, "mousepressed")
+  world:addSystem(playerInputSystem, "wheelmoved")
+  world:addSystem(bluePrintSystem, "update")
+  world:addSystem(bluePrintSystem, "bluePrintsPlaced", "placeBluePrints")
+  world:addSystem(bluePrintSystem, "bluePrintFinished")
+  world:addSystem(settlerSystem, "update")
+  world:addSystem(settlerSystem, "jobQueueUpdated")
+  world:addSystem(settlerSystem, "gridUpdated", "invalidatePaths")
+  world:addSystem(itemSystem)
+  world:addSystem(mapSystem, "resize") -- Window resize event
+  world:addSystem(mapSystem, "update")
+  --worldce:addSystem(mapSystem, "draw")
+  world:addSystem(drawSystem, "draw")
+  world:addSystem(drawSystem, "registerSpriteBatchGenerator")
+  world:addSystem(overseerSystem, "selectedModeChanged", "setSelectedAction")
+  world:addSystem(overseerSystem, "dataSelectorChanged", "setDataSelector")
+  world:addSystem(overseerSystem, "mapClicked", "enactClick")
+  world:addSystem(overseerSystem, "update")
+  world:addSystem(overseerSystem, "draw")
+  world:addSystem(jobSystem, "draw")
+  world:addSystem(jobSystem, "jobAdded", "addJob")
+  world:addSystem(jobSystem, "jobFinished", "finishJob")
+  world:addSystem(moveSystem, "update")
+  world:addSystem(guiSystem, "draw")
 
   settlerSystem:initializeTestSettlers()
-  itemSystem:initializeTestItems()
+  itemSystem:initializeTestItems(mapSystem:getSize())
   lightSystem:initializeTestLights()
+
+  world:emit("registerSpriteBatchGenerator", mapSystem:generateSpriteBatch)
+  world:emit("registerSpriteBatchGenerator", spriteSystem:generateSpriteBatch)
 
   -- local profilerSystem = require('systems/profilerSystem')()
   -- instance:addSystem(profilerSystem, "update")
   -- instance:addSystem(profilerSystem, "draw")
+end
+
+function love.update(dt)
+  world:emit('update', dt)
+end
+
+function love.draw()
+  world:emit('draw')
+end
+
+function love.wheelmoved(x, y)
+  world:emit('wheelmoved', x, y)
+end
+
+function love.resize(w, h)
+  world:emit('resize', w, h)
+end
+
+function love.keypressed(pressedKey, scancode, isrepeat)
+  world:emit('keypressed', pressedKey, scancode, isrepeat)
+end
+
+function love.mousepressed()
+  world:emit('mousepressed', x, y, button, istouch, presses)
+end
+
+function love.mousereleased()
+  world:emit('mousereleased', x, y, button, istouch, presses)
+end
+
+function love.mousemoved(x, y, dx, dy, istouch)
+  world:emit('mousemoved', x, y, dx, dy, istouch)
 end
 
 load()

@@ -3,7 +3,6 @@
 local PATH = (...):gsub('%.[^%.]+$', '')
 
 local Type = require(PATH..".type")
-local List = require(PATH..".list")
 
 local Entity = {}
 Entity.__index = Entity
@@ -12,14 +11,29 @@ Entity.__index = Entity
 -- @return A new Entity
 function Entity.new()
    local e = setmetatable({
-      components = {},
-      removed    = {},
-      instances  = List(),
+      world = nil,
+
+      __isDirty    = true,
+      __wasAdded   = false,
+      __wasRemoved = false,
 
       __isEntity = true,
    }, Entity)
 
    return e
+end
+
+local function give(e, component, ...)
+   local comp = component:__initialize(...)
+   e[component] = comp
+
+   e.__isDirty = true
+end
+
+local function remove(e, component)
+   e[component] = nil
+
+   e.__isDirty = true
 end
 
 --- Gives an Entity a component with values.
@@ -31,9 +45,21 @@ function Entity:give(component, ...)
       error("bad argument #1 to 'Entity:give' (Component expected, got "..type(component)..")", 2)
    end
 
-   local comp = component:__initialize(...)
-   self.components[component] = comp
-   self[component] = comp
+   give(self, component, ...)
+
+   return self
+end
+
+function Entity:ensure(component, ...)
+   if not Type.isComponent(component) then
+      error("bad argument #1 to 'Entity:ensure' (Component expected, got "..type(component)..")", 2)
+   end
+
+   if self[component] then
+      return self
+   end
+
+   give(self, component, ...)
 
    return self
 end
@@ -46,23 +72,17 @@ function Entity:remove(component)
       error("bad argument #1 to 'Entity:remove' (Component expected, got "..type(component)..")")
    end
 
-   self.removed[component] = true
+   remove(self, component)
 
    return self
 end
 
---- Checks the Entity against the pools again.
--- @return self
-function Entity:apply()
-   for i = 1, self.instances.size do
-      self.instances:get(i):checkEntity(self)
+function Entity:assemble(assemblage, ...)
+   if not Type.isAssemblage(assemblage) then
+      error("bad argument #1 to 'Entity:assemble' (Assemblage expected, got "..type(assemblage)..")")
    end
 
-   for component, _ in pairs(self.removed) do
-      self.components[component] = nil
-      self[component] = nil
-      self.removed[component] = nil
-   end
+   assemblage:assemble(self, ...)
 
    return self
 end
@@ -70,8 +90,8 @@ end
 --- Destroys the Entity.
 -- @return self
 function Entity:destroy()
-   for i = 1, self.instances.size do
-      self.instances:get(i):removeEntity(self)
+   if self.world then
+      self.world:removeEntity(self)
    end
 
    return self
@@ -85,7 +105,7 @@ function Entity:get(component)
       error("bad argument #1 to 'Entity:get' (Component expected, got "..type(component)..")")
    end
 
-   return self.components[component]
+   return self[component]
 end
 
 --- Returns true if the Entity has the Component.
@@ -96,9 +116,11 @@ function Entity:has(component)
       error("bad argument #1 to 'Entity:has' (Component expected, got "..type(component)..")")
    end
 
-   return self.components[component] ~= nil
+   return self[component] ~= nil
 end
 
 return setmetatable(Entity, {
-   __call = function(_, ...) return Entity.new(...) end,
+   __call = function(_, ...)
+      return Entity.new(...)
+   end,
 })
