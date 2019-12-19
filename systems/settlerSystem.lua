@@ -1,10 +1,11 @@
 local Vector = require('libs/brinevector/brinevector')
 --local inspect = require('libs/inspect')
 local lume = require('libs/lume')
-local utils = require('utils/utils')
+local itemUtils = require('utils/itemUtils')
 local bluePrintUtils = require('utils/bluePrintUtils')
 local media = require('utils/media')
 local components = require('libs/concord').components
+local universe = require('models/universe')
 
 local settlerSpeed = 200
 
@@ -46,7 +47,7 @@ function SettlerSystem:processSettlerUpdate(settler, dt)
   velocityComponent.vector = velocityComponent.vector.normalized * settlerSpeed
 end
 
-function SettlerSystem:processSettlerPathFinding(settler)
+function SettlerSystem:processSettlerPathFinding(settler) --luacheck: ignore
   if not settler:has(components.path) then return end
 
   local pathComponent = settler:get(components.path)
@@ -66,12 +67,12 @@ function SettlerSystem:processSettlerPathFinding(settler)
   end
 
   if nextGridPosition then
-    local nextPosition = gridUtils.gridPositionToPixels(nextGridPosition, "center")
+    local nextPosition = universe.gridPositionToPixels(nextGridPosition, "center")
     local angle = math.atan2(nextPosition.y - position.y, nextPosition.x - position.x)
     local velocityComponent = settler:get(components.velocity)
     velocityComponent.vector = Vector(math.cos(angle), math.sin(angle)).normalized
 
-    if gridUtils.pixelsToGridCoordinates(position) == nextGridPosition then
+    if universe.pixelsToGridCoordinates(position) == nextGridPosition then
       pathComponent.currentIndex = pathComponent.currentIndex + 1
 
       if pathComponent.currentIndex == table.getn(pathComponent.path._nodes) then
@@ -89,7 +90,7 @@ function SettlerSystem:invalidatePaths()
   for _, settler in ipairs(self.pool.objects) do
     if settler:has(components.path) then
       local path = settler:get(components.path).path
-      if not gridUtils.pathStillValid(path) then
+      if not universe.pathStillValid(path) then
         settler:remove(components.path)
         settler:apply()
         settler.searched_for_path = false
@@ -114,9 +115,9 @@ function SettlerSystem:processSubJob(settler, job, dt)
       -- If already have the item, then place item on ground at target site
       if existingItem and existingItem:has(components.amount) and
         existingItem:get(components.amount).amount >= fetch.amount then
-        local path = gridUtils.getPath(
-        gridUtils.pixelsToGridCoordinates(settler:get(components.position).vector),
-        gridUtils.pixelsToGridCoordinates(fetch.target:get(components.position).vector)
+        local path = universe.getPath(
+        universe.pixelsToGridCoordinates(settler:get(components.position).vector),
+        universe.pixelsToGridCoordinates(fetch.target:get(components.position).vector)
         )
 
         settler.searched_for_path = true
@@ -141,9 +142,9 @@ function SettlerSystem:processSubJob(settler, job, dt)
           -- TODO: Get closest item to settler, for now just pick first from list
           local itemOnMap = itemsOnMap[love.math.random(#itemsOnMap)]
           if itemOnMap:has(components.position) then
-            local path = gridUtils.getPath(
-            gridUtils.pixelsToGridCoordinates(settler:get(components.position).vector),
-            gridUtils.pixelsToGridCoordinates(itemOnMap:get(components.position).vector))
+            local path = universe.getPath(
+            universe.pixelsToGridCoordinates(settler:get(components.position).vector),
+            universe.pixelsToGridCoordinates(itemOnMap:get(components.position).vector))
             if path then
 
               path.finishedCallBack = function()
@@ -163,9 +164,9 @@ function SettlerSystem:processSubJob(settler, job, dt)
 
   if job:has(components.bluePrintJob) and job:has(components.Item) then --luacheck: ignore
     local bluePrintComponent = job:get(components.bluePrintJob)
-    local settlerGridPosition = gridUtils.pixelsToGridCoordinates(settler:get(components.position).vector)
-    local bluePrintGridPosition = gridUtils.pixelsToGridCoordinates(job:get(components.position).vector)
-    if gridUtils.isInPosition(settlerGridPosition, bluePrintGridPosition, true) then
+    local settlerGridPosition = universe.pixelsToGridCoordinates(settler:get(components.position).vector)
+    local bluePrintGridPosition = universe.pixelsToGridCoordinates(job:get(components.position).vector)
+    if universe.isInPosition(settlerGridPosition, bluePrintGridPosition, true) then
       if bluePrintUtils.isBluePrintReadyToBuild(job) then
         local constructionSkill = settler:get(components.settler).skills.construction
         bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + constructionSkill * dt
@@ -178,7 +179,7 @@ function SettlerSystem:processSubJob(settler, job, dt)
     else
       settler.searched_for_path = false
       if not settler.searched_for_path then -- RIGHT ON THIS IF: Is global cache valid? If not then re-get path
-        local path = gridUtils.getPath(settlerGridPosition, bluePrintGridPosition)
+        local path = universe.getPath(settlerGridPosition, bluePrintGridPosition)
         settler.searched_for_path = true
         if path then
           path.finishedCallBack = function()
@@ -196,16 +197,16 @@ end
 function SettlerSystem:initializeTestSettlers()
   for _ = 1,30,1 do
     local settler = ECS.Entity()
-    local worldSize = gridUtils.getSize()
+    local worldSize = universe.getSize()
     local position
     while true do
-      position = gridUtils.clampToWorldBounds(Vector(math.random(worldSize.x), math.random(worldSize.y)))
-      if gridUtils.isCellAvailable(position) then
+      position = universe.clampToWorldBounds(Vector(math.random(worldSize.x), math.random(worldSize.y)))
+      if universe.isCellAvailable(position) then
         break
       end
     end
 
-    settler:give(components.position, gridUtils.gridPositionToPixels(position))
+    settler:give(components.position, universe.gridPositionToPixels(position))
     --:give(components.draw, {1,1,0})
     :give(components.sprite, 'characters.settler')
     :give(components.settler)

@@ -1,6 +1,5 @@
 local Vector = require('libs/brinevector/brinevector')
 local Concord = require('libs/concord')
-local component = require('libs/concord').component
 
 local function initializeComponents()
   Concord.component("position", function(e, vector) e.vector = vector or Vector(0, 0) end)
@@ -44,7 +43,7 @@ local function initializeComponents()
   end)
   Concord.component("worker", function(e, available) e.available = available or true end)
   Concord.component("bluePrintJob", function(e)
-    e.materialsConsumed = {} 
+    e.materialsConsumed = {}
     e.buildProgress = 0 -- 0/100
   end)
   Concord.component("constructionJob")

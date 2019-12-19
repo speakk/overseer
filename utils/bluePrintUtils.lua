@@ -1,3 +1,4 @@
+local components = require('libs.concord.components')
 local BluePrintUtils = {}
 
 function BluePrintUtils.isBluePrintReadyToBuild(bluePrint)
@@ -7,7 +8,7 @@ function BluePrintUtils.isBluePrintReadyToBuild(bluePrint)
   local materialsConsumed = bluePrintComponent.materialsConsumed
   local requirements = bluePrint:get(components.item).itemData.requirements
 
-  for selector, item in pairs(requirements) do
+  for selector, item in pairs(requirements) do --luacheck: ignore
     if not materialsConsumed[selector] then
       return false
     end

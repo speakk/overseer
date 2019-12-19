@@ -1,21 +1,16 @@
-local Vector = require('libs/brinevector/brinevector')
-local inspect = require('libs/inspect')
 local components = require('libs/concord').components
-local utils = require('utils/utils')
-local media = require('utils/media')
+
+local camera = require('models/camera')
 
 -- Create a draw System.
 local DrawSystem = ECS.System("draw", {components.position, components.sprite})
-
-function DrawSystem:init()
-end
 
 function DrawSystem:registerSpriteBatchGenerator(callBack)
   table.insert(self.spriteBatchGenerators, callBack)
 end
 
 function DrawSystem:draw()
-  self.camera:draw(function(l,t,w,h)
+  camera:draw(function(l,t,w,h)
     self.lightSystem:renderLights(l, t, w, h, function()
       for _, spriteBatchGenerator in ipairs(self.spriteBatchGenerators) do
         local batch = spriteBatchGenerator(l, t, w, h)

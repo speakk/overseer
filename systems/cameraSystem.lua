@@ -1,16 +1,16 @@
-local components = require('libs/concord').components
+local universe = require('models/universe')
+local camera = require('models/camera')
 
---local camera = require('camera')
+local CameraSystem = ECS.System('camera')
 
-local CameraSystem = ECS.System("camera", {components.position, components.Camera})
-
-function CameraSystem:init(camera)
-  self.camera = camera
+function CameraSystem:init() --luacheck: ignore
+  local cellSize = universe.getCellSize()
+  local size = universe.getSize()
+  camera:setWorld(cellSize, cellSize, size.x * cellSize, size.y * cellSize)
 end
 
-function CameraSystem:resize(w, h)
-  self.camera:setWindow(0, 0, w, h)
-  self.lightWorld:refreshScreenSize(w,h)
+function CameraSystem:resize(w, h) --luacheck: ignore
+  camera:setWindow(0, 0, w, h)
 end
 
 return CameraSystem

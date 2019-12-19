@@ -1,4 +1,5 @@
-local gridUtils = require('utils/gridUtils')
+local universe = require('models/universe')
+local camera = require('models/camera')
 
 local Vector = require('libs/brinevector/brinevector')
 
@@ -14,8 +15,7 @@ local drag = {
   active = false
 }
 
-function OverseerSystem:init(camera)
-  self.camera = camera
+function OverseerSystem:init()
   self.resources = {
     wood = 30,
     metal = 5
@@ -29,14 +29,15 @@ function OverseerSystem:init(camera)
   self.dataSelector = "walls.subItems.wooden_wall"
 end
 
-function OverseerSystem:draw()
-  local cellSize = gridUtils.getCellSize()
+function OverseerSystem:generateGUIDraw() --luacheck: ignore
+  local cellSize = universe.getCellSize()
   if drag.active then
-    local startPoint = gridUtils.gridPositionToPixels(drag.startPoint)
-    local globalX, globalY = self.camera:toWorld(love.mouse.getX(), love.mouse.getY())
-    -- TODO: Now adding cellSize to make sure visuals correspond to actual. Find out why this needs to happen, probably has to do with how rounding is done in "pixelsToGridCoordinates"
-    local gridSnappedMouse = gridUtils.snapPixelToGrid(Vector(globalX+cellSize, globalY+cellSize))
-    self.camera:draw(function(l,t,w,h)
+    local startPoint = universe.gridPositionToPixels(drag.startPoint)
+    local globalX, globalY = camera:toWorld(love.mouse.getX(), love.mouse.getY())
+    -- TODO: Now adding cellSize to make sure visuals correspond to actual.
+    -- Find out why this needs to happen, probably has to do with how rounding is done in "pixelsToGridCoordinates"
+    local gridSnappedMouse = universe.snapPixelToGrid(Vector(globalX+cellSize, globalY+cellSize))
+    camera:draw(function(l,t,w,h) --luacheck: ignore
       love.graphics.setColor(1, 1, 1, 1)
       love.graphics.rectangle("line",
         startPoint.x,
@@ -50,7 +51,7 @@ end
 
 function OverseerSystem:setDataSelector(selector)
   self.dataSelector = selector
-  self:getWorld:emit("dataSelectorChanged", selector)
+  self:getWorld():emit("dataSelectorChanged", selector)
 end
 
 function OverseerSystem:getDataSelector()
@@ -69,7 +70,7 @@ function OverseerSystem:update(dt) --luacheck: ignore
 end
 
 function OverseerSystem:enactConstructionDrag(dragEvent)
-  local nodes = gridUtils.iter(
+  local nodes = universe.iter(
   dragEvent.startPoint.x,
   dragEvent.startPoint.y,
   dragEvent.endPoint.x,
@@ -110,7 +111,7 @@ end
 
 function OverseerSystem:build(nodes)
   local data = constructionTypes.getBySelector(self.dataSelector)
-  self:getWorld():emit("bluePrintsPlaced", nodex, data, self.dataSelector)
+  self:getWorld():emit("bluePrintsPlaced", nodes, data, self.dataSelector)
 end
 
 return OverseerSystem

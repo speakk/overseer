@@ -29,7 +29,7 @@ local function printJob(job, level, y)
   if job:has(components.bluePrintJob) then
     local bluePrintComponent = job:get(components.bluePrintJob)
     name = name .. " Consumed: "
-    for selector, item in pairs(bluePrintComponent.materialsConsumed) do
+    for selector, item in pairs(bluePrintComponent.materialsConsumed) do --luacheck: ignore
       name = name .. "| " .. selector .. " | "
     end
   end
@@ -40,12 +40,10 @@ local function printJob(job, level, y)
     local children = job:get(components.children).children
 
     if children then
-      for i, child in ipairs(children) do
+      for _, child in ipairs(children) do
         printJob(child, level + 1, y + 1)
       end
-    else
     end
-  else
   end
 
 end
@@ -87,7 +85,9 @@ function JobSystem:getUnreservedJobs()
           local subJobComponent = firstSubJob:get(components.job)
           --return firstSubJob
           if not subJobComponent.finished then
-            if not subJobComponent.reserved and subJobComponent.canStart then table.insert(unreservedJobs, firstSubJob) end
+            if not subJobComponent.reserved and subJobComponent.canStart then
+              table.insert(unreservedJobs, firstSubJob)
+            end
           end
         end
       end
@@ -132,7 +132,7 @@ end
 
 function JobSystem:addJob(job)
   table.insert(self.jobs, job)
-  self:getWorld:emit("jobQueueUpdated", self.getUnreservedJobs())
+  self:getWorld():emit("jobQueueUpdated", self.getUnreservedJobs())
 end
 
 return JobSystem

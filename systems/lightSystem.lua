@@ -49,18 +49,19 @@ void effect(){
 }
 ]]
 
-function LightSystem:init(camera)
-  self.camera = camera
+function LightSystem:init()
   self.useShader = true
   self.shader = love.graphics.newShader(shader_code)
 end
 
 function LightSystem:initializeTestLights()
-  for i=1,31 do
+  for _=1,31 do
     local light = ECS.Entity()
-    light:give(components.position, Vector(love.math.random(love.graphics.getWidth()*2), love.math.random(love.graphics.getHeight()*2)))
+    light:give(components.position,
+      Vector(love.math.random(love.graphics.getWidth()*2), love.math.random(love.graphics.getHeight()*2)))
     light:give(components.sprite, "items.torch01")
-    --light:give(components.light, { love.math.random(), love.math.random(), love.math.random() }, love.math.random(200))
+    --light:give(components.light,
+    --{ love.math.random(), love.math.random(), love.math.random() }, love.math.random(200))
     light:give(components.light, { 1, 1, 1 }, 8)
     light:apply()
     self:getWorld():addEntity(light)
@@ -91,8 +92,8 @@ function LightSystem:renderLights(l, t, w, h, f)
 
     local allLights = self:getLights()
     local visibleLights = {}
-    for i, light in ipairs(allLights) do
-      local lightComponent = light:get(components.light)
+    for _, light in ipairs(allLights) do
+      --local lightComponent = light:get(components.light)
       local position = light:get(components.position).vector
       local lightSize = Vector(128, 128)
       if utils.withinBounds(position.x,

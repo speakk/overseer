@@ -2,7 +2,7 @@
 local Vector = require('libs/brinevector/brinevector')
 local components = require('libs/concord').components
 
-local gridUtils = require('utils/gridUtils')
+local universe = require('models/universe')
 -- Create a draw System.
 local BluePrintSystem = ECS.System("bluePrint", {components.bluePrintJob})
 
@@ -13,7 +13,7 @@ function BluePrintSystem:generateBluePrintJob(gridPosition, itemData, bluePrintI
   job:give(components.bluePrintJob)
   job:give(components.sprite, itemData.sprite)
   job:give(components.item, itemData, bluePrintItemSelector)
-  job:give(components.position, gridUtils.gridPositionToPixels(gridPosition))
+  job:give(components.position, universe.gridPositionToPixels(gridPosition))
   job:give(components.collision)
 
   if itemData.requirements then
@@ -37,23 +37,15 @@ function BluePrintSystem:generateBluePrintJob(gridPosition, itemData, bluePrintI
 
   job:apply()
   self:getWorld():addEntity(job)
-  
   self.getWorld():emit("jobAdded", job)
 
   return job
 end
 
-function BluePrintSystem:init()
-end
-
-function BluePrintSystem:update(dt) --luacheck: ignore
-end
-
-function BluePrintSystem:consumeRequirement(bluePrint, item)
+function BluePrintSystem:consumeRequirement(bluePrint, item) --luacheck: ignore
   local bluePrintComponent = bluePrint:get(components.bluePrintJob)
   bluePrintComponent.materialsConsumed[item:get(components.item).selector] = item
 end
-
 
 function BluePrintSystem:bluePrintFinished(bluePrint) --luacheck: ignore
   if bluePrint:has(components.draw) then
@@ -63,9 +55,9 @@ function BluePrintSystem:bluePrintFinished(bluePrint) --luacheck: ignore
 end
 
 function BluePrintSystem:placeBluePrints(nodes, constructionType, selector)
-    for node, count in nodes do
-      local gridPosition = gridUtils.clampToWorldBounds(Vector(node:getX(), node:getY()))
-      if gridUtils.isCellAvailable(gridPosition) then
+    for node, _ in nodes do
+      local gridPosition = universe.clampToWorldBounds(Vector(node:getX(), node:getY()))
+      if universe.isCellAvailable(gridPosition) then
         local bluePrint = self:generateBluePrintJob(gridPosition, constructionType, selector)
         self:getWorld():emit("blueprintActivated", bluePrint)
       end

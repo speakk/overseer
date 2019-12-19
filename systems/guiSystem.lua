@@ -1,7 +1,7 @@
 local nuklear = require("nuklear")
 local Vector = require('libs/brinevector/brinevector')
 
-local gridUtils = require("utils/gridUtils")
+local universe = require("models/universe")
 
 local constructionTypes = require('data/constructionTypes')
 
@@ -27,7 +27,7 @@ local function buildMenuHierarchy(self, items, key, path)
     if ui:selectable(items.name .. ", " .. requirements, sel) then
       if sel.value then
 
-        self:getWorld:emit("dataSelectorChanged", path)
+        self:getWorld():emit("dataSelectorChanged", path)
       end
     end
   elseif type(items) == "table" then
@@ -73,9 +73,9 @@ function GUISystem:update(dt) --luacheck: ignore
       local sel = { value = menuName == self.selectedAction }
       if ui:selectable(menuItem.name .. ' (' .. (menuItem.shortCut or '') .. ')', sel) then
         if sel.value then
-          self:getWorld:emit("selectedModeChanged", menuName)
+          self:getWorld():emit("selectedModeChanged", menuName)
         else
-          self:getWorld:emit("selectedModeChanged", "")
+          self:getWorld():emit("selectedModeChanged", "")
         end
       end
     end
@@ -106,7 +106,7 @@ function GUISystem:mousepressed(x, y, button, istouch, presses)
     return
   end
   local globalX, globalY = self.camera:toWorld(x, y)
-  self:getWorld():emit("mapClicked", gridUtils.pixelsToGridCoordinates(Vector(globalX, globalY)))
+  self:getWorld():emit("mapClicked", universe.pixelsToGridCoordinates(Vector(globalX, globalY)))
 end
 
 function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
@@ -118,9 +118,9 @@ function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
     if menuItem.shortCut == pressedKey then
       menuItem.selected = not menuItem.selected
       if menuItem.selected then
-        self:getWorld:emit('selectedModeChanged', menuName)
+        self:getWorld():emit('selectedModeChanged', menuName)
       else
-        self:getWorld:emit('selectedModeChanged', "")
+        self:getWorld():emit('selectedModeChanged', "")
       end
     end
     if menuItem.subItems then

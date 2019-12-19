@@ -1,5 +1,5 @@
 require("libs/deepcopy")
-local Concord = require("libs/concord")
+local universe = require("models/universe")
 
 
 require('components.common').initializeComponents()
@@ -13,31 +13,29 @@ ECS.World = require("libs.concord.world")
 ECS.Entity = require("libs.concord.entity")
 
 local world = ECS.World()
+universe.load(world)
 
 local windowWidth = 1000
 local windowHeight = 800
 love.window.setMode(windowWidth, windowHeight, { resizable=true })
 
-local gamera = require('libs/gamera/gamera')
-local camera = gamera.new(0, 0, 1000, 1000)
 
 -- Add the Instance to concord to make it active
 --Concord.addWorld(world)
 
+local cameraSystem = require('systems/cameraSystem')()
 local moveSystem = require('systems/moveSystem')()
 local dayCycleSystem = require('systems/dayCycleSystem')()
 local spriteSystem = require('systems/spriteSystem')()
-local lightSystem = require('systems/lightSystem')(camera)
-local mapSystem = require('systems/mapSystem')(camera)
-
-local mapUtils = require("utils/mapUtils").init()
+local lightSystem = require('systems/lightSystem')()
+local mapSystem = require('systems/mapSystem')()
 
 local itemSystem = require('systems/itemSystem')()
 local jobSystem = require('systems/jobSystem')()
 local bluePrintSystem = require('systems/bluePrintSystem')()
-local overseerSystem = require('systems/overseerSystem')(camera)
-local guiSystem = require('systems/guiSystem')(camera)
-local playerInputSystem = require('systems/playerInputSystem')(camera)
+local overseerSystem = require('systems/overseerSystem')()
+local guiSystem = require('systems/guiSystem')()
+local playerInputSystem = require('systems/playerInputSystem')()
 local settlerSystem = require('systems/settlerSystem')()
 local drawSystem = require('systems/drawSystem')()
 
@@ -62,7 +60,7 @@ local function load()
   world:addSystem(settlerSystem, "jobQueueUpdated")
   world:addSystem(settlerSystem, "gridUpdated", "invalidatePaths")
   world:addSystem(itemSystem)
-  world:addSystem(mapSystem, "resize") -- Window resize event
+  world:addSystem(cameraSystem, "resize")
   world:addSystem(mapSystem, "update")
   --worldce:addSystem(mapSystem, "draw")
   world:addSystem(drawSystem, "draw")
@@ -82,8 +80,9 @@ local function load()
   itemSystem:initializeTestItems(mapSystem:getSize())
   lightSystem:initializeTestLights()
 
-  world:emit("registerSpriteBatchGenerator", mapSystem:generateSpriteBatch)
-  world:emit("registerSpriteBatchGenerator", spriteSystem:generateSpriteBatch)
+  world:emit("registerSpriteBatchGenerator", mapSystem.generateSpriteBatch)
+  world:emit("registerSpriteBatchGenerator", spriteSystem.generateSpriteBatch)
+  world:emit("registerGUIDrawGenerator", overseerSystem.generateGUIDraw)
 
   -- local profilerSystem = require('systems/profilerSystem')()
   -- instance:addSystem(profilerSystem, "update")
@@ -110,11 +109,11 @@ function love.keypressed(pressedKey, scancode, isrepeat)
   world:emit('keypressed', pressedKey, scancode, isrepeat)
 end
 
-function love.mousepressed()
+function love.mousepressed(x, y, button, istouch, presses)
   world:emit('mousepressed', x, y, button, istouch, presses)
 end
 
-function love.mousereleased()
+function love.mousereleased(x, y, button, istouch, presses)
   world:emit('mousereleased', x, y, button, istouch, presses)
 end
 

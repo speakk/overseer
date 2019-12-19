@@ -9,10 +9,6 @@ function SpriteSystem:init()
   self.tilesetBatch = love.graphics.newSpriteBatch(media.sprites, 500)
 end
 
-function SpriteSystem:draw()
-
-end
-
 function SpriteSystem:generateSpriteBatch(l, t, w, h)
   self.tilesetBatch:clear()
   for _, entity in ipairs(self.pool.objects) do
@@ -51,7 +47,8 @@ function SpriteSystem:drawEntity(l, t, w, h, entity)
     -- end
 
     local spriteComponent = entity:get(components.sprite)
-    self.tilesetBatch:addLayer(media.getSpriteIndex(spriteComponent.selector), positionVector.x, positionVector.y, 0, 2, 2)
+    self.tilesetBatch:addLayer(media.getSpriteIndex(spriteComponent.selector),
+      positionVector.x, positionVector.y, 0, 2, 2)
 
     -- love.graphics.setColor(color[1], color[2], color[3], color[4])
     -- love.graphics.rectangle("fill",

@@ -1,10 +1,7 @@
 local Vector = require('libs/brinevector/brinevector')
 local lume = require('libs/lume')
---local inspect = require('libs/inspect')
 local components = require('libs/concord').components
-local constructionTypes = require('data/constructionTypes')
 
-local gridUtils = require('utils/gridUtils')
 local itemUtils = require('utils/itemUtils')
 
 local ItemSystem = ECS.System("item", {components.item})
