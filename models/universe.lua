@@ -1,20 +1,21 @@
 local Vector = require('libs/brinevector/brinevector')
 local Pathfinder = require('libs/jumper.pathfinder')
-local components = require('libs.concord.components')
 local Grid = require('libs/jumper.grid')
 local cpml = require('libs/cpml')
+local inspect = require('libs/inspect')
 local utils = require('utils/utils')
 local world = nil
 
-local cellSize = 32
+local universe = {}
+
+universe.cellSize = 32
 local padding = 0
 local width = 80
 local height = 60
-local tilesetBatch
+local tilesetBatch = nil
 local gridInvalidated = false
 local walkable = 0
 
-local universe = {}
 
 local map = {}
 local mapColors = {}
@@ -27,7 +28,7 @@ local _gridUpdateInterval = 2
 local grid
 local myFinder
 
-function universe.load(newWorld)
+function universe:load(newWorld)
   world = newWorld
   local grassNoiseScale = 0.05
 
@@ -47,7 +48,7 @@ function universe.load(newWorld)
     mapColors[y] = colorRow
   end
 
-  universe.recalculateGrid(map, true)
+  self.recalculateGrid(map, true)
 
   local generateTileName = function(name) return 'media/tiles/' .. name .. '.png' end
   local tiles = {
@@ -66,13 +67,13 @@ function universe.getSize()
 end
 
 function universe.onCollisionEntityAdded(entity)
-  local position = universe.pixelsToGridCoordinates(entity:get(components.position).vector)
+  local position = universe.pixelsToGridCoordinates(entity:get(ECS.components.position).vector)
   map[position.y][position.x] = 1
   gridInvalidated = true
 end
 
 function universe.onCollisionEntityRemoved(entity)
-    local position = universe.pixelsToGridCoordinates(entity:get(components.position).vector)
+    local position = universe.pixelsToGridCoordinates(entity:get(ECS.components.position).vector)
     map[position.y][position.x] = 0
     gridInvalidated = true
 end
@@ -92,11 +93,11 @@ end
 -- Marked for optimization
 function universe.gridPositionToPixels(gridPosition, positionFlag, entitySize)
   positionFlag = positionFlag or "corner"
-  local tilePosition = gridPosition * cellSize
+  local tilePosition = gridPosition * universe.cellSize
 
   if positionFlag == "center" then
     entitySize = entitySize or 10
-    return tilePosition + Vector((cellSize-padding-entitySize)/2, (cellSize-padding-entitySize)/2)
+    return tilePosition + Vector((universe.cellSize-padding-entitySize)/2, (universe.cellSize-padding-entitySize)/2)
   end
 
   return tilePosition
@@ -107,11 +108,11 @@ function universe.snapPixelToGrid(pixelPosition, positionFlag, entitySize)
 end
 
 function universe.pixelsToGridCoordinates(pixelPosition)
-  return Vector(math.floor(pixelPosition.x/cellSize), math.floor(pixelPosition.y/cellSize))
+  return Vector(math.floor(pixelPosition.x/universe.cellSize), math.floor(pixelPosition.y/universe.cellSize))
 end
 
 function universe.getCellSize()
-  return cellSize
+  return universe.cellSize
 end
 
 function universe.getPadding()
@@ -119,7 +120,6 @@ function universe.getPadding()
 end
 
 function universe.getPath(from, to)
-  print("Getting path", from, to)
   local toNode = grid:getNodeAt(to.x, to.y)
 
   local toNodesToCheck = grid:getNeighbours(toNode)
@@ -196,18 +196,18 @@ function universe.generateSpriteBatch(l, t, w, h)
 
   for rowNum, row in ipairs(map) do
     for cellNum, cellValue in ipairs(row) do --luacheck: ignore
-      local drawMargin = cellSize
-      local x1 = (cellNum * cellSize)
-      local x2 = x1 + cellSize
-      local y1 = rowNum * cellSize
-      local y2 = y1 + cellSize
+      local drawMargin = universe.cellSize
+      local x1 = (cellNum * universe.cellSize)
+      local x2 = x1 + universe.cellSize
+      local y1 = rowNum * universe.cellSize
+      local y2 = y1 + universe.cellSize
       if utils.withinBounds(x1, y1, x2, y2, l, t, l+w, t+h, drawMargin*2) then
         local color = mapColors[rowNum][cellNum]
         local imageArrayIndex = 3
         if color.grass == 1 then
           imageArrayIndex = math.floor(math.random()+0.5)+1
         end
-        tilesetBatch:addLayer(imageArrayIndex, cellNum*cellSize, rowNum*cellSize, 0, 2, 2)
+        tilesetBatch:addLayer(imageArrayIndex, cellNum*universe.cellSize, rowNum*universe.cellSize, 0, 2, 2)
       end
     end
   end

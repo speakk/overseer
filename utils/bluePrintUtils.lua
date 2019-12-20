@@ -1,4 +1,4 @@
-local components = require('libs.concord.components')
+local components = require('libs.concord').components
 local BluePrintUtils = {}
 
 function BluePrintUtils.isBluePrintReadyToBuild(bluePrint)

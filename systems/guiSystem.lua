@@ -73,8 +73,10 @@ function GUISystem:update(dt) --luacheck: ignore
       local sel = { value = menuName == self.selectedAction }
       if ui:selectable(menuItem.name .. ' (' .. (menuItem.shortCut or '') .. ')', sel) then
         if sel.value then
+          self.selectedAction = menuName
           self:getWorld():emit("selectedModeChanged", menuName)
         else
+          self.selectedAction = ""
           self:getWorld():emit("selectedModeChanged", "")
         end
       end
@@ -118,8 +120,10 @@ function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
     if menuItem.shortCut == pressedKey then
       menuItem.selected = not menuItem.selected
       if menuItem.selected then
+        self.selectedAction = menuItem
         self:getWorld():emit('selectedModeChanged', menuName)
       else
+        self.selectedAction = ""
         self:getWorld():emit('selectedModeChanged', "")
       end
     end

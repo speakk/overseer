@@ -1,7 +1,6 @@
-local components = require('libs/concord').components
-local universe = require('model/universe')
+local universe = require('models/universe')
 
-local MapSystem = ECS.System("map", {components.collision, "collision"})
+local MapSystem = ECS.System("map", {ECS.Components.collision, "collision"})
 
 function MapSystem:init()
   self.collision.onEntityAdded = universe.onCollisionEntityAdded

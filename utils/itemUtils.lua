@@ -1,6 +1,5 @@
 local lume = require('libs.lume')
-local components = require('libs.concord.components')
-local universe = require('models.universe')
+local universe = require('models/universe')
 local constructionTypes = require('data.constructionTypes')
 
 local ItemUtils = {}
@@ -15,23 +14,23 @@ local itemsOnGround = {}
 
 function ItemUtils.getInventoryItemBySelector(inventory, selector) -- luacheck: ignore
   local itemEnt = lume.match(inventory, function(itemInInv)
-    return itemInInv:get(components.item).selector == selector end)
+    return itemInInv:get(ECS.Components.item).selector == selector end)
   return itemEnt
 end
 
 -- Return item, wasSplit
 function ItemUtils.splitItemStackIfNeeded(item, amount)
   if not item then error("Trying to split nil item") end
-  local currentAmount = item:get(components.amount).amount
+  local currentAmount = item:get(ECS.Components.amount).amount
   local diff = currentAmount - amount
   if diff <= 0 then
     return item, false
   end
 
-  local selector = item:get(components.item).selector
-  item:give(components.amount, diff)
+  local selector = item:get(ECS.Components.item).selector
+  item:give(ECS.Components.amount, diff)
   local itemCopy = ItemUtils.createItem(selector, amount)
-  itemCopy:give(components.amount, amount)
+  itemCopy:give(ECS.Components.amount, amount)
   return itemCopy, true
 end
 
@@ -41,24 +40,22 @@ function ItemUtils.createItem(selector, amount)
   local item = ECS.Entity()
   local itemData = constructionTypes.getBySelector(selector)
   --local color = itemData.color or { 0.5, 0.5, 0.5 }
-  item:give(components.item, itemData, selector)
-  :give(components.sprite, itemData.sprite)
-  :give(components.amount, amount)
+  item:give(ECS.Components.item, itemData, selector)
+  :give(ECS.Components.sprite, itemData.sprite)
+  :give(ECS.Components.amount, amount)
 
-  item:apply()
   --world:addEntity(item)
 
   return item
 end
 
 function ItemUtils.placeItemOnGround(item, gridPosition) --luacheck: ignore
-  local selector = item:get(components.item).selector
+  local selector = item:get(ECS.Components.item).selector
   if not itemsOnGround[selector] then
     itemsOnGround[selector] = {}
   end
 
-  item:give(components.position, universe.gridPositionToPixels(gridPosition))
-  item:apply()
+  item:give(ECS.Components.position, universe.gridPositionToPixels(gridPosition))
 
   table.insert(itemsOnGround[selector], item)
 end
@@ -66,7 +63,7 @@ end
 function ItemUtils.getItemFromGround(itemSelector, gridPosition) --luacheck: ignore
   local items = itemsOnGround[itemSelector]
   for _, item in ipairs(items) do
-    local position = item:get(components.position).vector
+    local position = item:get(ECS.Components.position).vector
     if gridPosition == universe.pixelsToGridCoordinates(position) then
       return item
     end
@@ -80,13 +77,13 @@ function ItemUtils.getItemsFromGroundBySelector(itemSelector) --luacheck: ignore
 end
 
 function ItemUtils.takeItemFromGround(originalItem, amount)
-  local selector = originalItem:get(components.item).selector
+  local selector = originalItem:get(ECS.Components.item).selector
   local item, wasSplit = ItemUtils.splitItemStackIfNeeded(originalItem, amount)
 
   if not wasSplit then
     lume.remove(itemsOnGround[selector], originalItem)
-    if originalItem:has(components.position) then
-      originalItem:remove(components.position)
+    if originalItem:has(ECS.Components.position) then
+      originalItem:remove(ECS.Components.position)
       originalItem:apply()
     end
   end

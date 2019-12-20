@@ -4,13 +4,12 @@ local lume = require('libs/lume')
 local itemUtils = require('utils/itemUtils')
 local bluePrintUtils = require('utils/bluePrintUtils')
 local media = require('utils/media')
-local components = require('libs/concord').components
 local universe = require('models/universe')
 
 local settlerSpeed = 200
 
-local SettlerSystem = ECS.System("settler", {components.settler, components.worker,
-components.position, components.velocity})
+local SettlerSystem = ECS.System("settler", {ECS.Components.settler, ECS.Components.worker,
+ECS.Components.position, ECS.Components.velocity})
 
 function SettlerSystem:init()
   self.lastAssigned = 0
@@ -21,23 +20,23 @@ function SettlerSystem:init()
 end
 
 function SettlerSystem:update(dt) --luacheck: ignore
-  local time = love.timer.getTime()
-  if time - self.lastAssigned > self.assignWaitTime then
-    self:assignJobsForSettlers()
-    self.lastAssigned = time
-  end
+  -- local time = love.timer.getTime()
+  -- if time - self.lastAssigned > self.assignWaitTime then
+  --   self:assignJobsForSettlers()
+  --   self.lastAssigned = time
+  -- end
 
-  for _, settler in ipairs(self.pool.objects) do
+  for _, settler in ipairs(self.pool) do
     self:processSettlerUpdate(settler, dt)
   end
 end
 
 function SettlerSystem:processSettlerUpdate(settler, dt)
-  local velocityComponent = settler:get(components.velocity)
+  local velocityComponent = settler:get(ECS.Components.velocity)
   velocityComponent.vector = Vector(0, 0)
-  if not settler:has(components.path) then
-    if settler:has(components.work) then
-      self:processSubJob(settler, settler:get(components.work).job, dt)
+  if not settler:has(ECS.Components.path) then
+    if settler:has(ECS.Components.work) then
+      self:processSubJob(settler, settler:get(ECS.Components.work).job, dt)
     end
   else
     self:processSettlerPathFinding(settler)
@@ -48,15 +47,15 @@ function SettlerSystem:processSettlerUpdate(settler, dt)
 end
 
 function SettlerSystem:processSettlerPathFinding(settler) --luacheck: ignore
-  if not settler:has(components.path) then return end
+  if not settler:has(ECS.Components.path) then return end
 
-  local pathComponent = settler:get(components.path)
+  local pathComponent = settler:get(ECS.Components.path)
 
   if not pathComponent.path then
     return
   end
 
-  local position = settler:get(components.position).vector
+  local position = settler:get(ECS.Components.position).vector
   local nextGridPosition
 
   for node, count in pathComponent.path:nodes() do
@@ -69,7 +68,7 @@ function SettlerSystem:processSettlerPathFinding(settler) --luacheck: ignore
   if nextGridPosition then
     local nextPosition = universe.gridPositionToPixels(nextGridPosition, "center")
     local angle = math.atan2(nextPosition.y - position.y, nextPosition.x - position.x)
-    local velocityComponent = settler:get(components.velocity)
+    local velocityComponent = settler:get(ECS.Components.velocity)
     velocityComponent.vector = Vector(math.cos(angle), math.sin(angle)).normalized
 
     if universe.pixelsToGridCoordinates(position) == nextGridPosition then
@@ -77,8 +76,7 @@ function SettlerSystem:processSettlerPathFinding(settler) --luacheck: ignore
 
       if pathComponent.currentIndex == table.getn(pathComponent.path._nodes) then
         pathComponent.path.finishedCallBack()
-        settler:remove(components.path)
-        settler:apply()
+        settler:remove(ECS.Components.path)
       end
     end
     velocityComponent.vector = velocityComponent.vector.normalized * settlerSpeed
@@ -87,12 +85,11 @@ function SettlerSystem:processSettlerPathFinding(settler) --luacheck: ignore
 end
 
 function SettlerSystem:invalidatePaths()
-  for _, settler in ipairs(self.pool.objects) do
-    if settler:has(components.path) then
-      local path = settler:get(components.path).path
+  for _, settler in ipairs(self.pool) do
+    if settler:has(ECS.Components.path) then
+      local path = settler:get(ECS.Components.path).path
       if not universe.pathStillValid(path) then
-        settler:remove(components.path)
-        settler:apply()
+        settler:remove(ECS.Components.path)
         settler.searched_for_path = false
       end
     end
@@ -100,24 +97,24 @@ function SettlerSystem:invalidatePaths()
 end
 
 function SettlerSystem:processSubJob(settler, job, dt)
-  -- TODO: Make this logic a map from component type to method (loop through components?)
-  if job:has(components.fetchJob) then
-    local fetch = job:get(components.fetchJob)
+  -- TODO: Make this logic a map from component type to method (loop through ECS.Components?)
+  if job:has(ECS.Components.fetchJob) then
+    local fetch = job:get(ECS.Components.fetchJob)
     local selector = fetch.selector
-    local itemData = job:get(components.item).itemData
+    local itemData = job:get(ECS.Components.item).itemData
     local amount = itemData.requirements[selector]
     --local amount = fetch.amount -- TODO: Use this or above?
-    local inventoryComponent = settler:get(components.inventory)
+    local inventoryComponent = settler:get(ECS.Components.inventory)
     local inventory = inventoryComponent.inventory
     settler.searched_for_path = false
     if not settler.searched_for_path then
       local existingItem = itemUtils.getInventoryItemBySelector(inventory, selector)
       -- If already have the item, then place item on ground at target site
-      if existingItem and existingItem:has(components.amount) and
-        existingItem:get(components.amount).amount >= fetch.amount then
+      if existingItem and existingItem:has(ECS.Components.amount) and
+        existingItem:get(ECS.Components.amount).amount >= fetch.amount then
         local path = universe.getPath(
-        universe.pixelsToGridCoordinates(settler:get(components.position).vector),
-        universe.pixelsToGridCoordinates(fetch.target:get(components.position).vector)
+        universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector),
+        universe.pixelsToGridCoordinates(fetch.target:get(ECS.Components.position).vector)
         )
 
         settler.searched_for_path = true
@@ -126,14 +123,12 @@ function SettlerSystem:processSubJob(settler, job, dt)
 
           path.finishedCallBack = function()
             settler.searched_for_path = false
-            settler:remove(components.work)
-            settler:apply()
+            settler:remove(ECS.Components.work)
             local invItem = itemUtils.popInventoryItemBySelector(inventory, selector, amount) -- luacheck: ignore
-            job:get(components.fetchJob).finishedCallBack()
+            job:get(ECS.Components.fetchJob).finishedCallBack()
             self:getWorld():emit("jobFinished", job)
-            job:apply()
           end
-          settler:give(components.path, path)
+          settler:give(ECS.Components.path, path)
         end
       else
         -- If we don't have item, find closest one and go fetch it
@@ -141,20 +136,19 @@ function SettlerSystem:processSubJob(settler, job, dt)
         if itemsOnMap and #itemsOnMap > 0 then
           -- TODO: Get closest item to settler, for now just pick first from list
           local itemOnMap = itemsOnMap[love.math.random(#itemsOnMap)]
-          if itemOnMap:has(components.position) then
+          if itemOnMap:has(ECS.Components.position) then
             local path = universe.getPath(
-            universe.pixelsToGridCoordinates(settler:get(components.position).vector),
-            universe.pixelsToGridCoordinates(itemOnMap:get(components.position).vector))
+            universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector),
+            universe.pixelsToGridCoordinates(itemOnMap:get(ECS.Components.position).vector))
             if path then
 
               path.finishedCallBack = function()
                 settler.searched_for_path = false
-                settler:remove(components.path)
-                settler:apply()
+                settler:remove(ECS.Components.path)
                 table.insert(inventory, itemOnMap)
                 itemUtils.takeItemFromGround(itemOnMap, amount)
               end
-              settler:give(components.path, path)
+              settler:give(ECS.Components.path, path)
             end
           end
         end
@@ -162,18 +156,17 @@ function SettlerSystem:processSubJob(settler, job, dt)
     end
   end
 
-  if job:has(components.bluePrintJob) and job:has(components.Item) then --luacheck: ignore
-    local bluePrintComponent = job:get(components.bluePrintJob)
-    local settlerGridPosition = universe.pixelsToGridCoordinates(settler:get(components.position).vector)
-    local bluePrintGridPosition = universe.pixelsToGridCoordinates(job:get(components.position).vector)
+  if job:has(ECS.Components.bluePrintJob) and job:has(ECS.Components.Item) then --luacheck: ignore
+    local bluePrintComponent = job:get(ECS.Components.bluePrintJob)
+    local settlerGridPosition = universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector)
+    local bluePrintGridPosition = universe.pixelsToGridCoordinates(job:get(ECS.Components.position).vector)
     if universe.isInPosition(settlerGridPosition, bluePrintGridPosition, true) then
       if bluePrintUtils.isBluePrintReadyToBuild(job) then
-        local constructionSkill = settler:get(components.settler).skills.construction
+        local constructionSkill = settler:get(ECS.Components.settler).skills.construction
         bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + constructionSkill * dt
         if bluePrintComponent.buildProgress >= 100 then
           self:getWorld():emit("jobFinished", job)
-          settler:remove(components.work)
-          settler:apply()
+          settler:remove(ECS.Components.work)
         end
       end
     else
@@ -185,7 +178,7 @@ function SettlerSystem:processSubJob(settler, job, dt)
           path.finishedCallBack = function()
             settler.searched_for_path = false
           end
-          settler:give(components.path, path)
+          settler:give(ECS.Components.path, path)
         end
       end
     end
@@ -206,21 +199,22 @@ function SettlerSystem:initializeTestSettlers()
       end
     end
 
-    settler:give(components.position, universe.gridPositionToPixels(position))
-    --:give(components.draw, {1,1,0})
-    :give(components.sprite, 'characters.settler')
-    :give(components.settler)
-    :give(components.inventory)
-    :give(components.worker)
-    :give(components.velocity)
-    :apply()
+    settler:give(ECS.Components.position, universe.gridPositionToPixels(position))
+    --:give(ECS.Components.draw, {1,1,0})
+    :give(ECS.Components.sprite, 'characters.settler')
+    :give(ECS.Components.settler)
+    :give(ECS.Components.inventory)
+    :give(ECS.Components.worker)
+    :give(ECS.Components.velocity)
+    print(self)
+    print("world", self:getWorld())
     self:getWorld():addEntity(settler)
   end
 end
 
 function SettlerSystem:startJob(settler, job, jobQueue) -- luacheck: ignore
-  job:get(components.job).reserved = settler
-  settler:give(components.work, job)
+  job:get(ECS.Components.job).reserved = settler
+  settler:give(ECS.Components.work, job)
   lume.remove(jobQueue, job)
 end
 
@@ -232,9 +226,9 @@ end
 function SettlerSystem:assignJobsForSettlers(jobQueue)
 
   while true do
-    local availableWorker = lume.match(self.pool.objects,
+    local availableWorker = lume.match(self.pool,
     function(potentialSettler)
-      return not potentialSettler:has(components.work)
+      return not potentialSettler:has(ECS.Components.work)
     end
     )
 

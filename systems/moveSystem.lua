@@ -1,12 +1,10 @@
-local components = require('libs/concord').components
-
 -- Create a System class as lovetoys.System subclass.
-local MoveSystem = ECS.System("move", {components.position, components.velocity})
+local MoveSystem = ECS.System("move", {ECS.Components.position, ECS.Components.velocity})
 
 function MoveSystem:update(dt)
-  for _, entity in pairs(self.pool.objects) do
-    local position = entity:get(components.position)
-    local velocity = entity:get(components.velocity)
+  for _, entity in ipairs(self.pool) do
+    local position = entity:get(ECS.Components.position)
+    local velocity = entity:get(ECS.Components.velocity)
     position.vector = position.vector + velocity.vector * dt
 
   end

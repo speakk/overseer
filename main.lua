@@ -1,88 +1,87 @@
 require("libs/deepcopy")
-local universe = require("models/universe")
-
-
-require('components.common').initializeComponents()
 
 DEBUG = false
 
 ECS = {}
-ECS.Component = require("libs.concord.component")
-ECS.System = require("libs.concord.system")
-ECS.World = require("libs.concord.world")
-ECS.Entity = require("libs.concord.entity")
+ECS.Component = require("libs.concord").component
+ECS.Components = require("libs.concord").components
+ECS.System = require("libs.concord").system
+ECS.Systems = require("libs.concord").systems
+ECS.World = require("libs.concord").world
+ECS.Entity = require("libs.concord").entity
 
-local world = ECS.World()
-universe.load(world)
+require('components.common').initializeComponents()
+
+
+local world = ECS.World("wurld")
+local universe = require("models/universe")
+universe:load(world)
 
 local windowWidth = 1000
 local windowHeight = 800
 love.window.setMode(windowWidth, windowHeight, { resizable=true })
 
-
 -- Add the Instance to concord to make it active
 --Concord.addWorld(world)
 
-local cameraSystem = require('systems/cameraSystem')()
-local moveSystem = require('systems/moveSystem')()
-local dayCycleSystem = require('systems/dayCycleSystem')()
-local spriteSystem = require('systems/spriteSystem')()
-local lightSystem = require('systems/lightSystem')()
-local mapSystem = require('systems/mapSystem')()
+require('systems/cameraSystem')
+require('systems/moveSystem')
+require('systems/dayCycleSystem')
+require('systems/spriteSystem')
+require('systems/lightSystem')
+require('systems/mapSystem')
 
-local itemSystem = require('systems/itemSystem')()
-local jobSystem = require('systems/jobSystem')()
-local bluePrintSystem = require('systems/bluePrintSystem')()
-local overseerSystem = require('systems/overseerSystem')()
-local guiSystem = require('systems/guiSystem')()
-local playerInputSystem = require('systems/playerInputSystem')()
-local settlerSystem = require('systems/settlerSystem')()
-local drawSystem = require('systems/drawSystem')()
+require('systems/itemSystem')
+require('systems/jobSystem')
+require('systems/bluePrintSystem')
+require('systems/overseerSystem')
+require('systems/guiSystem')
+require('systems/playerInputSystem')
+require('systems/settlerSystem')
+require('systems/drawSystem')
 
-local function load()
+function love.load()
   love.graphics.setColor(255, 0, 0)
 
-  world:addSystem(dayCycleSystem, "update")
-  world:addSystem(spriteSystem)
-  world:addSystem(lightSystem, "timeOfDayChanged")
-  world:addSystem(guiSystem, "keypressed")
-  world:addSystem(guiSystem, "mousepressed")
-  world:addSystem(guiSystem, "mousereleased")
-  world:addSystem(guiSystem, "mousemoved")
-  world:addSystem(guiSystem, "update")
-  world:addSystem(playerInputSystem, "update")
-  world:addSystem(playerInputSystem, "mousepressed")
-  world:addSystem(playerInputSystem, "wheelmoved")
-  world:addSystem(bluePrintSystem, "update")
-  world:addSystem(bluePrintSystem, "bluePrintsPlaced", "placeBluePrints")
-  world:addSystem(bluePrintSystem, "bluePrintFinished")
-  world:addSystem(settlerSystem, "update")
-  world:addSystem(settlerSystem, "jobQueueUpdated")
-  world:addSystem(settlerSystem, "gridUpdated", "invalidatePaths")
-  world:addSystem(itemSystem)
-  world:addSystem(cameraSystem, "resize")
-  world:addSystem(mapSystem, "update")
-  --worldce:addSystem(mapSystem, "draw")
-  world:addSystem(drawSystem, "draw")
-  world:addSystem(drawSystem, "registerSpriteBatchGenerator")
-  world:addSystem(overseerSystem, "selectedModeChanged", "setSelectedAction")
-  world:addSystem(overseerSystem, "dataSelectorChanged", "setDataSelector")
-  world:addSystem(overseerSystem, "mapClicked", "enactClick")
-  world:addSystem(overseerSystem, "update")
-  world:addSystem(overseerSystem, "draw")
-  world:addSystem(jobSystem, "draw")
-  world:addSystem(jobSystem, "jobAdded", "addJob")
-  world:addSystem(jobSystem, "jobFinished", "finishJob")
-  world:addSystem(moveSystem, "update")
-  world:addSystem(guiSystem, "draw")
+  world:addSystem(ECS.Systems.dayCycle, "update")
+  world:addSystem(ECS.Systems.sprite)
+  world:addSystem(ECS.Systems.light, "timeOfDayChanged")
+  world:addSystem(ECS.Systems.gui, "keypressed")
+  world:addSystem(ECS.Systems.gui, "mousepressed")
+  world:addSystem(ECS.Systems.gui, "mousereleased")
+  world:addSystem(ECS.Systems.gui, "mousemoved")
+  world:addSystem(ECS.Systems.gui, "update")
+  world:addSystem(ECS.Systems.playerInput, "update")
+  world:addSystem(ECS.Systems.playerInput, "mousepressed")
+  world:addSystem(ECS.Systems.playerInput, "wheelmoved")
+  world:addSystem(ECS.Systems.bluePrint, "bluePrintsPlaced", "placeBluePrints")
+  world:addSystem(ECS.Systems.bluePrint, "bluePrintFinished")
+  world:addSystem(ECS.Systems.settler, "update")
+  world:addSystem(ECS.Systems.settler, "jobQueueUpdated")
+  world:addSystem(ECS.Systems.settler, "gridUpdated", "invalidatePaths")
+  world:addSystem(ECS.Systems.item)
+  world:addSystem(ECS.Systems.camera, "resize")
+  world:addSystem(ECS.Systems.map, "update")
+  --worldce:addSystem(map, "draw")
+  world:addSystem(ECS.Systems.draw, "draw")
+  world:addSystem(ECS.Systems.draw, "registerSpriteBatchGenerator")
+  world:addSystem(ECS.Systems.overseer, "selectedModeChanged", "setSelectedAction")
+  world:addSystem(ECS.Systems.overseer, "dataSelectorChanged", "setDataSelector")
+  world:addSystem(ECS.Systems.overseer, "mapClicked", "enactClick")
+  world:addSystem(ECS.Systems.overseer, "update")
+  world:addSystem(ECS.Systems.job, "draw")
+  world:addSystem(ECS.Systems.job, "jobAdded", "addJob")
+  world:addSystem(ECS.Systems.job, "jobFinished", "finishJob")
+  world:addSystem(ECS.Systems.move, "update")
+  world:addSystem(ECS.Systems.gui, "draw")
 
-  settlerSystem:initializeTestSettlers()
-  itemSystem:initializeTestItems(mapSystem:getSize())
-  lightSystem:initializeTestLights()
+  world:getSystem(ECS.Systems.settler):initializeTestSettlers()
+  world:getSystem(ECS.Systems.item):initializeTestItems(universe:getSize())
+  world:getSystem(ECS.Systems.light):initializeTestLights()
 
-  world:emit("registerSpriteBatchGenerator", mapSystem.generateSpriteBatch)
-  world:emit("registerSpriteBatchGenerator", spriteSystem.generateSpriteBatch)
-  world:emit("registerGUIDrawGenerator", overseerSystem.generateGUIDraw)
+  world:emit("registerSpriteBatchGenerator", world:getSystem(ECS.Systems.map), world:getSystem(ECS.Systems.map).generateSpriteBatch)
+  world:emit("registerSpriteBatchGenerator", world:getSystem(ECS.Systems.sprite), world:getSystem(ECS.Systems.sprite).generateSpriteBatch)
+  world:emit("registerGUIDrawGenerator", world:getSystem(ECS.Systems.overseer), world:getSystem(ECS.Systems.overseer).generateGUIDraw)
 
   -- local profilerSystem = require('systems/profilerSystem')()
   -- instance:addSystem(profilerSystem, "update")
@@ -90,6 +89,7 @@ local function load()
 end
 
 function love.update(dt)
+  world:flush()
   world:emit('update', dt)
 end
 
@@ -120,5 +120,3 @@ end
 function love.mousemoved(x, y, dx, dy, istouch)
   world:emit('mousemoved', x, y, dx, dy, istouch)
 end
-
-load()

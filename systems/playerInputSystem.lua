@@ -22,7 +22,7 @@ function PlayerInputSystem:update(dt)
     vector.x = 1
   end
   vector = vector.normalized * cameraSpeed
-  local x, y = self.camera:getPosition()
+  local x, y = camera:getPosition()
   local posX = x + vector.x*dt
   local posY = y + vector.y*dt
   camera:setPosition(math.floor(posX), math.floor(posY))

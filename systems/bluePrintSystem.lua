@@ -1,41 +1,38 @@
 --local inspect = require('libs/inspect')
 local Vector = require('libs/brinevector/brinevector')
-local components = require('libs/concord').components
 
 local universe = require('models/universe')
 -- Create a draw System.
-local BluePrintSystem = ECS.System("bluePrint", {components.bluePrintJob})
+local BluePrintSystem = ECS.System("bluePrint", {ECS.Components.bluePrintJob})
 
 function BluePrintSystem:generateBluePrintJob(gridPosition, itemData, bluePrintItemSelector)
   local job = ECS.Entity()
-  job:give(components.job)
-  job:give(components.name, "BluePrintJob")
-  job:give(components.bluePrintJob)
-  job:give(components.sprite, itemData.sprite)
-  job:give(components.item, itemData, bluePrintItemSelector)
-  job:give(components.position, universe.gridPositionToPixels(gridPosition))
-  job:give(components.collision)
+  job:give(ECS.Components.job)
+  job:give(ECS.Components.name, "BluePrintJob")
+  job:give(ECS.Components.bluePrintJob)
+  job:give(ECS.Components.sprite, itemData.sprite)
+  job:give(ECS.Components.item, itemData, bluePrintItemSelector)
+  job:give(ECS.Components.position, universe.gridPositionToPixels(gridPosition))
+  job:give(ECS.Components.collision)
 
   if itemData.requirements then
-    job:give(components.children, {})
-    local children = job:get(components.children).children
+    job:give(ECS.Components.children, {})
+    local children = job:get(ECS.Components.children).children
     for selector, amount in pairs(itemData.requirements) do
       local subJob = ECS.Entity()
-      subJob:give(components.job)
-      subJob:give(components.name, "FetchJob")
-      subJob:give(components.item, itemData, selector)
-      subJob:give(components.parent, job)
+      subJob:give(ECS.Components.job)
+      subJob:give(ECS.Components.name, "FetchJob")
+      subJob:give(ECS.Components.item, itemData, selector)
+      subJob:give(ECS.Components.parent, job)
       local finishedCallBack = function()
         self:consumeRequirement(job, subJob)
       end
-      subJob:give(components.fetchJob, job, selector, amount, finishedCallBack)
-      subJob:apply()
+      subJob:give(ECS.Components.fetchJob, job, selector, amount, finishedCallBack)
       table.insert(children, subJob)
       self:getWorld():addEntity(subJob)
     end
   end
 
-  job:apply()
   self:getWorld():addEntity(job)
   self.getWorld():emit("jobAdded", job)
 
@@ -43,13 +40,13 @@ function BluePrintSystem:generateBluePrintJob(gridPosition, itemData, bluePrintI
 end
 
 function BluePrintSystem:consumeRequirement(bluePrint, item) --luacheck: ignore
-  local bluePrintComponent = bluePrint:get(components.bluePrintJob)
-  bluePrintComponent.materialsConsumed[item:get(components.item).selector] = item
+  local bluePrintComponent = bluePrint:get(ECS.Components.bluePrintJob)
+  bluePrintComponent.materialsConsumed[item:get(ECS.Components.item).selector] = item
 end
 
 function BluePrintSystem:bluePrintFinished(bluePrint) --luacheck: ignore
-  if bluePrint:has(components.draw) then
-    local draw = bluePrint:get(components.draw)
+  if bluePrint:has(ECS.Components.draw) then
+    local draw = bluePrint:get(ECS.Components.draw)
     draw.color = { 1, 0, 0 }
   end
 end

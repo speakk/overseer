@@ -19,11 +19,14 @@ function Components.register(name, component)
         error("bad argument #2 to 'Components.register' (Component with name '"..name.."' is already registerd)", 3)
     end
 
+    print("Registering", name, component, Components)
+
     Components[name] = component
 end
 
 return setmetatable(Components, {
     __index = function(_, name)
+      print("Components", Components)
         error("Attempt to index component '"..tostring(name).."' that does not exist / was not registered", 2)
     end
 })

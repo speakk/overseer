@@ -1,10 +1,9 @@
 local Vector = require('libs/brinevector/brinevector')
 local lume = require('libs/lume')
-local components = require('libs/concord').components
 
 local itemUtils = require('utils/itemUtils')
 
-local ItemSystem = ECS.System("item", {components.item})
+local ItemSystem = ECS.System("item", {ECS.Components.item})
 
 function ItemSystem:initializeTestItems(mapSize)
   local randomTable = {
