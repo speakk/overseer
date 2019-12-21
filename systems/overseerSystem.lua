@@ -51,7 +51,7 @@ end
 
 function OverseerSystem:setDataSelector(selector)
   self.dataSelector = selector
-  self:getWorld():emit("dataSelectorChanged", selector)
+  --self:getWorld():emit("dataSelectorChanged", selector)
 end
 
 function OverseerSystem:getDataSelector()

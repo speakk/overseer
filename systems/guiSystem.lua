@@ -1,7 +1,9 @@
 local nuklear = require("nuklear")
+local inspect = require("libs/inspect")
 local Vector = require('libs/brinevector/brinevector')
 
 local universe = require("models/universe")
+local camera = require("models/camera")
 
 local constructionTypes = require('data/constructionTypes')
 
@@ -27,6 +29,7 @@ local function buildMenuHierarchy(self, items, key, path)
     if ui:selectable(items.name .. ", " .. requirements, sel) then
       if sel.value then
 
+        self.dataSelector = path
         self:getWorld():emit("dataSelectorChanged", path)
       end
     end
@@ -107,7 +110,7 @@ function GUISystem:mousepressed(x, y, button, istouch, presses)
   if ui:mousepressed(x, y, button, istouch, presses) then
     return
   end
-  local globalX, globalY = self.camera:toWorld(x, y)
+  local globalX, globalY = camera:toWorld(x, y)
   self:getWorld():emit("mapClicked", universe.pixelsToGridCoordinates(Vector(globalX, globalY)))
 end
 
@@ -120,7 +123,7 @@ function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
     if menuItem.shortCut == pressedKey then
       menuItem.selected = not menuItem.selected
       if menuItem.selected then
-        self.selectedAction = menuItem
+        self.selectedAction = menuName
         self:getWorld():emit('selectedModeChanged', menuName)
       else
         self.selectedAction = ""

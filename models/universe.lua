@@ -66,14 +66,15 @@ function universe.getSize()
   return Vector(width, height)
 end
 
-function universe.onCollisionEntityAdded(entity)
-  local position = universe.pixelsToGridCoordinates(entity:get(ECS.components.position).vector)
+function universe.onCollisionEntityAdded(pool, entity)
+  --print("Has pos?", inspect(entity))
+  local position = universe.pixelsToGridCoordinates(entity:get(ECS.Components.position).vector)
   map[position.y][position.x] = 1
   gridInvalidated = true
 end
 
 function universe.onCollisionEntityRemoved(entity)
-    local position = universe.pixelsToGridCoordinates(entity:get(ECS.components.position).vector)
+    local position = universe.pixelsToGridCoordinates(entity:get(ECS.Components.position).vector)
     map[position.y][position.x] = 0
     gridInvalidated = true
 end

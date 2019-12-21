@@ -34,7 +34,7 @@ function BluePrintSystem:generateBluePrintJob(gridPosition, itemData, bluePrintI
   end
 
   self:getWorld():addEntity(job)
-  self.getWorld():emit("jobAdded", job)
+  self:getWorld():emit("jobAdded", job)
 
   return job
 end

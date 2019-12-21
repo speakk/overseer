@@ -84,7 +84,6 @@ function ItemUtils.takeItemFromGround(originalItem, amount)
     lume.remove(itemsOnGround[selector], originalItem)
     if originalItem:has(ECS.Components.position) then
       originalItem:remove(ECS.Components.position)
-      originalItem:apply()
     end
   end
 
