@@ -1,5 +1,5 @@
-local universe = require('models/universe')
-local inspect = require('libs/inspect')
+local universe = require('models.universe')
+local inspect = require('libs.inspect')
 
 local MapSystem = ECS.System("map", {ECS.Components.collision, "collision"})
 

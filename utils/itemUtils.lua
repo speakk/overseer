@@ -1,5 +1,5 @@
 local lume = require('libs.lume')
-local universe = require('models/universe')
+local universe = require('models.universe')
 local constructionTypes = require('data.constructionTypes')
 
 local ItemUtils = {}

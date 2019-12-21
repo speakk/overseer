@@ -1,7 +1,7 @@
-local Vector = require('libs/brinevector/brinevector')
-local cpml = require('libs/cpml')
+local Vector = require('libs.brinevector')
+local cpml = require('libs.cpml')
 
-local camera = require('models/camera')
+local camera = require('models.camera')
 
 local PlayerInputSystem = ECS.System("playerInput")
 
@@ -22,20 +22,21 @@ function PlayerInputSystem:update(dt)
     vector.x = 1
   end
   vector = vector.normalized * cameraSpeed
+  --print("Vector victor", vector.x, vector.y)
   local x, y = camera:getPosition()
-  local posX = x + vector.x*dt
-  local posY = y + vector.y*dt
-  camera:setPosition(math.floor(posX), math.floor(posY))
+  local camX = x + vector.x*dt
+  local camY = y + vector.y*dt
+  camera:setPosition(camX, camY)
 end
 
 function PlayerInputSystem:wheelmoved(x, y) --luacheck: ignore
   local zoomSpeed = 0.3
   local maxZoom = 4
   local minZoom = 0.1
-  local currentScale = self.camera:getScale()
-  print(self.camera:getScale())
+  local currentScale = camera:getScale()
+  print(camera:getScale())
   currentScale = cpml.utils.clamp(currentScale + y * zoomSpeed, minZoom, maxZoom)
-  self.camera:setScale(currentScale)
+  camera:setScale(currentScale)
 end
 
 return PlayerInputSystem

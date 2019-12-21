@@ -1,10 +1,10 @@
-local Vector = require('libs/brinevector/brinevector')
---local inspect = require('libs/inspect')
-local lume = require('libs/lume')
-local itemUtils = require('utils/itemUtils')
-local bluePrintUtils = require('utils/bluePrintUtils')
-local media = require('utils/media')
-local universe = require('models/universe')
+local Vector = require('libs.brinevector')
+--local inspect = require('libs.inspect')
+local lume = require('libs.lume')
+local itemUtils = require('utils.itemUtils')
+local bluePrintUtils = require('utils.bluePrintUtils')
+local media = require('utils.media')
+local universe = require('models.universe')
 
 local settlerSpeed = 200
 
@@ -156,7 +156,7 @@ function SettlerSystem:processSubJob(settler, job, dt)
     end
   end
 
-  if job:has(ECS.Components.bluePrintJob) and job:has(ECS.Components.Item) then --luacheck: ignore
+  if job:has(ECS.Components.bluePrintJob) and job:has(ECS.Components.item) then --luacheck: ignore
     local bluePrintComponent = job:get(ECS.Components.bluePrintJob)
     local settlerGridPosition = universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector)
     local bluePrintGridPosition = universe.pixelsToGridCoordinates(job:get(ECS.Components.position).vector)

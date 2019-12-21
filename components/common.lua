@@ -1,4 +1,4 @@
-local Vector = require('libs/brinevector/brinevector')
+local Vector = require('libs.brinevector')
 
 local function initializeComponents()
   ECS.Component("position", function(e, vector) e.vector = vector or Vector(0, 0) end)

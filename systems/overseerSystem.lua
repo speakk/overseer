@@ -1,7 +1,7 @@
-local universe = require('models/universe')
-local camera = require('models/camera')
+local universe = require('models.universe')
+local camera = require('models.camera')
 
-local Vector = require('libs/brinevector/brinevector')
+local Vector = require('libs.brinevector')
 
 local constructionTypes = require('data.constructionTypes')
 local settings = require('settings')

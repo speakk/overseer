@@ -1,4 +1,4 @@
-local inspect = require('libs/inspect')
+local inspect = require('libs.inspect')
 
 local generateTileName = function(category, name) return 'media/' .. category .. '/' .. name .. '.png' end
 

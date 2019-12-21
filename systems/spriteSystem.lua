@@ -1,6 +1,6 @@
-local utils = require('utils/utils')
-local media = require('utils/media')
-local Vector = require('libs/brinevector/brinevector')
+local utils = require('utils.utils')
+local media = require('utils.media')
+local Vector = require('libs.brinevector')
 
 local SpriteSystem = ECS.System("sprite", {ECS.Components.sprite, ECS.Components.position})
 
@@ -19,6 +19,7 @@ end
 
 
 function SpriteSystem:drawEntity(l, t, w, h, entity)
+  if not entity:has(ECS.Components.position) then return end
   local positionVector = entity:get(ECS.Components.position).vector
   --local draw = entity:get(ECS.Components.draw)
   local sizeVector = Vector(32, 32)

@@ -1,11 +1,11 @@
 local nuklear = require("nuklear")
-local inspect = require("libs/inspect")
-local Vector = require('libs/brinevector/brinevector')
+local inspect = require("libs.inspect")
+local Vector = require('libs.brinevector')
 
-local universe = require("models/universe")
-local camera = require("models/camera")
+local universe = require("models.universe")
+local camera = require("models.camera")
 
-local constructionTypes = require('data/constructionTypes')
+local constructionTypes = require('data.constructionTypes')
 
 local ui
 

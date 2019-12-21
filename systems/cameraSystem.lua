@@ -1,5 +1,5 @@
-local universe = require('models/universe')
-local camera = require('models/camera')
+local universe = require('models.universe')
+local camera = require('models.camera')
 
 local CameraSystem = ECS.System('camera')
 

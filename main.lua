@@ -1,5 +1,3 @@
-require("libs/deepcopy")
-
 DEBUG = false
 
 ECS = {}
@@ -14,7 +12,7 @@ require('components.common').initializeComponents()
 
 
 local world = ECS.World("wurld")
-local universe = require("models/universe")
+local universe = require("models.universe")
 universe:load(world)
 
 local windowWidth = 1000
@@ -24,21 +22,21 @@ love.window.setMode(windowWidth, windowHeight, { resizable=true })
 -- Add the Instance to concord to make it active
 --Concord.addWorld(world)
 
-require('systems/cameraSystem')
-require('systems/moveSystem')
-require('systems/dayCycleSystem')
-require('systems/spriteSystem')
-require('systems/lightSystem')
-require('systems/mapSystem')
+require('systems.cameraSystem')
+require('systems.moveSystem')
+require('systems.dayCycleSystem')
+require('systems.spriteSystem')
+require('systems.lightSystem')
+require('systems.mapSystem')
 
-require('systems/itemSystem')
-require('systems/jobSystem')
-require('systems/bluePrintSystem')
-require('systems/overseerSystem')
-require('systems/guiSystem')
-require('systems/playerInputSystem')
-require('systems/settlerSystem')
-require('systems/drawSystem')
+require('systems.itemSystem')
+require('systems.jobSystem')
+require('systems.bluePrintSystem')
+require('systems.overseerSystem')
+require('systems.guiSystem')
+require('systems.playerInputSystem')
+require('systems.settlerSystem')
+require('systems.drawSystem')
 
 function love.load()
   love.graphics.setColor(255, 0, 0)
@@ -64,6 +62,7 @@ function love.load()
   --worldce:addSystem(map, "draw")
   world:addSystem(ECS.Systems.draw, "draw")
   world:addSystem(ECS.Systems.draw, "registerSpriteBatchGenerator")
+  world:addSystem(ECS.Systems.draw, "registerGUIDrawGenerator")
   world:addSystem(ECS.Systems.overseer, "selectedModeChanged", "setSelectedAction")
   world:addSystem(ECS.Systems.overseer, "dataSelectorChanged", "setDataSelector")
   world:addSystem(ECS.Systems.overseer, "mapClicked", "enactClick")
@@ -81,10 +80,11 @@ function love.load()
   world:emit("registerSpriteBatchGenerator", world:getSystem(ECS.Systems.map), world:getSystem(ECS.Systems.map).generateSpriteBatch)
   world:emit("registerSpriteBatchGenerator", world:getSystem(ECS.Systems.sprite), world:getSystem(ECS.Systems.sprite).generateSpriteBatch)
   world:emit("registerGUIDrawGenerator", world:getSystem(ECS.Systems.overseer), world:getSystem(ECS.Systems.overseer).generateGUIDraw)
+  world:emit("registerGUIDrawGenerator", world:getSystem(ECS.Systems.bluePrint), world:getSystem(ECS.Systems.bluePrint).generateGUIDraw, true)
 
-  -- local profilerSystem = require('systems/profilerSystem')()
-  -- instance:addSystem(profilerSystem, "update")
-  -- instance:addSystem(profilerSystem, "draw")
+  -- local profilerSystem = require('systems/profilerSystem')
+  -- world:addSystem(ECS.Systems.profiler, "update")
+  -- world:addSystem(ECS.Systems.profiler, "draw")
 end
 
 function love.update(dt)

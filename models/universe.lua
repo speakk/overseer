@@ -1,9 +1,9 @@
-local Vector = require('libs/brinevector/brinevector')
-local Pathfinder = require('libs/jumper.pathfinder')
-local Grid = require('libs/jumper.grid')
-local cpml = require('libs/cpml')
-local inspect = require('libs/inspect')
-local utils = require('utils/utils')
+local Vector = require('libs.brinevector')
+local Pathfinder = require('libs.jumper.pathfinder')
+local Grid = require('libs.jumper.grid')
+local cpml = require('libs.cpml')
+local inspect = require('libs.inspect')
+local utils = require('utils.utils')
 local world = nil
 
 local universe = {}
@@ -19,7 +19,6 @@ local walkable = 0
 
 local map = {}
 local mapColors = {}
-
 
 local _lastGridUpdateId = 0
 local _lastGridUpdateTime = 0

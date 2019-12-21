@@ -1,7 +1,7 @@
-local Vector = require('libs/brinevector/brinevector')
-local lume = require('libs/lume')
+local Vector = require('libs.brinevector')
+local lume = require('libs.lume')
 
-local itemUtils = require('utils/itemUtils')
+local itemUtils = require('utils.itemUtils')
 
 local ItemSystem = ECS.System("item", {ECS.Components.item})
 
