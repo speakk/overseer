@@ -10,8 +10,8 @@ local universe = {}
 
 universe.cellSize = 32
 local padding = 0
-local width = 80
-local height = 60
+local width = 40
+local height = 40
 local tilesetBatch = nil
 local gridInvalidated = false
 local walkable = 0

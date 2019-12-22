@@ -3,7 +3,7 @@ local Vector = require('libs.brinevector')
 
 local universe = require('models.universe')
 -- Create a draw System.
-local BluePrintSystem = ECS.System("bluePrint", {ECS.Components.bluePrintJob})
+local BluePrintSystem = ECS.System("bluePrint", {ECS.Components.bluePrintJob, ECS.Components.job})
 
 function BluePrintSystem:generateBluePrintJob(gridPosition, itemData, bluePrintItemSelector)
   local job = ECS.Entity()
@@ -63,10 +63,10 @@ end
 
 function BluePrintSystem:generateGUIDraw()
   for _, entity in ipairs(self.pool) do
-    local barSize = Vector(100, 10)
+    local barSize = Vector(32, 5)
     local position = entity:get(ECS.Components.position).vector
-    local offsetPosition = position + Vector(0, -5)
-    love.graphics.setColor(0, 0, 0.2, 1)
+    local offsetPosition = position + Vector(0, 32-barSize.y)
+    love.graphics.setColor(0.3, 0.3, 0.4, 1)
     love.graphics.rectangle("fill",
       offsetPosition.x,
       offsetPosition.y,
@@ -75,9 +75,9 @@ function BluePrintSystem:generateGUIDraw()
 
     local progress = entity:get(ECS.Components.bluePrintJob).buildProgress
     --print("progress", progress)
-    local progressRectSize = 100/progress*barSize.x
+    local progressRectSize = barSize.x/100*progress
     --print("progressRectSize", progressRectSize)
-    love.graphics.setColor(0, 0, 0.2, 1)
+    love.graphics.setColor(1, 1, 1, 1)
     love.graphics.rectangle("fill",
       offsetPosition.x,
       offsetPosition.y,

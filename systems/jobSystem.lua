@@ -76,7 +76,7 @@ end
 function JobSystem:getUnreservedJobs()
   local unreservedJobs = {}
   for _, job in ipairs(self.jobs) do
-    if not job:has(ECS.Components.parent) then -- Only go through tree roots
+    if not job:has(ECS.Components.parent) and job:has(ECS.Components.job) then -- Only go through tree roots
       local jobComponent = job:get(ECS.Components.job)
       if not jobComponent.reserved and not jobComponent.finished then
         local firstSubJob = self:getFirstSubJob(job)
@@ -126,8 +126,14 @@ end
 
 function JobSystem:finishJob(job) --luacheck: ignore
   local jobComponent = job:get(ECS.Components.job)
-  jobComponent.finished = true
-  jobComponent.reserved = false
+  if job:has(ECS.Components.parent) then
+    jobComponent.finished = true
+    jobComponent.reserved = false
+  else
+    job:remove(ECS.Components.job)
+  end
+
+  self:getWorld():emit("jobQueueUpdated", self:getUnreservedJobs())
 end
 
 function JobSystem:addJob(job)
