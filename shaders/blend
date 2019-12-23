@@ -1,0 +1,8 @@
+extern Image light_canvas; 
+extern float additive_component = 8;
+
+vec4 effect( vec4 setcolor, Image texture, vec2 texture_coords, vec2 screen_coords ) {
+  vec4 texture_color = Texel(texture, texture_coords);
+  vec4 light_color = Texel(light_canvas, texture_coords);
+  return (texture_color * light_color) + light_color/additive_component;
+}

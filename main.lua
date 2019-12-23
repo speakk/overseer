@@ -43,6 +43,8 @@ function love.load()
 
   world:addSystem(ECS.Systems.dayCycle, "update")
   world:addSystem(ECS.Systems.sprite)
+  world:addSystem(ECS.Systems.light, "cameraScaleChanged")
+  world:addSystem(ECS.Systems.light, "cameraPositionChanged")
   world:addSystem(ECS.Systems.light, "timeOfDayChanged")
   world:addSystem(ECS.Systems.gui, "keypressed")
   world:addSystem(ECS.Systems.gui, "mousepressed")

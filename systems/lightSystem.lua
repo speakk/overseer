@@ -1,56 +1,38 @@
 local Vector = require('libs.brinevector')
 
 local utils = require('utils.utils')
+local universe = require('models.universe')
+local camera = require('models.camera')
 
 local LightSystem = ECS.System("light", {ECS.Components.light})
 
-local shader_code = [[
-#define NUM_LIGHTS 32
+local radialLightShader = love.graphics.newShader("shaders/radialLight")
+local blendShader = love.graphics.newShader("shaders/blend_arrayimage")
 
-uniform ArrayImage MainTex;
+local lightCircleImage = love.graphics.newImage("media/misc/light_circle.png")
+local lightCircleImageWidth = lightCircleImage:getWidth()
+local lightCircleImageHeight = lightCircleImage:getHeight()
+local lightCircleImageScale = 0.5
 
-struct Light {
-    vec2 position;
-    vec3 diffuse;
-    float power;
-};
-extern Light lights[NUM_LIGHTS];
-extern int num_lights;
-extern vec2 transform;
-extern float scale;
-extern float dayTime;
-const float constant = 1.0;
-const float linear = 0.09;
-const float quadratic = 0.032;
-void effect(){
-    vec4 color = VaryingColor;
-    vec3 uvs = VaryingTexCoord.xyz; // includes the layer index as the z component
-    vec2 screen_coords = love_PixelCoord;
+local singleLightCanvas = love.graphics.newCanvas(lightCircleImageWidth*lightCircleImageScale, lightCircleImageHeight*lightCircleImageScale)
+local universeSize = universe.getSize()
+local cellSize = universe.getCellSize()
+local lightCanvas = love.graphics.newCanvas(universeSize.x*cellSize, universeSize.y*cellSize)
 
-    // Ambient light
-    vec3 diffuse = vec3(dayTime*0.4+0.6, dayTime*0.4+0.6, dayTime*0.1+0.9);
-    vec2 screen = love_ScreenSize.xy;
-
-    for (int i = 0; i < num_lights; i++) {
-        Light light = lights[i];
-        float ratio = screen.x / screen.y;
-
-        float distance = length((light.position + transform)*scale - screen_coords) / light.power / scale;
-        if (distance < light.power*2) {
-          float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
-          diffuse += attenuation;
-        } else {
-
-        }
-    }
-    diffuse = clamp(diffuse, 0.0, 1.0);
-    love_PixelColor = Texel(MainTex, uvs) * vec4(diffuse, 1.0);
-}
-]]
+local ambientColor = { 0.0, 0.0, 0.1, 1.0 }
 
 function LightSystem:init()
   self.useShader = true
-  self.shader = love.graphics.newShader(shader_code)
+
+  -- love.graphics.setCanvas(singleLightCanvas)
+  -- love.graphics:clear(0,0,0,0)
+  -- love.graphics.setColor(1, 1, 1, 1)
+  -- love.graphics.setShader(radialLightShader)
+  -- love.graphics.draw(lightCircleImage, 0, 0, 0, 2, 2)
+  -- love.graphics.setShader()
+  -- love.graphics.setCanvas()
+  --love.graphics.rectangle('fill', 0, 0, 100, 100)
+
 end
 
 function LightSystem:initializeTestLights()
@@ -64,60 +46,97 @@ function LightSystem:initializeTestLights()
     light:give(ECS.Components.light, { 1, 1, 1 }, 8)
     self:getWorld():addEntity(light)
   end
+
+  self:getWorld():flush()
+  self:lightsOrMapChanged()
 end
 
-function LightSystem:getLights()
-  return self.pool
+-- function LightSystem:getLights()
+--   return self.pool
+-- end
+
+function LightSystem:lightsOrMapChanged()
+  love.graphics.setCanvas(lightCanvas)
+  love.graphics.clear()
+  love.graphics.setColor(unpack(ambientColor))
+  love.graphics.rectangle("fill", 0, 0, lightCanvas:getWidth(), lightCanvas:getHeight())
+  love.graphics.setColor(1,1,1,1)
+  love.graphics.setShader(radialLightShader)
+  for _, light in ipairs(self.pool) do
+    local position = light:get(ECS.Components.position).vector
+    love.graphics.draw(lightCircleImage, position.x-lightCircleImageWidth*lightCircleImageScale*0.5, position.y-lightCircleImageHeight*lightCircleImageScale*0.5, 0, lightCircleImageScale, lightCircleImageScale)
+  end
+  love.graphics.setShader()
+  love.graphics.setCanvas()
+  blendShader:send("light_canvas", lightCanvas)
 end
 
 function LightSystem:timeOfDayChanged(timeOfDay)
   if self.useShader then
-    self.shader:send("dayTime", timeOfDay)
+    --self.shader:send("dayTime", timeOfDay)
+    ambientColor = { 0.0, 0.0, math.sin(timeOfDay), 1.0 }
+    self:lightsOrMapChanged()
   end
 end
 
 function LightSystem:cameraScaleChanged(scale)
   if self.useShader then
-    self.shader:send("scale", scale)
+    blendShader:send("scale", scale)
+  end
+end
+
+function LightSystem:cameraPositionChanged(x, y)
+  if self.useShader then
+    --blendShader:send("transform", { x, y })
   end
 end
 
 function LightSystem:renderLights(l, t, w, h, f)
-  love.graphics.setShader(self.shader)
-  if self.useShader then
-    love.graphics.setShader(self.shader)
-    local transform = { -l, -t }
-
-    local allLights = self:getLights()
-    local visibleLights = {}
-    for _, light in ipairs(allLights) do
-      --local lightComponent = light:get(ECS.Components.light)
-      local position = light:get(ECS.Components.position).vector
-      local lightSize = Vector(128, 128)
-      if utils.withinBounds(position.x,
-        position.y,
-        position.x + lightSize.x,
-        position.y + lightSize.y,
-        l, t, l+w, t+h, lightSize.x) then
-        table.insert(visibleLights, light)
-      end
-    end
-
-    self.shader:send("num_lights", #visibleLights)
-    self.shader:send("transform", transform )
-    for i, light in ipairs(visibleLights) do
-      local lightComponent = light:get(ECS.Components.light)
-      local lightName = "lights[" .. i-1 .. "]";
-      local position = light:get(ECS.Components.position).vector
-      self.shader:send(lightName .. ".position", { position.x, position.y })
-      --self.shader:send(lightName .. ".diffuse", lightComponent.color)
-      self.shader:send(lightName .. ".power", lightComponent.power)
-    end
-  end
-
+  local posX, posY = camera:getPosition()
+  blendShader:send("transform", { l-cellSize/2, t-cellSize/2 })
+  blendShader:send("light_canvas_size", { lightCanvas:getWidth(), lightCanvas:getHeight() })
+  love.graphics.setShader(blendShader)
   f()
-
+  --love.graphics.draw(lightCanvas)
   love.graphics.setShader()
 end
+
+-- function LightSystem:renderLights(l, t, w, h, f)
+--   love.graphics.setShader(self.shader)
+--   if self.useShader then
+--     love.graphics.setShader(self.shader)
+--     local transform = { -l, -t }
+-- 
+--     local allLights = self:getLights()
+--     local visibleLights = {}
+--     for _, light in ipairs(allLights) do
+--       --local lightComponent = light:get(ECS.Components.light)
+--       local position = light:get(ECS.Components.position).vector
+--       local lightSize = Vector(128, 128)
+--       if utils.withinBounds(position.x,
+--         position.y,
+--         position.x + lightSize.x,
+--         position.y + lightSize.y,
+--         l, t, l+w, t+h, lightSize.x) then
+--         table.insert(visibleLights, light)
+--       end
+--     end
+-- 
+--     self.shader:send("num_lights", #visibleLights)
+--     self.shader:send("transform", transform )
+--     for i, light in ipairs(visibleLights) do
+--       local lightComponent = light:get(ECS.Components.light)
+--       local lightName = "lights[" .. i-1 .. "]";
+--       local position = light:get(ECS.Components.position).vector
+--       self.shader:send(lightName .. ".position", { position.x, position.y })
+--       --self.shader:send(lightName .. ".diffuse", lightComponent.color)
+--       self.shader:send(lightName .. ".power", lightComponent.power)
+--     end
+--   end
+-- 
+--   f()
+-- 
+--   love.graphics.setShader()
+-- end
 
 return LightSystem

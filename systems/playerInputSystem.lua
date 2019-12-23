@@ -27,6 +27,7 @@ function PlayerInputSystem:update(dt)
   local camX = x + vector.x*dt
   local camY = y + vector.y*dt
   camera:setPosition(camX, camY)
+  self:getWorld():emit("cameraPositionChanged", camera:getPosition())
 end
 
 function PlayerInputSystem:wheelmoved(x, y) --luacheck: ignore
@@ -37,6 +38,7 @@ function PlayerInputSystem:wheelmoved(x, y) --luacheck: ignore
   print(camera:getScale())
   currentScale = cpml.utils.clamp(currentScale + y * zoomSpeed, minZoom, maxZoom)
   camera:setScale(currentScale)
+  self:getWorld():emit("cameraScaleChanged", camera:getScale())
 end
 
 return PlayerInputSystem

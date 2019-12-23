@@ -22,9 +22,10 @@ function DrawSystem:registerGUIDrawGenerator(callee, callBack, inCamera)
 end
 
 function DrawSystem:draw()
+  love.graphics.setColor(1, 1, 1, 1)
   camera:draw(function(l,t,w,h)
     -- TODO: Do not use getWorld getSystem here, figure out a better way
-    --self:getWorld():getSystem(ECS.Systems.light):renderLights(l, t, w, h, function()
+    self:getWorld():getSystem(ECS.Systems.light):renderLights(l, t, w, h, function()
       for _, spriteBatchGenerator in ipairs(self.spriteBatchGenerators) do
         local batch = spriteBatchGenerator.callBack(spriteBatchGenerator.callee, l, t, w, h)
         love.graphics.draw(batch)
@@ -36,7 +37,7 @@ function DrawSystem:draw()
       -- love.graphics.draw(mapBatch)
       -- local spriteBatch = self.spriteSystem:generateSpriteBatch(l, t, w, h)
       -- love.graphics.draw(spriteBatch)
-    --end)
+    end)
   end)
 
   for _, guiDrawGenerator in ipairs(self.guiDrawGenerators) do

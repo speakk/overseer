@@ -1,0 +1,21 @@
+uniform ArrayImage MainTex;
+
+extern vec2 transform;
+extern float scale = 1;
+extern Image light_canvas; 
+extern vec2 light_canvas_size; 
+extern float additive_component = 8;
+
+void effect(){
+  vec4 color = VaryingColor;
+  vec3 uvs = VaryingTexCoord.xyz; // includes the layer index as the z component
+
+  vec2 screen = love_ScreenSize.xy;
+  float ratio = screen.x / screen.y;
+
+  vec2 screen_coords = ((love_PixelCoord + transform * scale) / light_canvas_size) / scale;
+
+  vec4 texture_color = Texel(MainTex, uvs);
+  vec4 light_color = Texel(light_canvas, screen_coords);
+  love_PixelColor = (texture_color * light_color) + light_color/additive_component;
+}
