@@ -10,7 +10,7 @@ local LightSystem = ECS.System("light", {ECS.Components.light})
 local lightCircleImage = love.graphics.newImage("media/misc/light_circle.png")
 local lightCircleImageWidth = lightCircleImage:getWidth()
 local lightCircleImageHeight = lightCircleImage:getHeight()
-local lightCircleImageScale = 1
+local lightCircleImageScale = 2
 
 --local singleLightCanvas = love.graphics.newCanvas(lightCircleImageWidth*lightCircleImageScale, lightCircleImageHeight*lightCircleImageScale)
 local singleLightCanvas = love.graphics.newCanvas(lightCircleImageWidth*lightCircleImageScale, lightCircleImageHeight*lightCircleImageScale)
@@ -39,14 +39,14 @@ function LightSystem:init()
 end
 
 function LightSystem:initializeTestLights()
-  for _=1,30 do
+  for _=1,50 do
     local light = ECS.Entity()
     light:give(ECS.Components.position,
       universe.snapPixelToGrid(Vector(love.math.random(universeSize.x*cellSize), love.math.random(universeSize.y*cellSize))))
     light:give(ECS.Components.sprite, "items.torch01")
     --light:give(ECS.Components.light,
     --{ love.math.random(), love.math.random(), love.math.random() }, love.math.random(200))
-    light:give(ECS.Components.light, { 1, 1, 1 }, 8)
+    light:give(ECS.Components.light, { love.math.random(), love.math.random(), love.math.random() }, 8)
     self:getWorld():addEntity(light)
   end
 
@@ -67,6 +67,8 @@ function LightSystem:lightsOrMapChanged()
   love.graphics.setShader(radialLightShader)
   for _, light in ipairs(self.pool) do
     local position = light:get(ECS.Components.position).vector
+    local color = light:get(ECS.Components.light).color
+    radialLightShader:send("color", color)
     love.graphics.draw(lightCircleImage, position.x-lightCircleImageWidth*lightCircleImageScale*0.5, position.y-lightCircleImageHeight*lightCircleImageScale*0.5, 0, lightCircleImageScale, lightCircleImageScale)
   end
   love.graphics.setShader()

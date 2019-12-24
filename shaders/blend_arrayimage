@@ -14,10 +14,12 @@ void effect(){
   //float dx = 0.32*(1/(universeSize.x/32));
   //float dy = 0.32*(1/(universeSize.y/32));
 
-  float dx = 1/32.0*(1/(universeSize.x/32));
-  float dy = 1/32.0*(1/(universeSize.y/32));
+  float cellSize = 32*scale;
 
-  vec2 texture_coords = ((love_PixelCoord.xy + 16 + transform * scale) / light_canvas_size) / scale;
+  float dx = 1/cellSize*(1/(universeSize.x/cellSize));
+  float dy = 1/cellSize*(1/(universeSize.y/cellSize));
+
+  vec2 texture_coords = ((love_PixelCoord.xy + cellSize/2 + transform * scale) / light_canvas_size) / scale;
   vec2 final_coords = vec2(dx * floor(texture_coords.x / dx),
       dy * floor(texture_coords.y / dy));
   //FinalColor = texture(Texture, Coord);

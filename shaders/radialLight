@@ -1,11 +1,14 @@
+extern vec3 color;
+
 vec4 effect( vec4 setcolor, Image texture, vec2 texture_coords, vec2 screen_coords ) {
   vec4 texture_color = Texel(texture, texture_coords);
   vec2 center = vec2(0.5,0.5);
 
   float dist = clamp(distance(texture_coords,center),0.0,1.0);
-  float gradient_alpha = 1.0 - 2*dist;
+  //float gradient_alpha = 1.0 - 2*dist;
   //float gradient_alpha = 1-sqrt(dist); // pretty nice
+  float gradient_alpha = pow(1-sqrt(dist),3); // pretty nice
   //float gradient_alpha = 1-mod(dist, 0.1);
 
-  return vec4(texture_color.rgb,texture_color.a*gradient_alpha);
+  return vec4(texture_color.rgb,texture_color.a*gradient_alpha) * vec4(color, 1.0);
 }
