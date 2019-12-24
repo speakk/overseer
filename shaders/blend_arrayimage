@@ -1,21 +1,37 @@
 uniform ArrayImage MainTex;
 
 extern vec2 transform;
+extern vec2 universeSize;
 extern float scale = 1;
 extern Image light_canvas; 
 extern vec2 light_canvas_size; 
-extern float additive_component = 8;
+extern float additive_component = 2;
 
 void effect(){
+  float pixels = 16;
+  //float dx = 10.0 * (1.0 / pixels);
+  // These divide the screen into 7 correctly, close...
+  //float dx = 0.32*(1/(universeSize.x/32));
+  //float dy = 0.32*(1/(universeSize.y/32));
+
+  float dx = 1/32.0*(1/(universeSize.x/32));
+  float dy = 1/32.0*(1/(universeSize.y/32));
+
+  vec2 texture_coords = ((love_PixelCoord.xy + 16 + transform * scale) / light_canvas_size) / scale;
+  vec2 final_coords = vec2(dx * floor(texture_coords.x / dx),
+      dy * floor(texture_coords.y / dy));
+  //FinalColor = texture(Texture, Coord);
+
   vec4 color = VaryingColor;
   vec3 uvs = VaryingTexCoord.xyz; // includes the layer index as the z component
 
   vec2 screen = love_ScreenSize.xy;
   float ratio = screen.x / screen.y;
 
-  vec2 screen_coords = ((love_PixelCoord + transform * scale) / light_canvas_size) / scale;
+  //vec2 screen_coords = ((final_coords + transform * scale) / light_canvas_size) / scale;
 
   vec4 texture_color = Texel(MainTex, uvs);
-  vec4 light_color = Texel(light_canvas, screen_coords);
-  love_PixelColor = (texture_color * light_color) + light_color/additive_component;
+  vec4 light_color = Texel(light_canvas, final_coords);
+  //love_PixelColor = (texture_color * light_color) + light_color/additive_component;
+  love_PixelColor = clamp(texture_color * (light_color + light_color/additive_component), 0.0, 1.0);
 }

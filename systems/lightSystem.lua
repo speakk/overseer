@@ -6,18 +6,21 @@ local camera = require('models.camera')
 
 local LightSystem = ECS.System("light", {ECS.Components.light})
 
-local radialLightShader = love.graphics.newShader("shaders/radialLight")
-local blendShader = love.graphics.newShader("shaders/blend_arrayimage")
 
 local lightCircleImage = love.graphics.newImage("media/misc/light_circle.png")
 local lightCircleImageWidth = lightCircleImage:getWidth()
 local lightCircleImageHeight = lightCircleImage:getHeight()
-local lightCircleImageScale = 0.5
+local lightCircleImageScale = 1
 
+--local singleLightCanvas = love.graphics.newCanvas(lightCircleImageWidth*lightCircleImageScale, lightCircleImageHeight*lightCircleImageScale)
 local singleLightCanvas = love.graphics.newCanvas(lightCircleImageWidth*lightCircleImageScale, lightCircleImageHeight*lightCircleImageScale)
 local universeSize = universe.getSize()
 local cellSize = universe.getCellSize()
 local lightCanvas = love.graphics.newCanvas(universeSize.x*cellSize, universeSize.y*cellSize)
+
+local radialLightShader = love.graphics.newShader("shaders/radialLight")
+local blendShader = love.graphics.newShader("shaders/blend_arrayimage")
+blendShader:send("universeSize", { universeSize.x, universeSize.y })
 
 local ambientColor = { 0.0, 0.0, 0.1, 1.0 }
 
@@ -36,10 +39,10 @@ function LightSystem:init()
 end
 
 function LightSystem:initializeTestLights()
-  for _=1,31 do
+  for _=1,30 do
     local light = ECS.Entity()
     light:give(ECS.Components.position,
-      Vector(love.math.random(love.graphics.getWidth()*2), love.math.random(love.graphics.getHeight()*2)))
+      universe.snapPixelToGrid(Vector(love.math.random(universeSize.x*cellSize), love.math.random(universeSize.y*cellSize))))
     light:give(ECS.Components.sprite, "items.torch01")
     --light:give(ECS.Components.light,
     --{ love.math.random(), love.math.random(), love.math.random() }, love.math.random(200))
@@ -92,8 +95,8 @@ function LightSystem:cameraPositionChanged(x, y)
 end
 
 function LightSystem:renderLights(l, t, w, h, f)
-  local posX, posY = camera:getPosition()
-  blendShader:send("transform", { l-cellSize/2, t-cellSize/2 })
+  local posX, posY = camera:getVisibleCorners()
+  blendShader:send("transform", { posX-cellSize/2, posY-cellSize/2 })
   blendShader:send("light_canvas_size", { lightCanvas:getWidth(), lightCanvas:getHeight() })
   love.graphics.setShader(blendShader)
   f()

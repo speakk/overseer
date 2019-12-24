@@ -1,6 +1,8 @@
 local universe = require('models.universe')
 local camera = require('models.camera')
 
+local settings = require('settings')
+
 local CameraSystem = ECS.System('camera')
 
 function CameraSystem:init() --luacheck: ignore
@@ -10,7 +12,7 @@ function CameraSystem:init() --luacheck: ignore
 end
 
 function CameraSystem:resize(w, h) --luacheck: ignore
-  camera:setWindow(0, 0, w, h)
+  camera:setWindow(0, 0, w, h-settings.actions_bar_height)
 end
 
 return CameraSystem

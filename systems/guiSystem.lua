@@ -1,4 +1,5 @@
 local nuklear = require("nuklear")
+local settings = require("settings")
 local inspect = require("libs.inspect")
 local Vector = require('libs.brinevector')
 
@@ -68,7 +69,7 @@ function GUISystem:update(dt) --luacheck: ignore
   ui:frameBegin()
   local windowWidth = love.graphics.getWidth()
   local windowHeight = love.graphics.getHeight()
-  local actionsBarHeight = 60
+  local actionsBarHeight = settings.actions_bar_height
 
   if ui:windowBegin('actions_bar', 0, windowHeight-actionsBarHeight, windowWidth, actionsBarHeight) then
     ui:layoutRow('dynamic', actionsBarHeight-10, 10)

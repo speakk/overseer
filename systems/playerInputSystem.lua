@@ -5,7 +5,7 @@ local camera = require('models.camera')
 
 local PlayerInputSystem = ECS.System("playerInput")
 
-local cameraSpeed = 500
+local cameraSpeed = 800
 
 function PlayerInputSystem:update(dt)
   local vector = Vector(0, 0)
