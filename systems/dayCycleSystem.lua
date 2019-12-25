@@ -1,6 +1,6 @@
 local DayCycleSystem = ECS.System("dayCycle", {})
 
-local daySpeed = 0.001
+local daySpeed = 0.005
 local currentTime = 0 -- Timer that runs and progresses world time
 
 local lastEmit = 0
@@ -10,8 +10,9 @@ function DayCycleSystem:update(dt) --luacheck: ignore
   currentTime = currentTime + daySpeed
   local time = love.timer.getTime()
   if time - lastEmit > emitInterval then
-    self:getWorld():emit('timeOfDayChanged', currentTime)
-    self.lastEmit = time
+    print("Emit?", time)
+    self:getWorld():emit('timeOfDayChanged', self:getTimeOfDay(currentTime))
+    lastEmit = time
   end
 end
 

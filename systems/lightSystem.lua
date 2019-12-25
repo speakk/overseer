@@ -7,6 +7,7 @@ local camera = require('models.camera')
 local LightSystem = ECS.System("light", {ECS.Components.light})
 
 
+local lightGradientImage = love.graphics.newImage("media/misc/light_gradient.png")
 local lightCircleImage = love.graphics.newImage("media/misc/light_circle.png")
 local lightCircleImageWidth = lightCircleImage:getWidth()
 local lightCircleImageHeight = lightCircleImage:getHeight()
@@ -20,7 +21,7 @@ local lightCanvas = love.graphics.newCanvas(universeSize.x*cellSize, universeSiz
 
 local radialLightShader = love.graphics.newShader("shaders/radialLight")
 local blendShader = love.graphics.newShader("shaders/blend_arrayimage")
-blendShader:send("universeSize", { universeSize.x, universeSize.y })
+if blendShader:hasUniform("universeSize") then blendShader:send("universeSize", { universeSize.x, universeSize.y }) end
 
 local ambientColor = { 0.0, 0.0, 0.1, 1.0 }
 
@@ -46,7 +47,7 @@ function LightSystem:initializeTestLights()
     light:give(ECS.Components.sprite, "items.torch01")
     --light:give(ECS.Components.light,
     --{ love.math.random(), love.math.random(), love.math.random() }, love.math.random(200))
-    light:give(ECS.Components.light, { love.math.random(), love.math.random(), love.math.random() }, 8)
+    light:give(ECS.Components.light, { math.ceil(love.math.random()-0.5), math.ceil(love.math.random()-0.5), math.ceil(love.math.random()-0.5)}, 8)
     self:getWorld():addEntity(light)
   end
 
@@ -63,7 +64,8 @@ function LightSystem:lightsOrMapChanged()
   love.graphics.clear()
   love.graphics.setColor(unpack(ambientColor))
   love.graphics.rectangle("fill", 0, 0, lightCanvas:getWidth(), lightCanvas:getHeight())
-  love.graphics.setColor(1,1,1,1)
+  love.graphics.setColor(1,1,1,0)
+  love.graphics.setBlendMode("add")
   love.graphics.setShader(radialLightShader)
   for _, light in ipairs(self.pool) do
     local position = light:get(ECS.Components.position).vector
@@ -71,22 +73,25 @@ function LightSystem:lightsOrMapChanged()
     radialLightShader:send("color", color)
     love.graphics.draw(lightCircleImage, position.x-lightCircleImageWidth*lightCircleImageScale*0.5, position.y-lightCircleImageHeight*lightCircleImageScale*0.5, 0, lightCircleImageScale, lightCircleImageScale)
   end
+  love.graphics.setBlendMode("alpha")
   love.graphics.setShader()
   love.graphics.setCanvas()
-  blendShader:send("light_canvas", lightCanvas)
+  if blendShader:hasUniform("ambientColor") then blendShader:send("ambientColor", ambientColor) end
+  if blendShader:hasUniform("light_canvas") then blendShader:send("light_canvas", lightCanvas) end
 end
 
 function LightSystem:timeOfDayChanged(timeOfDay)
   if self.useShader then
     --self.shader:send("dayTime", timeOfDay)
-    ambientColor = { 0.0, 0.0, math.sin(timeOfDay), 1.0 }
+    ambientColor = { 0.4+timeOfDay*0.6, 0.4+timeOfDay*0.6, 0.6+timeOfDay*0.4, 1.0 }
+    if blendShader:hasUniform("ambientColor") then blendShader:send("ambientColor", ambientColor) end
     self:lightsOrMapChanged()
   end
 end
 
 function LightSystem:cameraScaleChanged(scale)
   if self.useShader then
-    blendShader:send("scale", scale)
+    if blendShader:hasUniform("scale") then blendShader:send("scale", scale) end
   end
 end
 
@@ -98,12 +103,26 @@ end
 
 function LightSystem:renderLights(l, t, w, h, f)
   local posX, posY = camera:getVisibleCorners()
-  blendShader:send("transform", { posX-cellSize/2, posY-cellSize/2 })
-  blendShader:send("light_canvas_size", { lightCanvas:getWidth(), lightCanvas:getHeight() })
+  if blendShader:hasUniform("transform") then blendShader:send("transform", { posX-cellSize/2, posY-cellSize/2 }) end
+  if blendShader:hasUniform("light_canvas_size") then blendShader:send("light_canvas_size", { lightCanvas:getWidth(), lightCanvas:getHeight() }) end
   love.graphics.setShader(blendShader)
   f()
   --love.graphics.draw(lightCanvas)
   love.graphics.setShader()
+
+  local lightScale = 2
+  local lightWidth = lightGradientImage:getWidth()*lightScale
+  local lightHeight = lightGradientImage:getHeight()*lightScale
+
+  love.graphics.setCanvas()
+  love.graphics.setBlendMode("add")
+  for _, light in ipairs(self.pool) do
+    local position = light:get(ECS.Components.position).vector
+    local color = light:get(ECS.Components.light).color
+    love.graphics.setColor(unpack(color))
+    love.graphics.draw(lightGradientImage, 16+position.x-lightWidth/2, 16+position.y-lightHeight/2, 0, lightScale, lightScale)
+  end
+  love.graphics.setBlendMode("alpha")
 end
 
 -- function LightSystem:renderLights(l, t, w, h, f)

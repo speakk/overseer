@@ -2,10 +2,11 @@ uniform ArrayImage MainTex;
 
 extern vec2 transform;
 extern vec2 universeSize;
+extern vec4 ambientColor;
 extern float scale = 1;
 extern Image light_canvas; 
 extern vec2 light_canvas_size; 
-extern float additive_component = 2;
+extern float additive_component = 1;
 
 void effect(){
   float pixels = 16;
@@ -35,5 +36,11 @@ void effect(){
   vec4 texture_color = Texel(MainTex, uvs);
   vec4 light_color = Texel(light_canvas, final_coords);
   //love_PixelColor = (texture_color * light_color) + light_color/additive_component;
-  love_PixelColor = clamp(texture_color * (light_color + light_color/additive_component), 0.0, 1.0);
+  //love_PixelColor = clamp(texture_color * (light_color + light_color/additive_component), 0.0, 1.0);
+  //love_PixelColor = clamp((texture_color * ambientColor) + ((light_color/additive_component) * texture_color), 0.0, 1.0);
+  //love_PixelColor = clamp((texture_color * ambientColor) + (texture_color * light_color * light_color), 0.0, 1.0);
+  //love_PixelColor = 1 - ((1-ambientColor) * (1-texture_color) * (1-light_color*vec4(1,1,1, texture_color.w)));
+  //love_PixelColor = texture_color - (1-(1/ambientColor)+light_color);
+  //love_PixelColor = texture_color * light_color;
+  love_PixelColor = texture_color * light_color;
 }
