@@ -2,7 +2,6 @@
 
 local PATH = (...):gsub('%.[^%.]+$', '')
 
-local Worlds = require(PATH..".worlds")
 local Type   = require(PATH..".type")
 local List   = require(PATH..".list")
 
@@ -11,11 +10,7 @@ World.__index = World
 
 --- Creates a new World.
 -- @return The new World
-function World.new(name)
-   if (type(name) ~= "string") then
-      error("bad argument #1 to 'World.new' (string expected, got "..type(name)..")", 2)
-   end
-
+function World.new()
    local world = setmetatable({
       entities = List(),
       systems  = List(),
@@ -27,11 +22,8 @@ function World.new(name)
 
       __systemLookup = {},
 
-      __name    = name,
       __isWorld = true,
    }, World)
-
-   Worlds.register(name, world)
 
    return world
 end
@@ -75,9 +67,20 @@ function World:flush()
    for i = 1, self.entities.size do
       e = self.entities:get(i)
 
+      if e.__isDirty then
+         e:__flush()
+
+         if (not e.__wasAdded) then -- The __wasAdded check below will handle this instead
+            for j = 1, self.systems.size do
+               self.systems:get(j):__evaluate(e)
+            end
+         end
+
+         e.__isDirty = false
+      end
+
       if e.__wasAdded then
          e.__wasAdded = false
-         e.__isDirty = false
 
          for j = 1, self.systems.size do
             self.systems:get(j):__evaluate(e)
@@ -95,14 +98,8 @@ function World:flush()
          end
 
          e.__wasRemoved = false
-      end
 
-      if e.__isDirty then
-         for j = 1, self.systems.size do
-            self.systems:get(j):__evaluate(e)
-         end
-
-         e.__isDirty = false
+         self:onEntityRemoved(e)
       end
    end
 

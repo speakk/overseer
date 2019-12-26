@@ -11,40 +11,40 @@ Component.__index = Component
 -- @param populate A function that populates the Bag with values
 -- @return A Component object
 function Component.new(name, populate)
-   if (type(name) ~= "string") then
-      error("bad argument #1 to 'Component.new' (string expected, got "..type(name)..")", 2)
+   if (type(populate) ~= "function" and type(populate) ~= "nil") then
+      error("bad argument #1 to 'Component.new' (function/nil expected, got "..type(populate)..")", 2)
    end
 
-   if not (populate == nil or type(populate) == "function") then
-      error("bad argument #2 to 'Component.new' (function/nil expected, got "..type(populate)..")", 2)
-   end
-
-   local component = setmetatable({
-      __name = name,
+   local baseComponent = setmetatable({
       __populate = populate,
 
-      __isComponent = true,
+      __isBaseComponent = true,
    }, Component)
 
-   component.__mt = {__index = component}
+   baseComponent.__mt = {__index = baseComponent}
 
-   Components.register(name, component)
+   Components.register(name, baseComponent)
 
-   return component
+   return baseComponent
 end
 
---- Creates and initializes a new Bag.
+function Component:__populate() -- luacheck: ignore
+end
+
+--- Creates and initializes a new Component.
 -- @param ... The values passed to the populate function
--- @return A new initialized Bag
+-- @return A new initialized Component
 function Component:__initialize(...)
-   if self.__populate then
-      local bag = setmetatable({}, self)
-      self.__populate(bag, ...)
+   local component = setmetatable({
+      __baseComponent = self,
 
-      return bag
-   end
+      __isComponent     = true,
+      __isBaseComponent = false,
+   }, self)
 
-   return true
+   self.__populate(component, ...)
+
+   return component
 end
 
 return setmetatable(Component, {

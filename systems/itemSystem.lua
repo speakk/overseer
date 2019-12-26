@@ -21,6 +21,7 @@ function ItemSystem:initializeTestItems(mapSize)
     local amount = love.math.random(30)
     local item = itemUtils.createItem(selector, amount)
     self:getWorld():addEntity(item)
+    self:getWorld():flush()
     print("Creating item", selector)
     itemUtils.placeItemOnGround(item, position)
   end

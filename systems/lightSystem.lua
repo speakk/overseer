@@ -27,16 +27,6 @@ local ambientColor = { 0.0, 0.0, 0.1, 1.0 }
 
 function LightSystem:init()
   self.useShader = true
-
-  -- love.graphics.setCanvas(singleLightCanvas)
-  -- love.graphics:clear(0,0,0,0)
-  -- love.graphics.setColor(1, 1, 1, 1)
-  -- love.graphics.setShader(radialLightShader)
-  -- love.graphics.draw(lightCircleImage, 0, 0, 0, 2, 2)
-  -- love.graphics.setShader()
-  -- love.graphics.setCanvas()
-  --love.graphics.rectangle('fill', 0, 0, 100, 100)
-
 end
 
 function LightSystem:initializeTestLights()

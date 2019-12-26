@@ -1,4 +1,5 @@
 DEBUG = false
+local PROFILER = false
 
 ECS = {}
 ECS.Component = require("libs.concord").component
@@ -11,7 +12,7 @@ ECS.Entity = require("libs.concord").entity
 require('components.common').initializeComponents()
 
 
-local world = ECS.World("wurld")
+local world = ECS.World()
 local universe = require("models.universe")
 universe:load(world)
 
@@ -62,7 +63,6 @@ function love.load()
   world:addSystem(ECS.Systems.item)
   world:addSystem(ECS.Systems.camera, "resize")
   world:addSystem(ECS.Systems.map, "update")
-  --worldce:addSystem(map, "draw")
   world:addSystem(ECS.Systems.draw, "draw")
   world:addSystem(ECS.Systems.draw, "registerSpriteBatchGenerator")
   world:addSystem(ECS.Systems.draw, "registerGUIDrawGenerator")
@@ -85,9 +85,11 @@ function love.load()
   world:emit("registerGUIDrawGenerator", world:getSystem(ECS.Systems.overseer), world:getSystem(ECS.Systems.overseer).generateGUIDraw)
   world:emit("registerGUIDrawGenerator", world:getSystem(ECS.Systems.bluePrint), world:getSystem(ECS.Systems.bluePrint).generateGUIDraw, true)
 
-  -- local profilerSystem = require('systems/profilerSystem')
-  -- world:addSystem(ECS.Systems.profiler, "update")
-  -- world:addSystem(ECS.Systems.profiler, "draw")
+  if PROFILER then
+    local profilerSystem = require('systems/profilerSystem')
+    world:addSystem(ECS.Systems.profiler, "update")
+    world:addSystem(ECS.Systems.profiler, "draw")
+  end
 end
 
 function love.update(dt)
