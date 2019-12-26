@@ -47,6 +47,10 @@ function Component:__initialize(...)
    return true
 end
 
+function Component:getName()
+  return self.__name
+end
+
 return setmetatable(Component, {
    __call = function(_, ...)
       return Component.new(...)

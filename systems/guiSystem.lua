@@ -112,7 +112,7 @@ function GUISystem:mousepressed(x, y, button, istouch, presses)
     return
   end
   local globalX, globalY = camera:toWorld(x, y)
-  self:getWorld():emit("mapClicked", universe.pixelsToGridCoordinates(Vector(globalX, globalY)))
+  self:getWorld():emit("mapClicked", Vector(globalX, globalY))
 end
 
 function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore

@@ -32,18 +32,21 @@ end
 function OverseerSystem:generateGUIDraw() --luacheck: ignore
   local cellSize = universe.getCellSize()
   if drag.active then
-    local startPoint = universe.gridPositionToPixels(drag.startPoint)
     local globalX, globalY = camera:toWorld(love.mouse.getX(), love.mouse.getY())
-    -- TODO: Now adding cellSize to make sure visuals correspond to actual.
-    -- Find out why this needs to happen, probably has to do with how rounding is done in "pixelsToGridCoordinates"
-    local gridSnappedMouse = universe.snapPixelToGrid(Vector(globalX+cellSize, globalY+cellSize))
+    local startPixels = drag.startPoint
+    local left = math.min(startPixels.x, globalX)
+    local top = math.min(startPixels.y, globalY)
+    local right = math.max(startPixels.x, globalX)
+    local bottom = math.max(startPixels.y, globalY)
+    local startPoint = universe.snapPixelToGrid(Vector(left, top), "left_top", 0)
+    local endPoint = universe.snapPixelToGrid(Vector(right, bottom), "right_bottom", 0)
     camera:draw(function(l,t,w,h) --luacheck: ignore
       love.graphics.setColor(1, 1, 1, 1)
       love.graphics.rectangle("line",
         startPoint.x,
         startPoint.y,
-        gridSnappedMouse.x - startPoint.x,
-        gridSnappedMouse.y - startPoint.y
+        endPoint.x - startPoint.x,
+        endPoint.y - startPoint.y
         )
     end)
   end
@@ -70,39 +73,41 @@ function OverseerSystem:update(dt) --luacheck: ignore
 end
 
 function OverseerSystem:enactConstructionDrag(dragEvent)
+  local gridCoordsStart = universe.pixelsToGridCoordinates(dragEvent.startPoint)
+  local gridCoordsEnd = universe.pixelsToGridCoordinates(dragEvent.endPoint)
   local nodes = universe.iter(
-  dragEvent.startPoint.x,
-  dragEvent.startPoint.y,
-  dragEvent.endPoint.x,
-  dragEvent.endPoint.y)
+  math.min(gridCoordsStart.x, gridCoordsEnd.x),
+  math.min(gridCoordsStart.y, gridCoordsEnd.y),
+  math.max(gridCoordsStart.x, gridCoordsEnd.x),
+  math.max(gridCoordsStart.y, gridCoordsEnd.y))
 
   self:build(nodes)
 end
 
-function OverseerSystem:startConstructionDrag(gridCoordinates) --luacheck: ignore
+function OverseerSystem:startConstructionDrag(mouseCoordinates) --luacheck: ignore
   drag.active = true
-  drag.startPoint = gridCoordinates
+  drag.startPoint = mouseCoordinates
 end
 
-function OverseerSystem:endConstructionDrag(gridCoordinates)
+function OverseerSystem:endConstructionDrag(mouseCoordinates)
   drag.active = false
-  drag.endPoint = gridCoordinates
+  drag.endPoint = mouseCoordinates
   self:enactConstructionDrag(drag)
 end
 
-function OverseerSystem:enactClick(gridCoordinates)
+function OverseerSystem:enactClick(mouseCoordinates)
   if self.selectedAction == "build" then
     if settings.mouse_toggle_construct then
       if drag.active then
-        self:endConstructionDrag(gridCoordinates)
+        self:endConstructionDrag(mouseCoordinates)
       else
-        self:startConstructionDrag(gridCoordinates)
+        self:startConstructionDrag(mouseCoordinates)
       end
     else
       -- TODO: Also make actual drag & drop, for now the one below
       -- is just a placeholder (individual clicks
       if self.selectedAction and self.actionCallbacks[self.selectedAction] then
-        self.actionCallbacks[self.selectedAction](gridCoordinates)
+        self.actionCallbacks[self.selectedAction](mouseCoordinates)
       end
     end
   end

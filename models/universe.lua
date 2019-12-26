@@ -92,12 +92,18 @@ end
 
 -- Marked for optimization
 function universe.gridPositionToPixels(gridPosition, positionFlag, entitySize)
-  positionFlag = positionFlag or "corner"
+  positionFlag = positionFlag or "left_top"
   local tilePosition = gridPosition * universe.cellSize
+
+  if positionFlag == "left_top" then return tilePosition end
 
   if positionFlag == "center" then
     entitySize = entitySize or 10
     return tilePosition + Vector((universe.cellSize-padding-entitySize)/2, (universe.cellSize-padding-entitySize)/2)
+  end
+
+  if positionFlag == "right_bottom" then
+    return tilePosition + Vector(universe.cellSize,universe.cellSize)
   end
 
   return tilePosition

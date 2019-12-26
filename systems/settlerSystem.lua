@@ -1,5 +1,5 @@
 local Vector = require('libs.brinevector')
---local inspect = require('libs.inspect')
+local inspect = require('libs.inspect')
 local lume = require('libs.lume')
 local itemUtils = require('utils.itemUtils')
 local bluePrintUtils = require('utils.bluePrintUtils')
@@ -96,59 +96,57 @@ function SettlerSystem:invalidatePaths()
   end
 end
 
-local function handleFetchJob(job, settler)
-  if job:has(ECS.Components.fetchJob) then
-    local fetch = job:get(ECS.Components.fetchJob)
-    local selector = fetch.selector
-    local itemData = job:get(ECS.Components.item).itemData
-    local amount = itemData.requirements[selector]
-    --local amount = fetch.amount -- TODO: Use this or above?
-    local inventoryComponent = settler:get(ECS.Components.inventory)
-    local inventory = inventoryComponent.inventory
-    settler.searched_for_path = false
-    if not settler.searched_for_path then
-      local existingItem = itemUtils.getInventoryItemBySelector(inventory, selector)
-      -- If already have the item, then place item on ground at target site
-      if existingItem and existingItem:has(ECS.Components.amount) and
-        existingItem:get(ECS.Components.amount).amount >= fetch.amount then
-        local path = universe.getPath(
-        universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector),
-        universe.pixelsToGridCoordinates(fetch.target:get(ECS.Components.position).vector)
-        )
+local function handleFetchJob(self, job, settler, dt)
+  local fetch = job:get(ECS.Components.fetchJob)
+  local selector = fetch.selector
+  local itemData = job:get(ECS.Components.item).itemData
+  local amount = itemData.requirements[selector]
+  --local amount = fetch.amount -- TODO: Use this or above?
+  local inventoryComponent = settler:get(ECS.Components.inventory)
+  local inventory = inventoryComponent.inventory
+  settler.searched_for_path = false
+  if not settler.searched_for_path then
+    local existingItem = itemUtils.getInventoryItemBySelector(inventory, selector)
+    -- If already have the item, then place item on ground at target site
+    if existingItem and existingItem:has(ECS.Components.amount) and
+      existingItem:get(ECS.Components.amount).amount >= fetch.amount then
+      local path = universe.getPath(
+      universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector),
+      universe.pixelsToGridCoordinates(fetch.target:get(ECS.Components.position).vector)
+      )
 
-        settler.searched_for_path = true
+      settler.searched_for_path = true
 
-        if path then
+      if path then
 
-          path.finishedCallBack = function()
-            settler.searched_for_path = false
-            settler:remove(ECS.Components.work)
-            local invItem = itemUtils.popInventoryItemBySelector(inventory, selector, amount) -- luacheck: ignore
-            job:get(ECS.Components.fetchJob).finishedCallBack()
-            self:getWorld():emit("jobFinished", job)
-          end
-          settler:give(ECS.Components.path, path)
+        path.finishedCallBack = function()
+          settler.searched_for_path = false
+          settler:remove(ECS.Components.work)
+          local invItem = itemUtils.popInventoryItemBySelector(inventory, selector, amount) -- luacheck: ignore
+          job:get(ECS.Components.fetchJob).finishedCallBack()
+          self:getWorld():emit("jobFinished", job)
         end
-      else
-        -- If we don't have item, find closest one and go fetch it
-        local itemsOnMap = itemUtils.getItemsFromGroundBySelector(selector)
-        if itemsOnMap and #itemsOnMap > 0 then
-          -- TODO: Get closest item to settler, for now just pick first from list
-          local itemOnMap = itemsOnMap[love.math.random(#itemsOnMap)]
-          if itemOnMap:has(ECS.Components.position) then
-            local path = universe.getPath(
-            universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector),
-            universe.pixelsToGridCoordinates(itemOnMap:get(ECS.Components.position).vector))
-            if path then
+        settler:give(ECS.Components.path, path)
+      end
+    else
+      -- If we don't have item, find closest one and go fetch it
+      local itemsOnMap = itemUtils.getItemsFromGroundBySelector(selector)
+      if itemsOnMap and #itemsOnMap > 0 then
+        -- TODO: Get closest item to settler, for now just pick first from list
+        local itemOnMap = itemsOnMap[love.math.random(#itemsOnMap)]
+        if itemOnMap:has(ECS.Components.position) then
+          local path = universe.getPath(
+          universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector),
+          universe.pixelsToGridCoordinates(itemOnMap:get(ECS.Components.position).vector))
+          if path then
 
-              path.finishedCallBack = function()
-                settler.searched_for_path = false
-                settler:remove(ECS.Components.path)
-                table.insert(inventory, itemOnMap)
-                itemUtils.takeItemFromGround(itemOnMap, amount)
-              end
-              settler:give(ECS.Components.path, path)
+            path.finishedCallBack = function()
+              settler.searched_for_path = false
+              settler:remove(ECS.Components.path)
+              table.insert(inventory, itemOnMap)
+              itemUtils.takeItemFromGround(itemOnMap, amount)
             end
+            settler:give(ECS.Components.path, path)
           end
         end
       end
@@ -156,106 +154,46 @@ local function handleFetchJob(job, settler)
   end
 end
 
+local function handleBluePrintJob(self, job, settler, dt)
+  local bluePrintComponent = job:get(ECS.Components.bluePrintJob)
+  local settlerGridPosition = universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector)
+  local bluePrintGridPosition = universe.pixelsToGridCoordinates(job:get(ECS.Components.position).vector)
+  if universe.isInPosition(settlerGridPosition, bluePrintGridPosition, true) then
+    if bluePrintUtils.isBluePrintReadyToBuild(job) then
+      local constructionSkill = settler:get(ECS.Components.settler).skills.construction
+      bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + constructionSkill * dt
+      if bluePrintComponent.buildProgress >= 100 then
+        self:getWorld():emit("jobFinished", job)
+        settler:remove(ECS.Components.work)
+      end
+    end
+  else
+    settler.searched_for_path = false
+    if not settler.searched_for_path then -- RIGHT ON THIS IF: Is global cache valid? If not then re-get path
+      local path = universe.getPath(settlerGridPosition, bluePrintGridPosition)
+      settler.searched_for_path = true
+      if path then
+        path.finishedCallBack = function()
+          settler.searched_for_path = false
+        end
+        settler:give(ECS.Components.path, path)
+      end
+    end
+  end
+end
+
 local jobHandlers = {
-  [ECS.Components.fetchJob] = handleFetchJob,
-  [ECS.Components.bluePrintJob] = handleBluePrintJob
+  fetchJob = handleFetchJob,
+  bluePrintJob = handleBluePrintJob
 }
 
 function SettlerSystem:processSubJob(settler, job, dt)
-  for _, component in ipairs(job:getComponents()) do
-    local jobHandler = jobHandlers[component.getBaseComponent()]
+  for component in pairs(job:getComponents()) do
+    local jobHandler = jobHandlers[component:getName()]
     if jobHandler then
-      print("Hand jobhnadler!")
+      jobHandler(self, job, settler, dt)
     end
   end
-  -- TODO: Make this logic a map from component type to method (loop through ECS.Components?)
-  if job:has(ECS.Components.fetchJob) then
-    local fetch = job:get(ECS.Components.fetchJob)
-    local selector = fetch.selector
-    local itemData = job:get(ECS.Components.item).itemData
-    local amount = itemData.requirements[selector]
-    --local amount = fetch.amount -- TODO: Use this or above?
-    local inventoryComponent = settler:get(ECS.Components.inventory)
-    local inventory = inventoryComponent.inventory
-    settler.searched_for_path = false
-    if not settler.searched_for_path then
-      local existingItem = itemUtils.getInventoryItemBySelector(inventory, selector)
-      -- If already have the item, then place item on ground at target site
-      if existingItem and existingItem:has(ECS.Components.amount) and
-        existingItem:get(ECS.Components.amount).amount >= fetch.amount then
-        local path = universe.getPath(
-        universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector),
-        universe.pixelsToGridCoordinates(fetch.target:get(ECS.Components.position).vector)
-        )
-
-        settler.searched_for_path = true
-
-        if path then
-
-          path.finishedCallBack = function()
-            settler.searched_for_path = false
-            settler:remove(ECS.Components.work)
-            local invItem = itemUtils.popInventoryItemBySelector(inventory, selector, amount) -- luacheck: ignore
-            job:get(ECS.Components.fetchJob).finishedCallBack()
-            self:getWorld():emit("jobFinished", job)
-          end
-          settler:give(ECS.Components.path, path)
-        end
-      else
-        -- If we don't have item, find closest one and go fetch it
-        local itemsOnMap = itemUtils.getItemsFromGroundBySelector(selector)
-        if itemsOnMap and #itemsOnMap > 0 then
-          -- TODO: Get closest item to settler, for now just pick first from list
-          local itemOnMap = itemsOnMap[love.math.random(#itemsOnMap)]
-          if itemOnMap:has(ECS.Components.position) then
-            local path = universe.getPath(
-            universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector),
-            universe.pixelsToGridCoordinates(itemOnMap:get(ECS.Components.position).vector))
-            if path then
-
-              path.finishedCallBack = function()
-                settler.searched_for_path = false
-                settler:remove(ECS.Components.path)
-                table.insert(inventory, itemOnMap)
-                itemUtils.takeItemFromGround(itemOnMap, amount)
-              end
-              settler:give(ECS.Components.path, path)
-            end
-          end
-        end
-      end
-    end
-  end
-
-  if job:has(ECS.Components.bluePrintJob) and job:has(ECS.Components.item) then --luacheck: ignore
-    local bluePrintComponent = job:get(ECS.Components.bluePrintJob)
-    local settlerGridPosition = universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector)
-    local bluePrintGridPosition = universe.pixelsToGridCoordinates(job:get(ECS.Components.position).vector)
-    if universe.isInPosition(settlerGridPosition, bluePrintGridPosition, true) then
-      if bluePrintUtils.isBluePrintReadyToBuild(job) then
-        local constructionSkill = settler:get(ECS.Components.settler).skills.construction
-        bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + constructionSkill * dt
-        if bluePrintComponent.buildProgress >= 100 then
-          self:getWorld():emit("jobFinished", job)
-          settler:remove(ECS.Components.work)
-        end
-      end
-    else
-      settler.searched_for_path = false
-      if not settler.searched_for_path then -- RIGHT ON THIS IF: Is global cache valid? If not then re-get path
-        local path = universe.getPath(settlerGridPosition, bluePrintGridPosition)
-        settler.searched_for_path = true
-        if path then
-          path.finishedCallBack = function()
-            settler.searched_for_path = false
-          end
-          settler:give(ECS.Components.path, path)
-        end
-      end
-    end
-  end
-
-
 end
 
 function SettlerSystem:initializeTestSettlers()
