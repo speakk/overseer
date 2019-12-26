@@ -30,14 +30,15 @@ function DrawSystem:draw()
         local batch = spriteBatchGenerator.callBack(spriteBatchGenerator.callee, l, t, w, h)
         love.graphics.draw(batch)
       end
-      for _, guiDrawGenerator in ipairs(self.guiCameraDrawGenerators) do
-        guiDrawGenerator.callBack(guiDrawGenerator.callee, l, t, w, h)
-      end
-      -- local mapBatch = self.mapSystem:generateSpriteBatch(l, t, w, h)
-      -- love.graphics.draw(mapBatch)
-      -- local spriteBatch = self.spriteSystem:generateSpriteBatch(l, t, w, h)
-      -- love.graphics.draw(spriteBatch)
     end)
+
+    for _, guiDrawGenerator in ipairs(self.guiCameraDrawGenerators) do
+      guiDrawGenerator.callBack(guiDrawGenerator.callee, l, t, w, h)
+    end
+    -- local mapBatch = self.mapSystem:generateSpriteBatch(l, t, w, h)
+    -- love.graphics.draw(mapBatch)
+    -- local spriteBatch = self.spriteSystem:generateSpriteBatch(l, t, w, h)
+    -- love.graphics.draw(spriteBatch)
   end)
 
   for _, guiDrawGenerator in ipairs(self.guiDrawGenerators) do

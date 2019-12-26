@@ -12,7 +12,7 @@ ECS.Entity = require("libs.concord").entity
 require('components.common').initializeComponents()
 
 
-local world = ECS.World()
+local world = ECS.World("wurld")
 local universe = require("models.universe")
 universe:load(world)
 

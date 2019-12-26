@@ -2,8 +2,8 @@
 
 local PATH = (...):gsub('%.[^%.]+$', '')
 
+local Systems = require(PATH..".systems")
 local Pool    = require(PATH..".pool")
-local Systems    = require(PATH..".systems")
 
 local System = {}
 System.mt    = {
@@ -37,7 +37,12 @@ System.mt    = {
 -- @param ... Variable amounts of filters
 -- @return A new System prototype
 function System.new(name, ...)
+   if (type(name) ~= "string") then
+      error("bad argument #1 to 'System.new' (string expected, got "..type(name)..")", 2)
+   end
+
    local baseSystem = setmetatable({
+      __name = name,
       __isBaseSystem = true,
       __filter = {...},
    }, System.mt)
