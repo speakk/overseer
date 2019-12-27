@@ -30,7 +30,6 @@ function OverseerSystem:init()
 end
 
 function OverseerSystem:generateGUIDraw() --luacheck: ignore
-  local cellSize = universe.getCellSize()
   if drag.active then
     local globalX, globalY = camera:toWorld(love.mouse.getX(), love.mouse.getY())
     local startPixels = drag.startPoint

@@ -5,7 +5,9 @@ local generateTileName = function(category, name) return 'media/' .. category ..
 local mediaDB = {
   {
     name = "tiles",
-    items = { 'grass01', 'grass02', 'dirt01', 'wall_wood01', 'wall_iron01', 'door_stone01', 'door_wood01', 'wall_stone01' },
+    items = { 'grass01', 'grass02', 'dirt01',
+      'wall_wood01', 'wall_iron01', 'door_stone01', 'door_wood01',
+      'wall_stone01' },
   },
   {
     name = "resources",

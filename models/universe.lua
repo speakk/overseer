@@ -2,7 +2,7 @@ local Vector = require('libs.brinevector')
 local Pathfinder = require('libs.jumper.pathfinder')
 local Grid = require('libs.jumper.grid')
 local cpml = require('libs.cpml')
-local inspect = require('libs.inspect')
+local inspect = require('libs.inspect') --luacheck: ignore
 local utils = require('utils.utils')
 local world = nil
 
@@ -65,8 +65,7 @@ function universe.getSize()
   return Vector(width, height)
 end
 
-function universe.onCollisionEntityAdded(pool, entity)
-  --print("Has pos?", inspect(entity))
+function universe.onCollisionEntityAdded(pool, entity) --luacheck: ignore
   local position = universe.pixelsToGridCoordinates(entity:get(ECS.Components.position).vector)
   map[position.y][position.x] = 1
   gridInvalidated = true

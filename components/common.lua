@@ -34,7 +34,9 @@ local function initializeComponents()
     e.finishedCallBack = finishedCallBack
   end)
   ECS.Component("healingJob")
-  ECS.Component("job", function(e, target, reserved, finished, allJobsOrNothing)
+  ECS.Component("job", function(e, jobType, target, reserved, finished, allJobsOrNothing)
+    print("Making job", jobType)
+    e.jobType = jobType or error("Job needs jobType")
     e.target = target or nil -- Not all jobs need targets
     e.reserved = reserved or false
     e.finished = finished or false

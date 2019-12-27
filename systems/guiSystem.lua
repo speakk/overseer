@@ -1,9 +1,8 @@
 local nuklear = require("nuklear")
 local settings = require("settings")
-local inspect = require("libs.inspect")
+local inspect = require("libs.inspect") --luacheck: ignore
 local Vector = require('libs.brinevector')
 
-local universe = require("models.universe")
 local camera = require("models.camera")
 
 local constructionTypes = require('data.constructionTypes')
@@ -46,9 +45,8 @@ local function buildMenuHierarchy(self, items, key, path)
   end
 end
 
-function GUISystem:init(camera)
+function GUISystem:init()
   ui = nuklear.newUI()
-  self.camera = camera
   self.selectedAction = nil
   self.dataSelector = nil
 

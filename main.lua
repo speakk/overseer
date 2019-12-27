@@ -80,13 +80,17 @@ function love.load()
   world:getSystem(ECS.Systems.item):initializeTestItems(universe:getSize())
   world:getSystem(ECS.Systems.light):initializeTestLights()
 
-  world:emit("registerSpriteBatchGenerator", world:getSystem(ECS.Systems.map), world:getSystem(ECS.Systems.map).generateSpriteBatch)
-  world:emit("registerSpriteBatchGenerator", world:getSystem(ECS.Systems.sprite), world:getSystem(ECS.Systems.sprite).generateSpriteBatch)
-  world:emit("registerGUIDrawGenerator", world:getSystem(ECS.Systems.overseer), world:getSystem(ECS.Systems.overseer).generateGUIDraw)
-  world:emit("registerGUIDrawGenerator", world:getSystem(ECS.Systems.bluePrint), world:getSystem(ECS.Systems.bluePrint).generateGUIDraw, true)
+  world:emit("registerSpriteBatchGenerator", world:getSystem(ECS.Systems.map),
+    world:getSystem(ECS.Systems.map).generateSpriteBatch)
+  world:emit("registerSpriteBatchGenerator", world:getSystem(ECS.Systems.sprite),
+    world:getSystem(ECS.Systems.sprite).generateSpriteBatch)
+  world:emit("registerGUIDrawGenerator", world:getSystem(ECS.Systems.overseer),
+    world:getSystem(ECS.Systems.overseer).generateGUIDraw)
+  world:emit("registerGUIDrawGenerator", world:getSystem(ECS.Systems.bluePrint),
+    world:getSystem(ECS.Systems.bluePrint).generateGUIDraw, true)
 
   if PROFILER then
-    local profilerSystem = require('systems/profilerSystem')
+    require('systems/profilerSystem')
     world:addSystem(ECS.Systems.profiler, "update")
     world:addSystem(ECS.Systems.profiler, "draw")
   end

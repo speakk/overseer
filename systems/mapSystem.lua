@@ -1,5 +1,5 @@
 local universe = require('models.universe')
-local inspect = require('libs.inspect')
+local inspect = require('libs.inspect') --luacheck: ignore
 
 local MapSystem = ECS.System("map", {ECS.Components.collision, "collision"})
 

@@ -42,7 +42,7 @@ function DrawSystem:draw()
   end)
 
   for _, guiDrawGenerator in ipairs(self.guiDrawGenerators) do
-    guiDrawGenerator.callBack(guiDrawGenerator.callee, l, t, w, h)
+    guiDrawGenerator.callBack(guiDrawGenerator.callee)
   end
 
   love.graphics.setColor(1, 1, 0)
