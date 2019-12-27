@@ -163,8 +163,8 @@ local function handleBluePrintJob(self, job, settler, dt)
       local constructionSkill = settler:get(ECS.Components.settler).skills.construction
       bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + constructionSkill * dt
       if bluePrintComponent.buildProgress >= 100 then
-        self:getWorld():emit("jobFinished", job)
         settler:remove(ECS.Components.work)
+        self:getWorld():emit("jobFinished", job)
       end
     end
   else
@@ -197,7 +197,7 @@ function SettlerSystem:processSubJob(settler, job, dt)
 end
 
 function SettlerSystem:initializeTestSettlers()
-  for _ = 1,30,1 do
+  for _ = 1,1,1 do
     local settler = ECS.Entity()
     local worldSize = universe.getSize()
     local position
@@ -233,10 +233,14 @@ end
 
 -- TODO: Needs to prioritize stuff
 function SettlerSystem:assignJobsForSettlers(jobQueue)
+  self:getWorld():flush()
+  print("Jobqueue!", #jobQueue)
 
   while true do
+    print("settlers pool", #self.pool)
     local availableWorker = lume.match(self.pool,
     function(potentialSettler)
+      print("Settler!", potentialSettler, potentialSettler:has(ECS.Components.work))
       return not potentialSettler:has(ECS.Components.work)
     end
     )
