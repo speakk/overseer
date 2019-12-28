@@ -35,8 +35,6 @@ local function finishWork(self, settler, job)
   self:getWorld():emit("jobFinished", job)
 end
 
-
-
 function SettlerSystem:processSettlerUpdate(settler, dt)
   local velocityComponent = settler:get(ECS.Components.velocity)
   velocityComponent.vector = Vector(0, 0)
@@ -91,12 +89,14 @@ function SettlerSystem:processSettlerPathFinding(settler) --luacheck: ignore
 end
 
 function SettlerSystem:invalidatePaths()
+  print("Invalidating")
   for _, settler in ipairs(self.pool) do
     if settler:has(ECS.Components.path) then
       local path = settler:get(ECS.Components.path).path
       if not universe.pathStillValid(path) then
         settler:remove(ECS.Components.path)
         settler.searched_for_path = false
+        print("Path was not valid, setting 'searched_for_path' to false")
       end
     end
   end
@@ -104,16 +104,14 @@ end
 
 function SettlerSystem:processSubJob(settler, job, dt)
   local jobType = job:get(ECS.Components.job).jobType
-  print("Handling subJob!", jobType)
   local jobHandler = jobHandlers[jobType].handle
   if jobHandler then
-    print("Handling subJob!", jobType)
     jobHandler(self, job, settler, dt, finishWork)
   end
 end
 
 function SettlerSystem:initializeTestSettlers()
-  for _ = 1,1,1 do
+  for _ = 1,10,1 do
     local settler = ECS.Entity()
     local worldSize = universe.getSize()
     local position

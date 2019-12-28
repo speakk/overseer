@@ -16,6 +16,9 @@ local function initializeComponents()
     -- e.x = x or error("Sprite needs x image coordinate")
     -- e.y = y or error("Sprite needs y image coordinate")
   end)
+  ECS.Component("transparent", function(e, amount)
+    e.amount = amount or 0.5
+  end)
   ECS.Component("settler", function(e, name)
     e.name = name or "Lucy"
     e.skills = {
@@ -27,20 +30,21 @@ local function initializeComponents()
     e.path = path or error("No path for Path component!")
     e.currentIndex = currentIndex or 1
   end)
-  ECS.Component("fetchJob", function(e, target, selector, amount, finishedCallBack)
+  ECS.Component("fetchJob", function(e, target, selector, amount)
     e.target = target or error("Fetch has no target!")
     e.selector = selector or error("Fetch has no selector!")
     e.amount = amount
-    e.finishedCallBack = finishedCallBack
   end)
   ECS.Component("healingJob")
-  ECS.Component("job", function(e, jobType, target, reserved, finished, allJobsOrNothing)
+  ECS.Component("job", function(e, jobType, finishedCallBack)
     print("Making job", jobType)
     e.jobType = jobType or error("Job needs jobType")
-    e.target = target or nil -- Not all jobs need targets
-    e.reserved = reserved or false
-    e.finished = finished or false
-    e.allJobsOrNothing = allJobsOrNothing or false
+    e.target = nil
+    e.reserved = false
+    e.finished = false
+    e.allJobsOrNothing = false
+    e.finishedCallBack = finishedCallBack or nil
+    e.isInaccessible = false
   end)
   ECS.Component("worker", function(e, available) e.available = available or true end)
   ECS.Component("bluePrintJob", function(e)

@@ -26,6 +26,7 @@ local function handle(self, job, settler, dt, finishCallback)
       bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + constructionSkill * dt
       if bluePrintComponent.buildProgress >= 100 then
         --finishWork(self, settler, job)
+        job:get(ECS.Components.job).finishedCallBack()
         finishCallback(self, settler, job)
       end
     end
@@ -60,28 +61,29 @@ end
 --
 local function generate(gridPosition, itemData, bluePrintItemSelector)
   local job = ECS.Entity()
-  job:give(ECS.Components.job, "bluePrint")
+  job:give(ECS.Components.job, "bluePrint", function()
+    job:give(ECS.Components.collision)
+    job:remove(ECS.Components.transparent)
+  end)
   job:give(ECS.Components.name, "BluePrintJob")
   job:give(ECS.Components.bluePrintJob)
   job:give(ECS.Components.sprite, itemData.sprite)
   job:give(ECS.Components.item, itemData, bluePrintItemSelector)
   job:give(ECS.Components.position, universe.gridPositionToPixels(gridPosition))
-  job:give(ECS.Components.collision)
-
+  job:give(ECS.Components.transparent)
 
   if itemData.requirements then
     job:give(ECS.Components.children, {})
     local children = job:get(ECS.Components.children).children
     for selector, amount in pairs(itemData.requirements) do
       local subJob = ECS.Entity()
-      subJob:give(ECS.Components.job, "fetch")
+      subJob:give(ECS.Components.job, "fetch", function()
+        consumeRequirement(job, subJob)
+      end)
       subJob:give(ECS.Components.name, "FetchJob")
       subJob:give(ECS.Components.item, itemData, selector)
       subJob:give(ECS.Components.parent, job)
-      local finishedCallBack = function()
-        consumeRequirement(job, subJob)
-      end
-      subJob:give(ECS.Components.fetchJob, job, selector, amount, finishedCallBack)
+      subJob:give(ECS.Components.fetchJob, job, selector, amount)
       table.insert(children, subJob)
     end
   end

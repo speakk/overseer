@@ -42,5 +42,5 @@ void effect(){
   //love_PixelColor = 1 - ((1-ambientColor) * (1-texture_color) * (1-light_color*vec4(1,1,1, texture_color.w)));
   //love_PixelColor = texture_color - (1-(1/ambientColor)+light_color);
   //love_PixelColor = texture_color * light_color;
-  love_PixelColor = texture_color * light_color;
+  love_PixelColor = texture_color * light_color * color;
 }

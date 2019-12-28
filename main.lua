@@ -43,7 +43,6 @@ function love.load()
   love.graphics.setColor(255, 0, 0)
 
   world:addSystem(ECS.Systems.dayCycle, "update")
-  world:addSystem(ECS.Systems.sprite)
   world:addSystem(ECS.Systems.light, "cameraScaleChanged")
   world:addSystem(ECS.Systems.light, "cameraPositionChanged")
   world:addSystem(ECS.Systems.light, "timeOfDayChanged")
@@ -73,7 +72,9 @@ function love.load()
   world:addSystem(ECS.Systems.job, "draw")
   world:addSystem(ECS.Systems.job, "jobAdded", "addJob")
   world:addSystem(ECS.Systems.job, "jobFinished", "finishJob")
+  world:addSystem(ECS.Systems.job, "gridUpdated", "clearInaccessibleFlag")
   world:addSystem(ECS.Systems.move, "update")
+  world:addSystem(ECS.Systems.sprite)
   world:addSystem(ECS.Systems.gui, "draw")
 
   world:getSystem(ECS.Systems.settler):initializeTestSettlers()
@@ -84,6 +85,8 @@ function love.load()
     world:getSystem(ECS.Systems.map).generateSpriteBatch)
   world:emit("registerSpriteBatchGenerator", world:getSystem(ECS.Systems.sprite),
     world:getSystem(ECS.Systems.sprite).generateSpriteBatch)
+  world:emit("registerGUIDrawGenerator", world:getSystem(ECS.Systems.sprite),
+    world:getSystem(ECS.Systems.sprite).generateGUIDraw, true)
   world:emit("registerGUIDrawGenerator", world:getSystem(ECS.Systems.overseer),
     world:getSystem(ECS.Systems.overseer).generateGUIDraw)
   world:emit("registerGUIDrawGenerator", world:getSystem(ECS.Systems.bluePrint),

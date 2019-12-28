@@ -9,8 +9,9 @@ local function handle(self, job, settler, dt, finishedCallBack) --luacheck: igno
   --local amount = fetch.amount -- TODO: Use this or above?
   local inventoryComponent = settler:get(ECS.Components.inventory)
   local inventory = inventoryComponent.inventory
-  settler.searched_for_path = false
-  if not settler.searched_for_path then
+  --settler.searched_for_path = false
+  if not settler.searched_for_path and not settler:has(ECS.Components.path) then
+    print("Hadn't searched so...")
     local existingItem = itemUtils.getInventoryItemBySelector(inventory, selector)
     -- If already have the item, then place item on ground at target site
     if existingItem and existingItem:has(ECS.Components.amount) and
@@ -23,19 +24,24 @@ local function handle(self, job, settler, dt, finishedCallBack) --luacheck: igno
       settler.searched_for_path = true
 
       if path then
+        print("Have item, found path, giving path component")
 
         path.finishedCallBack = function()
           settler.searched_for_path = false
           local invItem = itemUtils.popInventoryItemBySelector(inventory, selector, amount) -- luacheck: ignore
-          job:get(ECS.Components.fetchJob).finishedCallBack()
+          job:get(ECS.Components.job).finishedCallBack()
           finishedCallBack(self, settler, job)
         end
         settler:give(ECS.Components.path, path)
+      else
+        job:get(ECS.Components.job).isInaccessible = true
       end
     else
+      print("No item in inv so finding one")
       -- If we don't have item, find closest one and go fetch it
       local itemsOnMap = itemUtils.getItemsFromGroundBySelector(selector)
       if itemsOnMap and #itemsOnMap > 0 then
+        print("Item is on map")
         -- TODO: Get closest item to settler, for now just pick first from list
         local itemOnMap = itemsOnMap[love.math.random(#itemsOnMap)]
         if itemOnMap:has(ECS.Components.position) then
@@ -43,6 +49,7 @@ local function handle(self, job, settler, dt, finishedCallBack) --luacheck: igno
           universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector),
           universe.pixelsToGridCoordinates(itemOnMap:get(ECS.Components.position).vector))
           if path then
+            print("Had path for item, giving path to settler")
 
             path.finishedCallBack = function()
               settler.searched_for_path = false
@@ -51,6 +58,8 @@ local function handle(self, job, settler, dt, finishedCallBack) --luacheck: igno
               itemUtils.takeItemFromGround(itemOnMap, amount)
             end
             settler:give(ECS.Components.path, path)
+          else
+            job:get(ECS.Components.job).isInaccessible = true
           end
         end
       end

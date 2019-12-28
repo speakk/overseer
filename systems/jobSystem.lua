@@ -1,4 +1,5 @@
---local inspect = require('libs/inspect')
+local inspect = require('libs/inspect') -- luacheck: ignore
+local utils = require('utils/utils')
 
 local JobSystem = ECS.System("job", {ECS.Components.job})
 
@@ -10,6 +11,7 @@ local function printJob(job, level, y)
   local name = job:get(ECS.Components.name).name
   local space = 15
   local jobComponent = job:get(ECS.Components.job)
+  if not jobComponent then return end
 
   if job:has(ECS.Components.children) then
     love.graphics.setColor(0, 1, 0)
@@ -64,12 +66,30 @@ function JobSystem:getNextUnreservedJob()
         if firstSubJob then
           local subJobComponent = firstSubJob:get(ECS.Components.job)
           --return firstSubJob
-          if not subJobComponent.finished then
+          if not subJobComponent.finished and not subJobComponent.isInaccessible then
             if not subJobComponent.reserved and subJobComponent.canStart then return firstSubJob end
           end
         end
       end
     end
+  end
+end
+
+function getChildren(job)
+  if job:get(ECS.Components.children) then
+    return job:get(ECS.Components.children).children
+  end
+
+  return nil
+end
+
+function JobSystem:clearInaccessibleFlag()
+  for _, mainJob in ipairs(self.jobs) do
+    utils.traverseTree(mainJob, getChildren, function(job)
+      if job:has(ECS.Components.job) then
+        job:get(ECS.Components.job).isInaccessible = false
+      end
+    end)
   end
 end
 
