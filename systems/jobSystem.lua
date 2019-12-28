@@ -75,7 +75,7 @@ function JobSystem:getNextUnreservedJob()
   end
 end
 
-function getChildren(job)
+local function getChildren(job)
   if job:get(ECS.Components.children) then
     return job:get(ECS.Components.children).children
   end

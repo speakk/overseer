@@ -167,6 +167,27 @@ function universe.isCellAvailable(gridPosition)
   return grid:isWalkableAt(gridPosition.x, gridPosition.y, walkable)
 end
 
+function universe.findPathToClosestEmptyCell(gridPosition)
+  local node = grid:getNodeAt(gridPosition.x, gridPosition.y)
+
+  if not universe.isCellAvailable(gridPosition) then
+    local radius = 1
+    while radius < 10 do
+      for nodeAround in grid:around(node, radius) do
+        if universe.isCellAvailable(Vector(nodeAround:getX(), nodeAround:getY())) then
+          node = nodeAround
+          break
+        end
+        if node then break end
+      end
+
+      radius = radius +1
+    end
+  end
+
+  return universe.getPath(gridPosition, Vector(node:getX(), node:getY()))
+end
+
 
 -- For documentation:
 --https://htmlpreview.github.io/?https://raw.githubusercontent.com/Yonaba/Jumper/master/docs/modules/grid.html#Grid:iter

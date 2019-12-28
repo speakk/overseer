@@ -79,7 +79,9 @@ function SettlerSystem:processSettlerPathFinding(settler) --luacheck: ignore
       pathComponent.currentIndex = pathComponent.currentIndex + 1
 
       if pathComponent.currentIndex == table.getn(pathComponent.path._nodes) then
-        pathComponent.path.finishedCallBack()
+        if pathComponent.path.finishedCallBack then
+          pathComponent.path.finishedCallBack()
+        end
         settler:remove(ECS.Components.path)
       end
     end
@@ -88,9 +90,10 @@ function SettlerSystem:processSettlerPathFinding(settler) --luacheck: ignore
 
 end
 
-function SettlerSystem:invalidatePaths()
+function SettlerSystem:gridUpdated()
   print("Invalidating")
   for _, settler in ipairs(self.pool) do
+    -- Invalidate paths
     if settler:has(ECS.Components.path) then
       local path = settler:get(ECS.Components.path).path
       if not universe.pathStillValid(path) then
@@ -98,7 +101,18 @@ function SettlerSystem:invalidatePaths()
         settler.searched_for_path = false
         print("Path was not valid, setting 'searched_for_path' to false")
       end
+    else
+      -- Make sure current location is valid
+      local position = settler:get(ECS.Components.position).vector
+      local gridCoordinates = universe.pixelsToGridCoordinates(position)
+      if not universe.isCellAvailable(gridCoordinates) then
+        local newPath = universe.findPathToClosestEmptyCell(gridCoordinates)
+        if newPath then
+          settler:give(ECS.Components.path, newPath)
+        end
+      end
     end
+
   end
 end
 
