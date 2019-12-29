@@ -3,7 +3,7 @@ local cpml = require('libs.cpml')
 
 local camera = require('models.camera')
 
-local PlayerInputSystem = ECS.System("playerInput")
+local PlayerInputSystem = ECS.System()
 
 local cameraSpeed = 800
 

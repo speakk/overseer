@@ -1,7 +1,7 @@
 local camera = require('models.camera')
 
 -- Create a draw System.
-local DrawSystem = ECS.System("draw", {ECS.Components.position, ECS.Components.sprite})
+local DrawSystem = ECS.System({ECS.Components.position, ECS.Components.sprite})
 
 function DrawSystem:init()
   self.spriteBatchGenerators = {}

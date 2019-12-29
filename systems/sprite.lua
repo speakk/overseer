@@ -4,7 +4,7 @@ local universe = require('models.universe')
 local media = require('utils.media')
 local Vector = require('libs.brinevector')
 
-local SpriteSystem = ECS.System("sprite", {ECS.Components.sprite, ECS.Components.position})
+local SpriteSystem = ECS.System({ECS.Components.sprite, ECS.Components.position})
 
 function SpriteSystem:init()
   self.tilesetBatch = love.graphics.newSpriteBatch(media.sprites, 500)

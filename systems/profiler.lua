@@ -1,4 +1,4 @@
-local ProfilerSystem = ECS.System("profiler")
+local ProfilerSystem = ECS.System()
 
 function ProfilerSystem:init() --luacheck: ignore
   love.profile = require('profile')

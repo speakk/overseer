@@ -7,7 +7,7 @@ local jobHandlers = require('models.jobTypes.jobTypes')
 
 local settlerSpeed = 200
 
-local SettlerSystem = ECS.System("settler", {ECS.Components.settler, ECS.Components.worker,
+local SettlerSystem = ECS.System({ECS.Components.settler, ECS.Components.worker,
 ECS.Components.position, ECS.Components.velocity})
 
 function SettlerSystem:init()
@@ -159,7 +159,6 @@ end
 
 -- TODO: Needs to prioritize stuff
 function SettlerSystem:assignJobsForSettlers(jobQueue)
-  self:getWorld():flush()
   print("Jobqueue!", #jobQueue)
 
   while true do

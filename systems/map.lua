@@ -2,7 +2,7 @@ local universe = require('models.universe')
 local inspect = require('libs.inspect') --luacheck: ignore
 local Vector = require('libs.brinevector') --luacheck: ignore
 
-local MapSystem = ECS.System("map", {ECS.Components.collision, "collision"}, {ECS.Components.onMap, ECS.Components.position, "onMap"})
+local MapSystem = ECS.System({ECS.Components.collision, "collision"}, {ECS.Components.onMap, ECS.Components.position, "onMap"})
 
 function MapSystem:init()
   self.collision.onEntityAdded = universe.onCollisionEntityAdded
@@ -25,7 +25,6 @@ function MapSystem:cancelConstruction(entities)
       entity:get(ECS.Components.removeCallBack).callBack()
     else
       self:getWorld():removeEntity(entity)
-      self:getWorld():flush()
     end
   end
 end

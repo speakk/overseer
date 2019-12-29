@@ -3,7 +3,7 @@ local camera = require('models.camera')
 
 local settings = require('settings')
 
-local CameraSystem = ECS.System('camera')
+local CameraSystem = ECS.System()
 
 function CameraSystem:init() --luacheck: ignore
   local cellSize = universe.getCellSize()

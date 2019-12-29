@@ -3,7 +3,7 @@ local Vector = require('libs.brinevector')
 local universe = require('models.universe')
 local camera = require('models.camera')
 
-local LightSystem = ECS.System("light", {ECS.Components.light})
+local LightSystem = ECS.System({ECS.Components.light})
 
 
 local lightGradientImage = love.graphics.newImage("media/misc/light_gradient.png")
@@ -40,7 +40,6 @@ function LightSystem:initializeTestLights()
     self:getWorld():addEntity(light)
   end
 
-  self:getWorld():flush()
   self:lightsOrMapChanged()
 end
 

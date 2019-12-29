@@ -3,7 +3,7 @@ local lume = require('libs.lume')
 
 local itemUtils = require('utils.itemUtils')
 
-local ItemSystem = ECS.System("item", {ECS.Components.item})
+local ItemSystem = ECS.System({ECS.Components.item})
 
 function ItemSystem:initializeTestItems(mapSize)
   local randomTable = {
@@ -21,7 +21,6 @@ function ItemSystem:initializeTestItems(mapSize)
     local amount = love.math.random(30)
     local item = itemUtils.createItem(selector, amount)
     self:getWorld():addEntity(item)
-    self:getWorld():flush()
     itemUtils.placeItemOnGround(item, position)
   end
 end

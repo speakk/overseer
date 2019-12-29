@@ -2,36 +2,29 @@
 
 local PATH = (...):gsub('%.[^%.]+$', '')
 
-local Worlds = require(PATH..".worlds")
-local Type   = require(PATH..".type")
-local List   = require(PATH..".list")
+local Type = require(PATH..".type")
+local List = require(PATH..".list")
 
 local World = {}
 World.__index = World
 
 --- Creates a new World.
 -- @return The new World
-function World.new(name)
-   if (type(name) ~= "string") then
-      error("bad argument #1 to 'World.new' (string expected, got "..type(name)..")", 2)
-   end
-
+function World.new()
    local world = setmetatable({
       entities = List(),
       systems  = List(),
 
       events   = {},
 
-      __added   = {},
-      __removed = {},
+      __added   = List(), __backAdded   = List(),
+      __removed = List(), __backRemoved = List(),
+      __dirty   = List(), __backDirty   = List(),
 
       __systemLookup = {},
 
-      __name    = name,
       __isWorld = true,
    }, World)
-
-   Worlds.register(name, world)
 
    return world
 end
@@ -44,14 +37,12 @@ function World:addEntity(e)
       error("bad argument #1 to 'World:addEntity' (Entity expected, got "..type(e)..")", 2)
    end
 
-   if e.world then
+   if e.__world then
       error("bad argument #1 to 'World:addEntity' (Entity was already added to a world)", 2)
    end
 
-   e.world = self
-   e.__wasAdded = true
-
-   self.entities:add(e)
+   e.__world = self
+   self.__added:add(e)
 
    return self
 end
@@ -64,50 +55,65 @@ function World:removeEntity(e)
       error("bad argument #1 to 'World:removeEntity' (Entity expected, got "..type(e)..")", 2)
    end
 
-   e.__wasRemoved = true
+   self.__removed:add(e)
 
    return self
 end
 
+function World:__dirtyEntity(e)
+   if not self.__dirty:has(e) then
+      self.__dirty:add(e)
+   end
+end
+
+
 -- @return self
-function World:flush()
+function World:__flush()
+   -- Switch buffers
+   self.__added,   self.__backAdded   = self.__backAdded,   self.__added
+   self.__removed, self.__backRemoved = self.__backRemoved, self.__removed
+   self.__dirty,   self.__backDirty   = self.__backDirty,   self.__dirty
+
    local e
-   for i = 1, self.entities.size do
-      e = self.entities:get(i)
 
-      if e.__wasAdded then
-         e.__wasAdded = false
-         e.__isDirty = false
+   -- Added
+   for i = 1, self.__backAdded.size do
+      e = self.__backAdded[i]
 
-         for j = 1, self.systems.size do
-            self.systems:get(j):__evaluate(e)
-         end
+      self.entities:add(e)
 
-         self:onEntityAdded(e)
+      for j = 1, self.systems.size do
+         self.systems[j]:__evaluate(e)
       end
 
-      if e.__isDirty then
-         for j = 1, self.systems.size do
-            self.systems:get(j):__evaluate(e)
-         end
+      self:onEntityAdded(e)
+   end
+   self.__backAdded:clear()
 
-         e.__isDirty = false
+   -- Removed
+   for i = 1, self.__backRemoved.size do
+      e = self.__backRemoved[i]
+
+      e.__world = nil
+      self.entities:remove(e)
+
+      for j = 1, self.systems.size do
+         self.systems[j]:__remove(e)
+      end
+
+      self:onEntityRemoved(e)
+   end
+   self.__backRemoved:clear()
+
+   -- Dirty
+   for i = 1, self.__backDirty.size do
+      e = self.__backDirty[i]
+
+      for j = 1, self.systems.size do
+         self.systems[j]:__evaluate(e)
       end
    end
-
-  for i = self.entities.size, 1, -1 do
-    e = self.entities:get(i)
-    if e.__wasRemoved then
-         e.world = nil
-         self.entities:remove(e)
-
-         for j = 1, self.systems.size do
-            self.systems:get(j):__remove(e)
-         end
-
-         e.__wasRemoved = false
-      end
-  end
+   self.__backDirty:clear()
 
    return self
 end
@@ -151,7 +157,7 @@ function World:addSystem(baseSystem, callbackName, callback, enabled)
 
    -- Retroactively evaluate all entities for this system
    for i = 1, self.entities.size do
-      system:__evaluate(self.entities:get(i))
+      system:__evaluate(self.entities[i])
    end
 
    if callbackName then
@@ -252,6 +258,8 @@ function World:emit(callbackName, ...)
          local listener = listeners[i]
 
          if listener.enabled then
+            self:__flush()
+
             listener.system[listener.callback](listener.system, ...)
          end
       end

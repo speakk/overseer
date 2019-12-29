@@ -7,7 +7,7 @@ local lume = require('libs.lume')
 local constructionTypes = require('data.constructionTypes')
 local settings = require('settings')
 
-local OverseerSystem = ECS.System("overseer")
+local OverseerSystem = ECS.System()
 
 
 local drag = {

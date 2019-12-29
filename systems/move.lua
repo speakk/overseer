@@ -1,5 +1,5 @@
 -- Create a System class as lovetoys.System subclass.
-local MoveSystem = ECS.System("move", {ECS.Components.position, ECS.Components.velocity})
+local MoveSystem = ECS.System({ECS.Components.position, ECS.Components.velocity})
 
 function MoveSystem:update(dt)
   for _, entity in ipairs(self.pool) do

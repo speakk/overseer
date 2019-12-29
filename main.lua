@@ -9,8 +9,12 @@ ECS.Systems = require("libs.concord").systems
 ECS.World = require("libs.concord").world
 ECS.Entity = require("libs.concord").entity
 
+
+
 require('components.common').initializeComponents()
 
+local Concord = require("libs.concord")
+Concord.loadSystems("systems")
 
 local world = ECS.World("wurld")
 local universe = require("models.universe")
@@ -23,21 +27,21 @@ love.window.setMode(windowWidth, windowHeight, { resizable=true })
 -- Add the Instance to concord to make it active
 --Concord.addWorld(world)
 
-require('systems.cameraSystem')
-require('systems.moveSystem')
-require('systems.dayCycleSystem')
-require('systems.spriteSystem')
-require('systems.lightSystem')
-require('systems.mapSystem')
-
-require('systems.itemSystem')
-require('systems.jobSystem')
-require('systems.bluePrintSystem')
-require('systems.overseerSystem')
-require('systems.guiSystem')
-require('systems.playerInputSystem')
-require('systems.settlerSystem')
-require('systems.drawSystem')
+-- require('systems.cameraSystem')
+-- require('systems.moveSystem')
+-- require('systems.dayCycleSystem')
+-- require('systems.spriteSystem')
+-- require('systems.lightSystem')
+-- require('systems.mapSystem')
+-- 
+-- require('systems.itemSystem')
+-- require('systems.jobSystem')
+-- require('systems.bluePrintSystem')
+-- require('systems.overseerSystem')
+-- require('systems.guiSystem')
+-- require('systems.playerInputSystem')
+-- require('systems.settlerSystem')
+-- require('systems.drawSystem')
 
 function love.load()
   love.graphics.setColor(255, 0, 0)
@@ -103,7 +107,6 @@ function love.load()
 end
 
 function love.update(dt)
-  world:flush()
   world:emit('update', dt)
 end
 

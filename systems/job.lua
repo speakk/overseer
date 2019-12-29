@@ -2,7 +2,7 @@ local inspect = require('libs.inspect') -- luacheck: ignore
 local lume = require('libs.lume')
 local utils = require('utils.utils')
 
-local JobSystem = ECS.System("job", {ECS.Components.job})
+local JobSystem = ECS.System({ECS.Components.job})
 
 function JobSystem:init()
   self.jobs = {}

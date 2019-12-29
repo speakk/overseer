@@ -9,7 +9,7 @@ local constructionTypes = require('data.constructionTypes')
 
 local ui
 
-local GUISystem = ECS.System("gui")
+local GUISystem = ECS.System()
 
 local function buildMenuHierarchy(self, items, key, path)
   if path and string.len(path) > 0 then path = path .. "." .. key else path = key end

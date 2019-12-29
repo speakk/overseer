@@ -2,7 +2,7 @@ local inspect = require('libs/inspect') --luacheck: ignore
 local Vector = require('libs.brinevector')
 
 local universe = require('models.universe')
-local BluePrintSystem = ECS.System("bluePrint", {ECS.Components.bluePrintJob, ECS.Components.job})
+local BluePrintSystem = ECS.System({ECS.Components.bluePrintJob, ECS.Components.job})
 
 local BluePrint = require('models.jobTypes.bluePrint')
 
