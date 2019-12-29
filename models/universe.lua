@@ -2,6 +2,7 @@ local Vector = require('libs.brinevector')
 local Pathfinder = require('libs.jumper.pathfinder')
 local Grid = require('libs.jumper.grid')
 local cpml = require('libs.cpml')
+local lume = require('libs.lume')
 local inspect = require('libs.inspect') --luacheck: ignore
 local utils = require('utils.utils')
 local world = nil
@@ -18,6 +19,7 @@ local walkable = 0
 
 
 local map = {}
+local entityMap = {}
 local mapColors = {}
 
 local _lastGridUpdateId = 0
@@ -71,12 +73,43 @@ function universe.onCollisionEntityAdded(pool, entity) --luacheck: ignore
   gridInvalidated = true
 end
 
-function universe.onCollisionEntityRemoved(entity)
+function universe.onCollisionEntityRemoved(pool, entity)
     local position = universe.pixelsToGridCoordinates(entity:get(ECS.Components.position).vector)
     map[position.y][position.x] = 0
     gridInvalidated = true
 end
 
+function universe.onOnMapEntityAdded(pool, entity)
+  local pixelPosition = entity:get(ECS.Components.position).vector
+  local position = universe.pixelsToGridCoordinates(pixelPosition)
+  local posString = position.x .. ":" .. position.y
+  if not entityMap[posString] then
+    entityMap[posString] = {}
+  end
+
+  table.insert(entityMap[posString], entity)
+end
+
+function universe.onOnMapEntityRemoved(pool, entity)
+  local position = universe.pixelsToGridCoordinates(entity:get(ECS.Components.position).vector)
+  local posString = position.x .. ":" .. position.y
+
+  if not entityMap[posString] then
+    error("Trying to remove nonExistent entity from pos: " .. posString)
+  end
+
+  lume.remove(entityMap[posString], entity)
+end
+
+function universe.getEntitiesInLocation(gridPosition)
+  local posString = gridPosition.x .. ":" .. gridPosition.y
+
+  if not entityMap[posString] then
+    return {}
+  end
+
+  return entityMap[posString]
+end
 
 function universe.update(dt) --luacheck: ignore
   if gridInvalidated then

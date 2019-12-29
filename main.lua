@@ -73,13 +73,16 @@ function love.load()
   world:addSystem(ECS.Systems.job, "jobAdded", "addJob")
   world:addSystem(ECS.Systems.job, "jobFinished", "finishJob")
   world:addSystem(ECS.Systems.job, "gridUpdated", "clearInaccessibleFlag")
+  world:addSystem(ECS.Systems.job, "cancelConstruction")
+  world:addSystem(ECS.Systems.settler, "cancelConstruction")
+  world:addSystem(ECS.Systems.map, "cancelConstruction")
   world:addSystem(ECS.Systems.move, "update")
   world:addSystem(ECS.Systems.sprite)
   world:addSystem(ECS.Systems.gui, "draw")
 
   world:getSystem(ECS.Systems.settler):initializeTestSettlers()
   world:getSystem(ECS.Systems.item):initializeTestItems(universe:getSize())
-  world:getSystem(ECS.Systems.light):initializeTestLights()
+  --world:getSystem(ECS.Systems.light):initializeTestLights()
 
   world:emit("registerSpriteBatchGenerator", world:getSystem(ECS.Systems.map),
     world:getSystem(ECS.Systems.map).generateSpriteBatch)

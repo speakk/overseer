@@ -2,6 +2,7 @@ local universe = require('models.universe')
 local camera = require('models.camera')
 
 local Vector = require('libs.brinevector')
+local lume = require('libs.lume')
 
 local constructionTypes = require('data.constructionTypes')
 local settings = require('settings')
@@ -40,7 +41,11 @@ function OverseerSystem:generateGUIDraw() --luacheck: ignore
     local startPoint = universe.snapPixelToGrid(Vector(left, top), "left_top", 0)
     local endPoint = universe.snapPixelToGrid(Vector(right, bottom), "right_bottom", 0)
     camera:draw(function(l,t,w,h) --luacheck: ignore
-      love.graphics.setColor(1, 1, 1, 1)
+      if (drag.type == "construct") then
+        love.graphics.setColor(1, 1, 1, 1)
+      else
+        love.graphics.setColor(1, 0.2, 0.2, 1)
+      end
       love.graphics.rectangle("line",
         startPoint.x,
         startPoint.y,
@@ -71,36 +76,43 @@ end
 function OverseerSystem:update(dt) --luacheck: ignore
 end
 
-function OverseerSystem:enactConstructionDrag(dragEvent)
+function OverseerSystem:enactDrag(dragEvent)
   local gridCoordsStart = universe.pixelsToGridCoordinates(dragEvent.startPoint)
   local gridCoordsEnd = universe.pixelsToGridCoordinates(dragEvent.endPoint)
-  local nodes = universe.iter(
-  math.min(gridCoordsStart.x, gridCoordsEnd.x),
-  math.min(gridCoordsStart.y, gridCoordsEnd.y),
-  math.max(gridCoordsStart.x, gridCoordsEnd.x),
-  math.max(gridCoordsStart.y, gridCoordsEnd.y))
+  
+    local nodes = universe.iter(
+    math.min(gridCoordsStart.x, gridCoordsEnd.x),
+    math.min(gridCoordsStart.y, gridCoordsEnd.y),
+    math.max(gridCoordsStart.x, gridCoordsEnd.x),
+    math.max(gridCoordsStart.y, gridCoordsEnd.y))
 
-  self:build(nodes)
+  if dragEvent.type == 'construct' then
+    self:build(nodes)
+  elseif dragEvent.type == 'destruct' then
+    self:destruct(nodes)
+  end
 end
 
-function OverseerSystem:startConstructionDrag(mouseCoordinates) --luacheck: ignore
+function OverseerSystem:startDrag(mouseCoordinates, type) --luacheck: ignore
+  drag.type = type
   drag.active = true
   drag.startPoint = mouseCoordinates
 end
 
-function OverseerSystem:endConstructionDrag(mouseCoordinates)
+function OverseerSystem:endDrag(mouseCoordinates)
   drag.active = false
   drag.endPoint = mouseCoordinates
-  self:enactConstructionDrag(drag)
+  self:enactDrag(drag)
 end
 
-function OverseerSystem:enactClick(mouseCoordinates)
+function OverseerSystem:enactClick(mouseCoordinates, button)
+  local type = button == 1 and "construct" or "destruct"
   if self.selectedAction == "build" then
     if settings.mouse_toggle_construct then
       if drag.active then
-        self:endConstructionDrag(mouseCoordinates)
+        self:endDrag(mouseCoordinates)
       else
-        self:startConstructionDrag(mouseCoordinates)
+        self:startDrag(mouseCoordinates, type)
       end
     else
       -- TODO: Also make actual drag & drop, for now the one below
@@ -110,12 +122,21 @@ function OverseerSystem:enactClick(mouseCoordinates)
       end
     end
   end
-
 end
 
 function OverseerSystem:build(nodes)
   local data = constructionTypes.getBySelector(self.dataSelector)
   self:getWorld():emit("bluePrintsPlaced", nodes, data, self.dataSelector)
+end
+
+function OverseerSystem:destruct(nodes)
+  local allEntities = {}
+  for node, _ in nodes do
+    local gridPosition = universe.clampToWorldBounds(Vector(node:getX(), node:getY()))
+    local entities = universe.getEntitiesInLocation(gridPosition)
+    allEntities = lume.concat(allEntities, entities)
+  end
+  self:getWorld():emit("cancelConstruction", allEntities)
 end
 
 return OverseerSystem

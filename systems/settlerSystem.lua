@@ -180,4 +180,18 @@ function SettlerSystem:assignJobsForSettlers(jobQueue)
   end
 end
 
+function SettlerSystem:cancelConstruction(entities)
+  for _, job in ipairs(entities) do
+    for _, settler in ipairs(self.pool) do
+      if settler:has(ECS.Components.work) then
+        local settlerJob = settler:get(ECS.Components.work).job
+        if job == settlerJob then
+          settler:remove(ECS.Components.work)
+          break
+        end
+      end
+    end
+  end
+end
+
 return SettlerSystem

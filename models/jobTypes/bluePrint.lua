@@ -23,7 +23,7 @@ local function handle(self, job, settler, dt, finishCallback)
   if universe.isInPosition(settlerGridPosition, bluePrintGridPosition, true) then
     if isBluePrintReadyToBuild(job) then
       local constructionSkill = settler:get(ECS.Components.settler).skills.construction
-      bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + constructionSkill * dt
+      bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + (constructionSkill * bluePrintComponent.constructionSpeed) * dt
       if bluePrintComponent.buildProgress >= 100 then
         --finishWork(self, settler, job)
         job:get(ECS.Components.job).finishedCallBack()
@@ -64,9 +64,20 @@ local function generate(gridPosition, itemData, bluePrintItemSelector)
   job:give(ECS.Components.job, "bluePrint", function()
     job:give(ECS.Components.collision)
     job:remove(ECS.Components.transparent)
+
+    if itemData.components then
+      for _, component in ipairs(itemData.components) do
+        job:give(ECS.Components[component.name], unpack(component.properties))
+      end
+    end
+
+    job:give(ECS.Components.removeCallBack, function()
+      print("Here you generate removeJob!")
+    end)
   end)
   job:give(ECS.Components.name, "BluePrintJob")
-  job:give(ECS.Components.bluePrintJob)
+  job:give(ECS.Components.onMap)
+  job:give(ECS.Components.bluePrintJob, itemData.constructionSpeed or 1)
   job:give(ECS.Components.sprite, itemData.sprite)
   job:give(ECS.Components.item, itemData, bluePrintItemSelector)
   job:give(ECS.Components.position, universe.gridPositionToPixels(gridPosition))

@@ -86,7 +86,18 @@ function World:flush()
          self:onEntityAdded(e)
       end
 
-      if e.__wasRemoved then
+      if e.__isDirty then
+         for j = 1, self.systems.size do
+            self.systems:get(j):__evaluate(e)
+         end
+
+         e.__isDirty = false
+      end
+   end
+
+  for i = self.entities.size, 1, -1 do
+    e = self.entities:get(i)
+    if e.__wasRemoved then
          e.world = nil
          self.entities:remove(e)
 
@@ -96,15 +107,7 @@ function World:flush()
 
          e.__wasRemoved = false
       end
-
-      if e.__isDirty then
-         for j = 1, self.systems.size do
-            self.systems:get(j):__evaluate(e)
-         end
-
-         e.__isDirty = false
-      end
-   end
+  end
 
    return self
 end

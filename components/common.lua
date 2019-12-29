@@ -25,6 +25,10 @@ local function initializeComponents()
       construction = 15
     }
   end)
+  ECS.Component("removeCallBack", function(e, callBack)
+    e.callBack = callBack or error "removeCallBack needs callBack"
+  end)
+  ECS.Component("onMap")
   ECS.Component("work", function(e, job) e.job = job or nil end) -- Settler work
   ECS.Component("path", function(e, path, currentIndex)
     e.path = path or error("No path for Path component!")
@@ -47,7 +51,8 @@ local function initializeComponents()
     e.isInaccessible = false
   end)
   ECS.Component("worker", function(e, available) e.available = available or true end)
-  ECS.Component("bluePrintJob", function(e)
+  ECS.Component("bluePrintJob", function(e, constructionSpeed)
+    e.constructionSpeed = constructionSpeed or 1
     e.materialsConsumed = {}
     e.buildProgress = 0 -- 0/100
   end)

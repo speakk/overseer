@@ -31,7 +31,7 @@ function LightSystem:initializeTestLights()
     local light = ECS.Entity()
     light:give(ECS.Components.position,
       universe.snapPixelToGrid(
-        Vector(love.math.random(universeSize.x*cellSize), love.math.random(universeSize.y*cellSize))))
+        Vector(love.math.random(universeSize.x*cellSize)+32, love.math.random(universeSize.y*cellSize)+32)))
     light:give(ECS.Components.sprite, "items.torch01")
     --light:give(ECS.Components.light,
     --{ love.math.random(), love.math.random(), love.math.random() }, love.math.random(200))

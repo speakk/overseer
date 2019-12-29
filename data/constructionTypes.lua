@@ -48,6 +48,25 @@ local data = {
       }
     }
   },
+  lights = {
+    name  = "Lights",
+    subItems = {
+      torch = {
+        name = "Torch",
+        sprite = "items.torch01",
+        constructionSpeed = 5,
+        requirements = {
+          ["raw_materials.wood"] = 1
+        },
+        components = {
+          {
+            name = "light",
+            properties = { { 1.0, 1.0, 0.5 } }
+          }
+        }
+      }
+    }
+  },
   defence = {
     name = "Defence",
     subItems = {

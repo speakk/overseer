@@ -1,5 +1,6 @@
-local inspect = require('libs/inspect') -- luacheck: ignore
-local utils = require('utils/utils')
+local inspect = require('libs.inspect') -- luacheck: ignore
+local lume = require('libs.lume')
+local utils = require('utils.utils')
 
 local JobSystem = ECS.System("job", {ECS.Components.job})
 
@@ -54,6 +55,12 @@ function JobSystem:draw()
     for i, job in ipairs(self.jobs) do
       printJob(job, 0, i*3)
     end
+  end
+end
+
+function JobSystem:cancelConstruction(entities)
+  for _, entity in ipairs(entities) do
+    lume.remove(self.jobs, entity)
   end
 end
 
