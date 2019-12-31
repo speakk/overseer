@@ -40,19 +40,21 @@ function OverseerSystem:generateGUIDraw() --luacheck: ignore
     local bottom = math.max(startPixels.y, globalY)
     local startPoint = universe.snapPixelToGrid(Vector(left, top), "left_top", 0)
     local endPoint = universe.snapPixelToGrid(Vector(right, bottom), "right_bottom", 0)
-    camera:draw(function(l,t,w,h) --luacheck: ignore
+    local camStart = Vector(camera:toScreen(startPoint.x, startPoint.y))
+    local camEnd = Vector(camera:toScreen(endPoint.x, endPoint.y))
+    --camera:draw(function(l,t,w,h) --luacheck: ignore
       if (drag.type == "construct") then
         love.graphics.setColor(1, 1, 1, 1)
       else
         love.graphics.setColor(1, 0.2, 0.2, 1)
       end
       love.graphics.rectangle("line",
-        startPoint.x,
-        startPoint.y,
-        endPoint.x - startPoint.x,
-        endPoint.y - startPoint.y
+        camStart.x,
+        camStart.y,
+        camEnd.x - camStart.x,
+        camEnd.y - camStart.y
         )
-    end)
+    --end)
   end
 end
 
@@ -115,12 +117,19 @@ function OverseerSystem:enactClick(mouseCoordinates, button)
         self:startDrag(mouseCoordinates, type)
       end
     else
-      -- TODO: Also make actual drag & drop, for now the one below
-      -- is just a placeholder (individual clicks
-      if self.selectedAction and self.actionCallbacks[self.selectedAction] then
-        self.actionCallbacks[self.selectedAction](mouseCoordinates)
-      end
+      self:startDrag(mouseCoordinates, type)
+    --   -- TODO: Also make actual drag & drop, for now the one below
+    --   -- is just a placeholder (individual clicks
+    --   if self.selectedAction and self.actionCallbacks[self.selectedAction] then
+    --     self.actionCallbacks[self.selectedAction](mouseCoordinates)
+    --   end
     end
+  end
+end
+
+function OverseerSystem:mouseReleased(mouseCoordinates, button)
+  if not settings.mouse_toggle_construct then
+    self:endDrag(mouseCoordinates)
   end
 end
 

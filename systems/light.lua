@@ -74,7 +74,7 @@ end
 function LightSystem:timeOfDayChanged(timeOfDay)
   if self.useShader then
     --self.shader:send("dayTime", timeOfDay)
-    ambientColor = { 0.4+timeOfDay*0.6, 0.4+timeOfDay*0.6, 0.6+timeOfDay*0.4, 1.0 }
+    ambientColor = { 0.6+timeOfDay*0.4, 0.6+timeOfDay*0.4, 1.0, 1.0 }
     if blendShader:hasUniform("ambientColor") then blendShader:send("ambientColor", ambientColor) end
     self:lightsOrMapChanged()
   end

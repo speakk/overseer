@@ -113,6 +113,15 @@ function GUISystem:mousepressed(x, y, button, istouch, presses)
   self:getWorld():emit("mapClicked", Vector(globalX, globalY), button)
 end
 
+function GUISystem:mousereleased(x, y, button, istouch, presses) --luacheck: ignore
+  if ui:mousereleased(x, y, button, istouch, presses) then
+    return
+  end
+  local globalX, globalY = camera:toWorld(x, y)
+  self:getWorld():emit("mouseReleased", Vector(globalX, globalY), button)
+end
+
+
 function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
   if pressedKey == 'z' then
     DEBUG = not DEBUG
@@ -143,10 +152,6 @@ end
 
 function GUISystem:setDataSelector(selector)
   self.dataSelector = selector
-end
-
-function GUISystem:mousereleased(x, y, button, istouch, presses) --luacheck: ignore
-  ui:mousereleased(x, y, button, istouch, presses)
 end
 
 function GUISystem:mousemoved(x, y, dx, dy, istouch) --luacheck: ignore
