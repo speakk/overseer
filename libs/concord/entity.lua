@@ -50,6 +50,14 @@ function Entity:give(baseComponent, ...)
    return self
 end
 
+function Entity:givePopulated(component)
+  print("givePopulated", component, component.__baseComponent, component.__component_name)
+  self[component.__baseComponent] = component
+  self.__components[component.__baseComponent] = component
+
+  self:__dirty()
+end
+
 function Entity:ensure(baseComponent, ...)
    if not Type.isBaseComponent(baseComponent) then
       error("bad argument #1 to 'Entity:ensure' (BaseComponent expected, got "..type(baseComponent)..")", 2)

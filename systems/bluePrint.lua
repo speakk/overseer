@@ -18,7 +18,7 @@ function BluePrintSystem:placeBluePrints(nodes, constructionType, selector)
           end
         end
         self:getWorld():addEntity(job)
-        self:getWorld():emit("jobAdded", job)
+        --self:getWorld():emit("jobAdded", job)
       end
     end
 end

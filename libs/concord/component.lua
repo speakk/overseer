@@ -36,9 +36,15 @@ function Component:__initialize(...)
       __isBaseComponent = false,
    }, self)
 
+
    self.__populate(component, ...)
+   print("Initializing", component.__baseComponent, component.__baseComponent.__component_name)
 
    return component
+end
+
+function Component:initialize(...)
+  return self:__initialize(...)
 end
 
 return setmetatable(Component, {

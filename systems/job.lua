@@ -4,8 +4,19 @@ local utils = require('utils.utils')
 
 local JobSystem = ECS.System({ECS.Components.job})
 
+local function onJobAdded(self, pool, job)
+  if not job:has(ECS.Components.parent) then
+    table.insert(self.jobs, job)
+    job:getWorld():emit("jobQueueUpdated", self:getUnreservedJobs())
+  end
+end
+
 function JobSystem:init()
   self.jobs = {}
+  self.pool.onEntityAdded = function(pool, job)
+    onJobAdded(self, pool, job)
+  end
+  --TODO: onEntityRemoved
 end
 
 local function printJob(job, level, y)
@@ -163,9 +174,9 @@ function JobSystem:finishJob(job) --luacheck: ignore
   self:getWorld():emit("jobQueueUpdated", self:getUnreservedJobs())
 end
 
-function JobSystem:addJob(job)
-  table.insert(self.jobs, job)
-  self:getWorld():emit("jobQueueUpdated", self:getUnreservedJobs())
-end
+--function JobSystem:addJob(job)
+--  table.insert(self.jobs, job)
+--  self:getWorld():emit("jobQueueUpdated", self:getUnreservedJobs())
+--end
 
 return JobSystem

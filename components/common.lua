@@ -7,28 +7,36 @@ local function initializeComponents(entityReferenceManager)
     e.vector = vector or Vector(0, 0)
     e.serialize = function() return { x = e.vector.x, y = e.vector.y } end
   end)
-  position.deserialize = function(data) return Vector(data.x, data.y) end
+  position.deserialize = function(data)
+    return position:initialize(Vector(data.x, data.y))
+  end
   ECS.Components.register("position", position)
 
   local velocity = ECS.Component(function(e, vector)
     e.vector = vector or Vector(0, 0)
     e.serialize = function() return { x = e.vector.x, y = e.vector.y } end
   end)
-  velocity.deserialize = function(data) return Vector(data.x, data.y) end
+  velocity.deserialize = function(data)
+    return velocity:initialize(Vector(data.x, data.y))
+  end
   ECS.Components.register("velocity", velocity)
 
   local name = ECS.Component(function(e, name)
     e.name = name or "-"
     e.serialize = function() return { name = e.name } end
   end)
-  name.deserialize = function(data) return data.name end
+  name.deserialize = function(data)
+    return name:initialize(data.name)
+  end
   ECS.Components.register("name", name)
 
   local id = ECS.Component(function(e, id)
     e.id = id or error("Id needs id")
     e.serialize = function() return { id = e.id } end
   end)
-  id.deserialize = function(data) return data.id end
+  id.deserialize = function(data)
+    return id:initialize(data.id)
+  end
   ECS.Components.register("id", id)
 
   local playerInput = ECS.Component()
@@ -42,7 +50,9 @@ local function initializeComponents(entityReferenceManager)
     e.size = size or Vector(32, 32)
     e.serialize = function() return { color = e.color, size = { x = size.x, y = size.y } } end
   end)
-  draw.deserialize = function(data) return data.color, Vector(data.size.x, data.size.y) end
+  draw.deserialize = function(data)
+    return draw:initialize(data.color, Vector(data.size.x, data.size.y))
+  end
   ECS.Components.register("draw", draw)
 
   local sprite = ECS.Component(function(e, selector)
@@ -52,14 +62,18 @@ local function initializeComponents(entityReferenceManager)
     -- e.y = y or error("Sprite needs y image coordinate")
     e.serialize = function() return { selector = e.selector } end
   end)
-  sprite.deserialize = function(data) return data.selector end
+  sprite.deserialize = function(data)
+    return sprite:initialize(data.selector)
+  end
   ECS.Components.register("sprite", sprite)
 
   local transparent = ECS.Component(function(e, amount)
     e.amount = amount or 0.5
     e.serialize = function() return { amount = e.amount } end
   end)
-  transparent.deserialize = function(data) return data.amount end
+  transparent.deserialize = function(data)
+    return transparent:initialize(data.amount)
+  end
   ECS.Components.register("transparent", transparent)
 
   local settler = ECS.Component(function(e, name, skills)
@@ -69,7 +83,9 @@ local function initializeComponents(entityReferenceManager)
     }
     e.serialize = function() return { name = e.name, skills = e.skills } end
   end)
-  settler.deserialize = function(data) return data.name, data.skills end
+  settler.deserialize = function(data)
+    return settler:initialize(data.name, data.skills)
+  end
   ECS.Components.register("settler", settler)
 
   local work = ECS.Component(function(e, job)
@@ -82,12 +98,12 @@ local function initializeComponents(entityReferenceManager)
   end) -- Settler work
 
   work.deserialize = function(data)
-    local job
+    local workC = work:initialize()
     entityReferenceManager.registerReference(function(references) 
-      job = references[data.jobId]
+      workC.job = references[data.jobId]
     end)
 
-    return job
+    return workC
   end
 
   ECS.Components.register("work", work)
@@ -101,7 +117,7 @@ local function initializeComponents(entityReferenceManager)
     local path = Path()
     path._nodex = data.pathNodes
 
-    return path, data.currentIndex
+    return path:initialize(path, data.currentIndex)
   end
   ECS.Components.register("path", path)
 
@@ -115,7 +131,7 @@ local function initializeComponents(entityReferenceManager)
   ECS.Components.register("onMap", onMap)
 
   local fetchJob = ECS.Component(function(e, target, selector, amount)
-    e.target = target or error("Fetch has no target!")
+    e.target = target
     e.selector = selector or error("Fetch has no selector!")
     e.amount = amount
 
@@ -128,12 +144,11 @@ local function initializeComponents(entityReferenceManager)
     end
   end)
   fetchJob.deserialize = function(data)
-    local target
+    local newFetch = fetchJob:__initialize(nil, data.selector, data.amount)
     entityReferenceManager.registerReference(function(references) 
-      target = references[data.targetId]
+      newFetch.target = references[data.targetId]
     end)
-
-    return target, selector, amount
+    return newFetch
   end
   ECS.Components.register("fetchJob", fetchJob)
 
@@ -155,7 +170,7 @@ local function initializeComponents(entityReferenceManager)
     e.serialize = function() return { jobType = e.jobType } end
   end)
   job.deserialize = function(data)
-    return data.jobType
+    return job:initialize(data.jobType)
   end
   ECS.Components.register("job", job)
 
@@ -164,7 +179,7 @@ local function initializeComponents(entityReferenceManager)
     e.serialize = function() return { available = e.available } end
   end)
   worker.deserialize = function(data)
-    return data.available
+    return worker:initialize(data.available)
   end
   ECS.Components.register("worker", worker)
 
@@ -181,7 +196,7 @@ local function initializeComponents(entityReferenceManager)
     end
   end)
   bluePrintJob.deserialize = function(data)
-    return data.constructionSpeed, data.materialsConsumed, data.buildProgress
+    return bluePrintJob:initialize(data.constructionSpeed, data.materialsConsumed, data.buildProgress)
   end
   ECS.Components.register("bluePrintJob", bluePrintJob)
 
@@ -202,15 +217,16 @@ local function initializeComponents(entityReferenceManager)
     end
   end)
   inventory.deserialize = function(data)
-    local inv = {}
+    local invC = inventory:initialize()
     for _, entityId in ipairs(data.inventoryIds) do
       entityReferenceManager.registerReference(function(references) 
+        local inv = invC.inventory
         local entity = references[entityId]
-        table.insert(inv, entity) -- Probably not gonna work
+        table.insert(inv, entity)
       end)
     end
 
-    return inv
+    return invC
   end
   ECS.Components.register("inventory", inventory)
 
@@ -222,12 +238,12 @@ local function initializeComponents(entityReferenceManager)
     end
   end)
   item.deserialize = function(data)
-    return data.itemData, data.selector
+    return item:initialize(data.itemData, data.selector)
   end
   ECS.Components.register("item", item)
 
   local parent = ECS.Component(function(e, parent)
-    e.parent = parent or error("Parent component needs parent entity")
+    e.parent = parent
     e.serialize = function()
       return {
         parentId = e.parent:get(ECS.Components.id).id,
@@ -235,17 +251,17 @@ local function initializeComponents(entityReferenceManager)
     end
   end)
   parent.deserialize = function(data)
-    local parent
+    local parentC = parent:initialize()
     entityReferenceManager.registerReference(function(references) 
-      parent = references[entityId]
+      parentC.parent = references[entityId]
     end)
 
-    return parent
+    return parentC
   end
   ECS.Components.register("parent", parent)
 
   local children = ECS.Component(function(e, children)
-    e.children = children or error("Children component needs children(list of entities)")
+    e.children = children or {}
     e.serialize = function()
       local childIds = {}
       for _, entity in ipairs(e.children) do
@@ -255,15 +271,15 @@ local function initializeComponents(entityReferenceManager)
     end
   end)
   children.deserialize = function(data)
-    local children = {}
+    local childrenC = children:initialize()
     for _, entityId in ipairs(data.childIds) do
       entityReferenceManager.registerReference(function(references) 
         local entity = references[entityId]
-        table.insert(children, entity) -- Probably not gonna work
+        table.insert(childrenC.children, entity)
       end)
     end
 
-    return children
+    return childrenC
   end
   ECS.Components.register("children", children)
 
@@ -273,7 +289,9 @@ local function initializeComponents(entityReferenceManager)
       return { amount = e.amount }
     end
   end)
-  amount.deserialize = function(data) return data.amount end
+  amount.deserialize = function(data)
+    return amount:initialize(data.amount)
+  end
   ECS.Components.register("amount", amount)
 
   local light = ECS.Component(function(e, color, power)
@@ -284,7 +302,7 @@ local function initializeComponents(entityReferenceManager)
     end
   end)
   light.deserialize = function(data)
-    return data.color, data.power
+    return light:initialize(data.color, data.power)
   end
   ECS.Components.register("light", light)
 
