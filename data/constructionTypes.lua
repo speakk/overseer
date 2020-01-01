@@ -1,4 +1,4 @@
-local lume = require('libs/lume')
+local lume = require('libs.lume')
 
 local data = {
   walls = {

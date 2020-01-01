@@ -1,6 +1,7 @@
 local lume = require('libs.lume')
-local inspect = require('libs.inspect')
+local inspect = require('libs.inspect') -- luacheck: ignore
 local universe = require('models.universe')
+local entityReferenceManager = require('models.entityReferenceManager')
 local constructionTypes = require('data.constructionTypes')
 
 local ItemUtils = {}
@@ -44,6 +45,8 @@ function ItemUtils.createItem(selector, amount)
   item:give(ECS.Components.item, itemData, selector)
   :give(ECS.Components.sprite, itemData.sprite)
   :give(ECS.Components.amount, amount)
+  :give(ECS.Components.serialize)
+  :give(ECS.Components.id, entityReferenceManager.generateId())
 
   --world:addEntity(item)
 
@@ -57,7 +60,6 @@ function ItemUtils.placeItemOnGround(item, gridPosition) --luacheck: ignore
   end
 
   item:give(ECS.Components.position, universe.gridPositionToPixels(gridPosition))
-  local posComponent = item:get(ECS.Components.position)
   table.insert(itemsOnGround[selector], item)
 end
 

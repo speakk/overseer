@@ -4,6 +4,7 @@ local lume = require('libs.lume')
 local media = require('utils.media')
 local universe = require('models.universe')
 local jobHandlers = require('models.jobTypes.jobTypes')
+local entityReferenceManager = require('models.entityReferenceManager')
 
 local settlerSpeed = 200
 
@@ -139,7 +140,9 @@ function SettlerSystem:initializeTestSettlers()
     settler:give(ECS.Components.position, universe.gridPositionToPixels(position))
     --:give(ECS.Components.draw, {1,1,0})
     :give(ECS.Components.sprite, 'characters.settler')
+    :give(ECS.Components.id, entityReferenceManager.generateId())
     :give(ECS.Components.settler)
+    :give(ECS.Components.serialize)
     :give(ECS.Components.inventory)
     :give(ECS.Components.worker)
     :give(ECS.Components.velocity)

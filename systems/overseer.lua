@@ -81,12 +81,12 @@ end
 function OverseerSystem:enactDrag(dragEvent)
   local gridCoordsStart = universe.pixelsToGridCoordinates(dragEvent.startPoint)
   local gridCoordsEnd = universe.pixelsToGridCoordinates(dragEvent.endPoint)
-  
-    local nodes = universe.iter(
-    math.min(gridCoordsStart.x, gridCoordsEnd.x),
-    math.min(gridCoordsStart.y, gridCoordsEnd.y),
-    math.max(gridCoordsStart.x, gridCoordsEnd.x),
-    math.max(gridCoordsStart.y, gridCoordsEnd.y))
+
+  local nodes = universe.iter(
+  math.min(gridCoordsStart.x, gridCoordsEnd.x),
+  math.min(gridCoordsStart.y, gridCoordsEnd.y),
+  math.max(gridCoordsStart.x, gridCoordsEnd.x),
+  math.max(gridCoordsStart.y, gridCoordsEnd.y))
 
   if dragEvent.type == 'construct' then
     self:build(nodes)
@@ -127,7 +127,7 @@ function OverseerSystem:enactClick(mouseCoordinates, button)
   end
 end
 
-function OverseerSystem:mouseReleased(mouseCoordinates, button)
+function OverseerSystem:mouseReleased(mouseCoordinates, button) --luacheck: ignore
   if not settings.mouse_toggle_construct then
     self:endDrag(mouseCoordinates)
   end

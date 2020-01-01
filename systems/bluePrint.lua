@@ -1,4 +1,4 @@
-local inspect = require('libs/inspect') --luacheck: ignore
+local inspect = require('libs.inspect') --luacheck: ignore
 local Vector = require('libs.brinevector')
 
 local universe = require('models.universe')

@@ -1,4 +1,5 @@
 local inspect = require('libs.inspect')
+local Gamestate = require("libs.hump.gamestate")
 
 local inGame = {}
 
@@ -47,8 +48,8 @@ function inGame:init()
   self.world:addSystem(ECS.Systems.sprite)
   self.world:addSystem(ECS.Systems.gui, "draw")
 
-  self.world:getSystem(ECS.Systems.settler):initializeTestSettlers()
-  self.world:getSystem(ECS.Systems.item):initializeTestItems(self.universe:getSize())
+  --self.world:getSystem(ECS.Systems.settler):initializeTestSettlers()
+  --self.world:getSystem(ECS.Systems.item):initializeTestItems(self.universe:getSize())
   --self.world:getSystem(ECS.Systems.light):initializeTestLights()
 
   self.world:emit("registerSpriteBatchGenerator", self.world:getSystem(ECS.Systems.map),
@@ -63,16 +64,28 @@ function inGame:init()
     self.world:getSystem(ECS.Systems.bluePrint).generateGUIDraw, true)
 
   if PROFILER then
-    require('systems/profilerSystem')
+    require('systems.profiler')
     self.world:addSystem(ECS.Systems.profiler, "update")
     self.world:addSystem(ECS.Systems.profiler, "draw")
   end
 
-  print(inspect(self.world:getSystem(ECS.Systems.serialization):serialize()))
 end
+
+local asd = true
+local nasd = true
 
 function inGame:update(dt)
   self.world:emit('update', dt)
+  if love.keyboard.isDown('f5') and asd then
+    love.filesystem.write('savetest', self.world:getSystem(ECS.Systems.serialization):serializeState())
+    asd = false
+  end
+
+  if love.keyboard.isDown('f9') and nasd then
+    local file = love.filesystem.read('savetest')
+    print(inspect(self.world:getSystem(ECS.Systems.serialization):deserialize(file)))
+    nasd = false
+  end
 end
 
 function inGame:draw()

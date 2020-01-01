@@ -19,6 +19,7 @@ function Components.register(name, baseComponent)
         error("bad argument #2 to 'Components.register' (BaseComponent with name '"..name.."' is already registerd)", 3)
     end
 
+    baseComponent.__component_name = name
     Components[name] = baseComponent
 end
 

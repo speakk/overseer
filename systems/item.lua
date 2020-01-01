@@ -1,5 +1,5 @@
 local Vector = require('libs.brinevector')
-local inspect = require('libs.inspect')
+local inspect = require('libs.inspect') --luacheck: ignore
 local lume = require('libs.lume')
 
 local itemUtils = require('utils.itemUtils')

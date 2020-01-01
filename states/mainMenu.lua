@@ -1,4 +1,5 @@
 local nuklear = require("nuklear")
+local Gamestate = require("libs.hump.gamestate")
 
 local headerFont = love.graphics.newFont("fonts/MavenPro-Medium.ttf", 32)
 
@@ -15,7 +16,7 @@ function mainMenu:init()
   self.ui = nuklear.newUI()
 end
 
-function mainMenu:update(dt)
+function mainMenu:update(dt) --luacheck: ignore
   local windowWidth = love.graphics.getWidth()
   local windowHeight = love.graphics.getHeight()
 
@@ -42,7 +43,7 @@ function mainMenu:update(dt)
     end
     self.ui:windowEnd()
   end
-  
+
   self.ui:frameEnd()
 end
 

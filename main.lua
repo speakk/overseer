@@ -1,12 +1,13 @@
 DEBUG = false
 local PROFILER = false
 
+local Gamestate = require("libs.hump.gamestate")
+
 local gameStates = {
   inGame = require("states.inGame"),
   mainMenu = require("states.mainMenu")
 }
 
-Gamestate = require("libs.hump.gamestate")
 
 ECS = {}
 ECS.Component = require("libs.concord").component

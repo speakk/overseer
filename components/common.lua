@@ -24,6 +24,13 @@ local function initializeComponents(entityReferenceManager)
   name.deserialize = function(data) return data.name end
   ECS.Components.register("name", name)
 
+  local id = ECS.Component(function(e, id)
+    e.id = id or error("Id needs id")
+    e.serialize = function() return { id = e.id } end
+  end)
+  id.deserialize = function(data) return data.id end
+  ECS.Components.register("id", id)
+
   local playerInput = ECS.Component()
   ECS.Components.register("playerInput", playerInput)
 
@@ -115,7 +122,7 @@ local function initializeComponents(entityReferenceManager)
     e.serialize = function()
       return {
         targetId = e.target:get(ECS.Components.id).id,
-        selector = e.selector
+        selector = e.selector,
         amount = e.amount
       }
     end
@@ -145,7 +152,7 @@ local function initializeComponents(entityReferenceManager)
     e.finishedCallBack = finishedCallBack or nil
     e.isInaccessible = false
 
-    e.serialize = function() return jobType = e.jobType end
+    e.serialize = function() return { jobType = e.jobType } end
   end)
   job.deserialize = function(data)
     return data.jobType
@@ -280,6 +287,9 @@ local function initializeComponents(entityReferenceManager)
     return data.color, data.power
   end
   ECS.Components.register("light", light)
+
+  local serialize = ECS.Component()
+  ECS.Components.register("serialize", serialize)
 end
 
 return {

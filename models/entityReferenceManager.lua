@@ -1,5 +1,7 @@
 local lume = require('libs.lume')
 
+local currentId = 0
+
 local entities = {}
 
 local function registerReference(callBack)
@@ -14,9 +16,15 @@ local function remove(id)
   table.remove(entities, id)
 end
 
+local function generateId()
+  currentId = currentId + 1
+  return currentId
+end
+
 return {
   registerReference = registerReference,
   getEntities = function() return entities end,
   set = set,
+  generateId = generateId,
   remove = remove
 }
