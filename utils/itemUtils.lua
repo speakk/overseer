@@ -1,4 +1,5 @@
 local lume = require('libs.lume')
+local inspect = require('libs.inspect')
 local universe = require('models.universe')
 local constructionTypes = require('data.constructionTypes')
 
@@ -56,7 +57,7 @@ function ItemUtils.placeItemOnGround(item, gridPosition) --luacheck: ignore
   end
 
   item:give(ECS.Components.position, universe.gridPositionToPixels(gridPosition))
-
+  local posComponent = item:get(ECS.Components.position)
   table.insert(itemsOnGround[selector], item)
 end
 

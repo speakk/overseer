@@ -1,3 +1,5 @@
+local inspect = require('libs.inspect')
+
 local inGame = {}
 
 function inGame:init()
@@ -5,6 +7,7 @@ function inGame:init()
   self.universe = require("models.universe")
   self.universe:load(self.world)
 
+  self.world:addSystem(ECS.Systems.serialization)
   self.world:addSystem(ECS.Systems.dayCycle, "update")
   self.world:addSystem(ECS.Systems.light, "cameraScaleChanged")
   self.world:addSystem(ECS.Systems.light, "cameraPositionChanged")
@@ -64,6 +67,8 @@ function inGame:init()
     self.world:addSystem(ECS.Systems.profiler, "update")
     self.world:addSystem(ECS.Systems.profiler, "draw")
   end
+
+  print(inspect(self.world:getSystem(ECS.Systems.serialization):serialize()))
 end
 
 function inGame:update(dt)
