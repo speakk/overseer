@@ -68,7 +68,7 @@ local function deserializeEntities(entityShells)
       local baseComponent = ECS.Components[componentName]
       if baseComponent["deserialize"] then
         local params = { baseComponent.deserialize(componentData) }
-        print("PARAMS", componentName, componentData, inspect(params))
+        print("PARAMS", componentName, inspect(componentData), inspect(params))
         entity:give(baseComponent, unpack(params))
       else 
         entity:give(baseComponent)

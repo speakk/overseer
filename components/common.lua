@@ -83,7 +83,7 @@ local function initializeComponents(entityReferenceManager)
 
   work.deserialize = function(data)
     local job
-    entityReferenceManager:registerReference(function(references) 
+    entityReferenceManager.registerReference(function(references) 
       job = references[data.jobId]
     end)
 
@@ -129,7 +129,7 @@ local function initializeComponents(entityReferenceManager)
   end)
   fetchJob.deserialize = function(data)
     local target
-    entityReferenceManager:registerReference(function(references) 
+    entityReferenceManager.registerReference(function(references) 
       target = references[data.targetId]
     end)
 
@@ -204,7 +204,7 @@ local function initializeComponents(entityReferenceManager)
   inventory.deserialize = function(data)
     local inv = {}
     for _, entityId in ipairs(data.inventoryIds) do
-      entityReferenceManager:registerReference(function(references) 
+      entityReferenceManager.registerReference(function(references) 
         local entity = references[entityId]
         table.insert(inv, entity) -- Probably not gonna work
       end)
@@ -236,7 +236,7 @@ local function initializeComponents(entityReferenceManager)
   end)
   parent.deserialize = function(data)
     local parent
-    entityReferenceManager:registerReference(function(references) 
+    entityReferenceManager.registerReference(function(references) 
       parent = references[entityId]
     end)
 
@@ -249,7 +249,7 @@ local function initializeComponents(entityReferenceManager)
     e.serialize = function()
       local childIds = {}
       for _, entity in ipairs(e.children) do
-        table.insert(chil, entity:get(ECS.Components.id).id)
+        table.insert(childIds, entity:get(ECS.Components.id).id)
       end
       return { childIds = childIds }
     end
@@ -257,7 +257,7 @@ local function initializeComponents(entityReferenceManager)
   children.deserialize = function(data)
     local children = {}
     for _, entityId in ipairs(data.childIds) do
-      entityReferenceManager:registerReference(function(references) 
+      entityReferenceManager.registerReference(function(references) 
         local entity = references[entityId]
         table.insert(children, entity) -- Probably not gonna work
       end)

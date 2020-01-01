@@ -1,5 +1,6 @@
 local itemUtils = require('utils.itemUtils')
 local universe = require('models.universe')
+local entityReferenceManager = require('models.entityReferenceManager')
 
 local function handle(self, job, settler, dt, finishedCallBack) --luacheck: ignore
   local fetch = job:get(ECS.Components.fetchJob)

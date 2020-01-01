@@ -1,4 +1,5 @@
 local universe = require('models.universe')
+local entityReferenceManager = require('models.entityReferenceManager')
 
 local function isBluePrintReadyToBuild(bluePrint)
   if bluePrint:get(ECS.Components.job).finished then return false end
@@ -76,18 +77,22 @@ local function generate(gridPosition, itemData, bluePrintItemSelector)
     end)
   end)
   job:give(ECS.Components.name, "BluePrintJob")
-  job:give(ECS.Components.onMap)
-  job:give(ECS.Components.bluePrintJob, itemData.constructionSpeed or 1)
-  job:give(ECS.Components.sprite, itemData.sprite)
-  job:give(ECS.Components.item, itemData, bluePrintItemSelector)
-  job:give(ECS.Components.position, universe.gridPositionToPixels(gridPosition))
-  job:give(ECS.Components.transparent)
+  :give(ECS.Components.id, entityReferenceManager.generateId())
+  :give(ECS.Components.serialize)
+  :give(ECS.Components.onMap)
+  :give(ECS.Components.bluePrintJob, itemData.constructionSpeed or 1)
+  :give(ECS.Components.sprite, itemData.sprite)
+  :give(ECS.Components.item, itemData, bluePrintItemSelector)
+  :give(ECS.Components.position, universe.gridPositionToPixels(gridPosition))
+  :give(ECS.Components.transparent)
 
   if itemData.requirements then
     job:give(ECS.Components.children, {})
     local children = job:get(ECS.Components.children).children
     for selector, amount in pairs(itemData.requirements) do
       local subJob = ECS.Entity()
+      :give(ECS.Components.id, entityReferenceManager.generateId())
+      :give(ECS.Components.serialize)
       subJob:give(ECS.Components.job, "fetch", function()
         consumeRequirement(job, subJob)
       end)
