@@ -51,11 +51,12 @@ function Entity:give(baseComponent, ...)
 end
 
 function Entity:givePopulated(component)
-  print("givePopulated", component, component.__baseComponent, component.__component_name)
   self[component.__baseComponent] = component
   self.__components[component.__baseComponent] = component
 
   self:__dirty()
+
+  return self
 end
 
 function Entity:ensure(baseComponent, ...)

@@ -1,4 +1,5 @@
 --- List
+local inspect = require 'libs.inspect'
 
 local List = {}
 local mt = {__index = List}

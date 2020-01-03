@@ -3,18 +3,22 @@ local inspect = require('libs.inspect') --luacheck: ignore
 local lume = require('libs.lume')
 local media = require('utils.media')
 local universe = require('models.universe')
+local jobManager = require('models.jobManager')
 local jobHandlers = require('models.jobTypes.jobTypes')
 local entityReferenceManager = require('models.entityReferenceManager')
 
 local settlerSpeed = 200
 
 local SettlerSystem = ECS.System({ECS.Components.settler, ECS.Components.worker,
-ECS.Components.position, ECS.Components.velocity})
+ECS.Components.position, ECS.Components.velocity}, {ECS.Components.job, 'jobs'})
 
 function SettlerSystem:init()
   self.lastAssigned = 0
   self.assignWaitTime = 0.5
-  self.workQueue = {}
+
+  self.jobs.onEntityAdded = function(pool, entity)
+    self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
+  end
 
   self.tilesetBatch = love.graphics.newSpriteBatch(media.sprites, 200)
 end
@@ -126,6 +130,7 @@ function SettlerSystem:processSubJob(settler, job, dt)
 end
 
 function SettlerSystem:initializeTestSettlers()
+  print("Initializiing test settlers")
   for _ = 1,10,1 do
     local settler = ECS.Entity()
     local worldSize = universe.getSize()

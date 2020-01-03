@@ -1,8 +1,10 @@
 local inspect = require('libs.inspect')
 local Path = require('libs.jumper.core.path')
+local Node = require('libs.jumper.core.node')
 local Vector = require('libs.brinevector')
+local entityReferenceManager = require('models.entityReferenceManager')
 
-local function initializeComponents(entityReferenceManager)
+local function initializeComponents()
   local position = ECS.Component(function(e, vector)
     e.vector = vector or Vector(0, 0)
     e.serialize = function() return { x = e.vector.x, y = e.vector.y } end
@@ -92,7 +94,9 @@ local function initializeComponents(entityReferenceManager)
     e.job = job or nil
     e.serialize = function()
       local serialized = {}
-      if job then serialized.jobId = job:get(ECS.Component.id).id end
+      if job then
+        serialized.jobId = job:get(ECS.Components.id).id
+      end
       return serialized 
     end
   end) -- Settler work
@@ -100,7 +104,10 @@ local function initializeComponents(entityReferenceManager)
   work.deserialize = function(data)
     local workC = work:initialize()
     entityReferenceManager.registerReference(function(references) 
+      print("JobID", data.jobId)
+      print("References", #references)
       workC.job = references[data.jobId]
+      print("Works joerb", workC.job)
     end)
 
     return workC
@@ -114,10 +121,13 @@ local function initializeComponents(entityReferenceManager)
     e.serialize = function() return { pathNodes = e.path._nodes } end
   end)
   path.deserialize = function(data)
-    local path = Path()
-    path._nodex = data.pathNodes
+    local gridPath = Path()
+    --gridPath._nodes = data.pathNodes
+    for _, node in ipairs(data.pathNodes) do
+      gridPath:addNode(Node(node._x, node._y))
+    end
 
-    return path:initialize(path, data.currentIndex)
+    return path:initialize(gridPath, data.currentIndex)
   end
   ECS.Components.register("path", path)
 
@@ -144,7 +154,7 @@ local function initializeComponents(entityReferenceManager)
     end
   end)
   fetchJob.deserialize = function(data)
-    local newFetch = fetchJob:__initialize(nil, data.selector, data.amount)
+    local newFetch = fetchJob:initialize(nil, data.selector, data.amount)
     entityReferenceManager.registerReference(function(references) 
       newFetch.target = references[data.targetId]
     end)
@@ -253,7 +263,7 @@ local function initializeComponents(entityReferenceManager)
   parent.deserialize = function(data)
     local parentC = parent:initialize()
     entityReferenceManager.registerReference(function(references) 
-      parentC.parent = references[entityId]
+      parentC.parent = references[data.parentId]
     end)
 
     return parentC
@@ -275,6 +285,7 @@ local function initializeComponents(entityReferenceManager)
     for _, entityId in ipairs(data.childIds) do
       entityReferenceManager.registerReference(function(references) 
         local entity = references[entityId]
+        --print("Now adding child!", entity, "for childC", childrenC.children)
         table.insert(childrenC.children, entity)
       end)
     end

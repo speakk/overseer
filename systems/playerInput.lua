@@ -41,4 +41,14 @@ function PlayerInputSystem:wheelmoved(x, y) --luacheck: ignore
   self:getWorld():emit("cameraScaleChanged", camera:getScale())
 end
 
+function PlayerInputSystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
+  if pressedKey == 'f5' then
+    self:getWorld():emit("saveGame")
+  end
+
+  if pressedKey == 'f9' then
+    self:getWorld():emit("loadGame")
+  end
+end
+
 return PlayerInputSystem

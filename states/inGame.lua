@@ -8,7 +8,8 @@ function inGame:init()
   self.universe = require("models.universe")
   self.universe:load(self.world)
 
-  self.world:addSystem(ECS.Systems.serialization)
+  self.world:addSystem(ECS.Systems.serialization, "saveGame")
+  self.world:addSystem(ECS.Systems.serialization, "loadGame")
   self.world:addSystem(ECS.Systems.dayCycle, "update")
   self.world:addSystem(ECS.Systems.light, "cameraScaleChanged")
   self.world:addSystem(ECS.Systems.light, "cameraPositionChanged")
@@ -21,6 +22,7 @@ function inGame:init()
   self.world:addSystem(ECS.Systems.gui, "update")
   self.world:addSystem(ECS.Systems.playerInput, "update")
   self.world:addSystem(ECS.Systems.playerInput, "wheelmoved")
+  self.world:addSystem(ECS.Systems.playerInput, "keypressed")
   self.world:addSystem(ECS.Systems.bluePrint, "bluePrintsPlaced", "placeBluePrints")
   self.world:addSystem(ECS.Systems.bluePrint, "bluePrintFinished")
   self.world:addSystem(ECS.Systems.settler, "update")
@@ -49,7 +51,7 @@ function inGame:init()
   self.world:addSystem(ECS.Systems.gui, "draw")
 
   self.world:getSystem(ECS.Systems.settler):initializeTestSettlers()
-  self.world:getSystem(ECS.Systems.item):initializeTestItems(self.universe:getSize())
+  -- self.world:getSystem(ECS.Systems.item):initializeTestItems(self.universe:getSize())
   --self.world:getSystem(ECS.Systems.light):initializeTestLights()
 
   self.world:emit("registerSpriteBatchGenerator", self.world:getSystem(ECS.Systems.map),
@@ -76,16 +78,6 @@ local nasd = true
 
 function inGame:update(dt)
   self.world:emit('update', dt)
-  if love.keyboard.isDown('f5') and asd then
-    love.filesystem.write('savetest', self.world:getSystem(ECS.Systems.serialization):serializeState())
-    asd = false
-  end
-
-  if love.keyboard.isDown('f9') and nasd then
-    local file = love.filesystem.read('savetest')
-    print(inspect(self.world:getSystem(ECS.Systems.serialization):deserialize(file)))
-    nasd = false
-  end
 end
 
 function inGame:draw()

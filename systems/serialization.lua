@@ -11,7 +11,8 @@ end
 
 local function onIdRemoved(pool, entity) --luacheck: ignore
   local id = entity:get(ECS.Components.id).id
-  entityReferenceManager.remove(id)
+  print("REMOVING", id, entity)
+  entityReferenceManager.removeByEntity(entity)
 end
 
 local function serializeComponent(component)
@@ -53,23 +54,26 @@ function SerializationSystem:init() --luacheck: ignore
 end
 
 function SerializationSystem:serializeState() --luacheck: ignore
-  self:getWorld():__flush()
   return bitser.dumps({
     entities = serializeEntities(entityReferenceManager.getEntities())
-  })
+  }),
+  inspect(serializeEntities(entityReferenceManager.getEntities()))
 end
 
 local function deserializeEntities(entityShells)
   local entities = {}
 
   for id, entityShell in pairs(entityShells) do
+    print("Entity shell:", id, entityShell)
     local entity = ECS.Entity()
     for componentName, componentData in pairs(entityShell.components) do
       local baseComponent = ECS.Components[componentName]
       if baseComponent["deserialize"] then
         local component = baseComponent.deserialize(componentData)
-        print("Deserialized", component)
         entity:givePopulated(component)
+        if componentName == 'id' then
+          print("Setting id", component.id)
+        end
         --local params = { baseComponent.deserialize(componentData) }
         --print("PARAMS", componentName, inspect(componentData), inspect(params))
         --entity:give(baseComponent, unpack(params))
@@ -86,14 +90,30 @@ end
 
 function SerializationSystem:deserialize(data)
   local deserialized = bitser.loads(data)
+  return deserializeEntities(deserialized.entities)
+end
 
-  local entities = deserializeEntities(deserialized.entities)
+function SerializationSystem:saveGame()
+  local state, insp = self:serializeState()
+  love.filesystem.write('savetest', state)
+  love.filesystem.write('savetestPlain', insp)
+end
+
+function SerializationSystem:loadGame()
+  self:getWorld():clear()
+  entityReferenceManager.clear()
+  self:getWorld():__flush()
+
+  local file = love.filesystem.read('savetest')
+  local entities = self:deserialize(file)
 
   for _, entity in ipairs(entities) do
     self:getWorld():addEntity(entity)
   end
 
-  return deserialized
+  self:getWorld():__flush()
+
+  entityReferenceManager.initializeReferences()
 end
 
 return SerializationSystem

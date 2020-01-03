@@ -17,9 +17,7 @@ ECS.Systems = require("libs.concord").systems
 ECS.World = require("libs.concord").world
 ECS.Entity = require("libs.concord").entity
 
-local entityReferenceManager = require('models.entityReferenceManager')
-
-require('components.common').initializeComponents(entityReferenceManager)
+require('components.common').initializeComponents()
 
 local Concord = require("libs.concord")
 Concord.loadSystems("systems")

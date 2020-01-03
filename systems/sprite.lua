@@ -110,7 +110,6 @@ function SpriteSystem:generateGUIDraw()
             table.insert(vertices, pixelPosition.y)
           end
           if #vertices >= 4 then
-            print(inspect(vertices))
             love.graphics.setColor(1, 1, 1)
             love.graphics.line(vertices)
           end
