@@ -13,7 +13,6 @@ local function registerReference(callBack)
 end
 
 local function initializeReferences()
-  print("initialize references!")
   for _, callBack in ipairs(callBacks) do
     callBack(entities)
   end
@@ -23,12 +22,10 @@ local function set(id, entity)
   if id > currentId then
     currentId = id + 1
   end
-  print("Adding/setting entity", id, entity, test, "currentId", currentId, "what")
   local compstring = ''
   for cid, component in pairs(entity:getComponents()) do
     compstring = compstring ..  component.__baseComponent.__component_name .. " | "
   end
-  print("Components: ", compstring)
   if entities[id] then
     error ("Id already exists in entityReferenceManager, id: " .. tostring(id) .. " / " .. tostring(entity))
   end
@@ -52,8 +49,6 @@ local function clear()
   for k,_ in pairs(entities) do
     entities[k] = nil
   end
-  --entities = {}
-  print("Clearing!")
 end
 
 return {
@@ -61,14 +56,14 @@ return {
   initializeReferences = initializeReferences,
   clear = clear,
   getEntities = function()
-    print("All entities!")
-    for id, entity in pairs(entities) do
-      local jobtext = ""
-      if entity:has(ECS.Components.job) then
-        jobtext = entity:get(ECS.Components.job).jobType
-      end
-      print("Entity:", id, entity, jobtext)
-    end
+  --  print("All entities!")
+  --  for id, entity in pairs(entities) do
+  --    local jobtext = ""
+  --    if entity:has(ECS.Components.job) then
+  --      jobtext = entity:get(ECS.Components.job).jobType
+  --    end
+  --    print("Entity:", id, entity, jobtext)
+  --  end
     return entities
   end,
   set = set,

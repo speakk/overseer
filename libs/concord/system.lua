@@ -108,11 +108,13 @@ end
 -- Default callback for when a System's callback is enabled.
 -- @param callbackName The name of the callback that was enabled
 function System:enabledCallback(callbackName) -- luacheck: ignore
+  self.isEnabled = true
 end
 
 -- Default callback for when a System's callback is disabled.
 -- @param callbackName The name of the callback that was disabled
 function System:disabledCallback(callbackName) -- luacheck: ignore
+  self.isEnabled = false
 end
 
 return setmetatable(System, {

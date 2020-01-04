@@ -17,8 +17,19 @@ function SettlerSystem:init()
   self.assignWaitTime = 0.5
 
   self.jobs.onEntityAdded = function(pool, entity)
-    self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
+    if self.isEnabled then
+      self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
+    end
   end
+
+  self.disabledCallback = function(callbackName) -- luacheck: ignore
+    self.isEnabled = false
+  end
+
+self.enabledCallback = function(callbackName) -- luacheck: ignore
+  self.isEnabled = true
+end
+
 
   self.tilesetBatch = love.graphics.newSpriteBatch(media.sprites, 200)
 end
@@ -96,7 +107,6 @@ function SettlerSystem:processSettlerPathFinding(settler) --luacheck: ignore
 end
 
 function SettlerSystem:gridUpdated()
-  print("Invalidating")
   for _, settler in ipairs(self.pool) do
     -- Invalidate paths
     if settler:has(ECS.Components.path) then
@@ -130,8 +140,7 @@ function SettlerSystem:processSubJob(settler, job, dt)
 end
 
 function SettlerSystem:initializeTestSettlers()
-  print("Initializiing test settlers")
-  for _ = 1,10,1 do
+  for _ = 1,2,1 do
     local settler = ECS.Entity()
     local worldSize = universe.getSize()
     local position
@@ -148,6 +157,7 @@ function SettlerSystem:initializeTestSettlers()
     :give(ECS.Components.id, entityReferenceManager.generateId())
     :give(ECS.Components.serialize)
     :give(ECS.Components.settler)
+    :give(ECS.Components.name, "Settler")
     :give(ECS.Components.inventory)
     :give(ECS.Components.worker)
     :give(ECS.Components.velocity)
@@ -167,13 +177,9 @@ end
 
 -- TODO: Needs to prioritize stuff
 function SettlerSystem:assignJobsForSettlers(jobQueue)
-  print("Jobqueue!", #jobQueue)
-
   while true do
-    print("settlers pool", #self.pool)
     local availableWorker = lume.match(self.pool,
     function(potentialSettler)
-      print("Settler!", potentialSettler, potentialSettler:has(ECS.Components.work))
       return not potentialSettler:has(ECS.Components.work)
     end
     )

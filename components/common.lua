@@ -23,6 +23,15 @@ local function initializeComponents()
   end
   ECS.Components.register("velocity", velocity)
 
+  local debugName = ECS.Component(function(e, name)
+    e.name = name or error("Debugname needs name")
+    e.serialize = function() return { name = e.name } end
+  end)
+  debugName.deserialize = function(data)
+    return debugName:initialize(data.name)
+  end
+  ECS.Components.register("debugName", debugName)
+
   local name = ECS.Component(function(e, name)
     e.name = name or "-"
     e.serialize = function() return { name = e.name } end
@@ -94,9 +103,8 @@ local function initializeComponents()
     e.job = job or nil
     e.serialize = function()
       local serialized = {}
-      if job then
-        serialized.jobId = job:get(ECS.Components.id).id
-      end
+      if not e.job then error("Work has no job upon serializing") end
+      serialized.jobId = e.job:get(ECS.Components.id).id
       return serialized 
     end
   end) -- Settler work
@@ -105,6 +113,7 @@ local function initializeComponents()
     local workC = work:initialize()
     entityReferenceManager.registerReference(function(references) 
       workC.job = references[data.jobId]
+      if not workC.job then error("Failed to initialize job for work on deserialize!") end
     end)
 
     return workC
@@ -165,7 +174,6 @@ local function initializeComponents()
 
   -- TODO: XXX finishedCallBack
   local job = ECS.Component(function(e, jobType, finishedCallBack)
-    print("Making job", jobType)
     e.jobType = jobType or error("Job needs jobType")
     e.target = nil
     e.reserved = false
@@ -282,7 +290,6 @@ local function initializeComponents()
     for _, entityId in ipairs(data.childIds) do
       entityReferenceManager.registerReference(function(references) 
         local entity = references[entityId]
-        --print("Now adding child!", entity, "for childC", childrenC.children)
         table.insert(childrenC.children, entity)
       end)
     end

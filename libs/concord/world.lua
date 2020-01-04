@@ -215,6 +215,13 @@ function World:setSystem(system, callbackName, callback, enable)
       error("bad argument #1 to 'World:setSystem' (System expected, got "..type(system)..")", 2)
    end
 
+
+   if enable then
+     system.isEnabled = true
+   else
+     system.isEnabled = false
+   end
+
    callback = callback or callbackName
 
    if callback then

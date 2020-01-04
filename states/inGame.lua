@@ -8,8 +8,12 @@ function inGame:init()
   self.universe = require("models.universe")
   self.universe:load(self.world)
 
+  self.world:addSystem(ECS.Systems.serialization, "update")
   self.world:addSystem(ECS.Systems.serialization, "saveGame")
   self.world:addSystem(ECS.Systems.serialization, "loadGame")
+  self.world:addSystem(ECS.Systems.serialization, "mousepressed")
+  self.world:addSystem(ECS.Systems.serialization, "mousereleased")
+  self.world:addSystem(ECS.Systems.serialization, "mousemoved")
   self.world:addSystem(ECS.Systems.dayCycle, "update")
   self.world:addSystem(ECS.Systems.light, "cameraScaleChanged")
   self.world:addSystem(ECS.Systems.light, "cameraPositionChanged")
@@ -51,7 +55,7 @@ function inGame:init()
   self.world:addSystem(ECS.Systems.gui, "draw")
 
   self.world:getSystem(ECS.Systems.settler):initializeTestSettlers()
-  -- self.world:getSystem(ECS.Systems.item):initializeTestItems(self.universe:getSize())
+  self.world:getSystem(ECS.Systems.item):initializeTestItems(self.universe:getSize())
   --self.world:getSystem(ECS.Systems.light):initializeTestLights()
 
   self.world:emit("registerSpriteBatchGenerator", self.world:getSystem(ECS.Systems.map),
@@ -64,6 +68,8 @@ function inGame:init()
     self.world:getSystem(ECS.Systems.overseer).generateGUIDraw)
   self.world:emit("registerGUIDrawGenerator", self.world:getSystem(ECS.Systems.bluePrint),
     self.world:getSystem(ECS.Systems.bluePrint).generateGUIDraw, true)
+  self.world:emit("registerGUIDrawGenerator", self.world:getSystem(ECS.Systems.serialization),
+    self.world:getSystem(ECS.Systems.serialization).generateGUIDraw)
 
   if PROFILER then
     require('systems.profiler')

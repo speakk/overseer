@@ -45,6 +45,7 @@ function ItemUtils.createItem(selector, amount)
   item:give(ECS.Components.item, itemData, selector)
   :give(ECS.Components.sprite, itemData.sprite)
   :give(ECS.Components.amount, amount)
+  :give(ECS.Components.name, "Item: " .. selector)
   :give(ECS.Components.serialize)
   :give(ECS.Components.id, entityReferenceManager.generateId())
 
