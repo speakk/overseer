@@ -104,10 +104,7 @@ local function initializeComponents()
   work.deserialize = function(data)
     local workC = work:initialize()
     entityReferenceManager.registerReference(function(references) 
-      print("JobID", data.jobId)
-      print("References", #references)
       workC.job = references[data.jobId]
-      print("Works joerb", workC.job)
     end)
 
     return workC
