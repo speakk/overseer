@@ -51,59 +51,15 @@ local function finishWork(self, settler, job)
   self:getWorld():emit("jobFinished", job)
 end
 
+function SettlerSystem:pathFinished(entity)
+end
+
 function SettlerSystem:processSettlerUpdate(settler, dt)
-  local velocityComponent = settler:get(ECS.Components.velocity)
-  velocityComponent.vector = Vector(0, 0)
   if not settler:has(ECS.Components.path) then
     if settler:has(ECS.Components.work) then
       self:processSubJob(settler, settler:get(ECS.Components.work).job, dt)
     end
-  else
-    self:processSettlerPathFinding(settler)
   end
-
-
-  velocityComponent.vector = velocityComponent.vector.normalized * settlerSpeed
-end
-
-function SettlerSystem:processSettlerPathFinding(settler) --luacheck: ignore
-  if not settler:has(ECS.Components.path) then return end
-
-  local pathComponent = settler:get(ECS.Components.path)
-
-  if not pathComponent.path then
-    return
-  end
-
-  local position = settler:get(ECS.Components.position).vector
-  local nextGridPosition
-
-  for node, count in pathComponent.path:nodes() do
-    if count == pathComponent.currentIndex then
-      nextGridPosition = Vector(node:getX(), node:getY())
-      break
-    end
-  end
-
-  if nextGridPosition then
-    local nextPosition = universe.gridPositionToPixels(nextGridPosition, "center")
-    local angle = math.atan2(nextPosition.y - position.y, nextPosition.x - position.x)
-    local velocityComponent = settler:get(ECS.Components.velocity)
-    velocityComponent.vector = Vector(math.cos(angle), math.sin(angle)).normalized
-
-    if universe.pixelsToGridCoordinates(position) == nextGridPosition then
-      pathComponent.currentIndex = pathComponent.currentIndex + 1
-
-      if pathComponent.currentIndex == table.getn(pathComponent.path._nodes) then
-        if pathComponent.path.finishedCallBack then
-          pathComponent.path.finishedCallBack()
-        end
-        settler:remove(ECS.Components.path)
-      end
-    end
-    velocityComponent.vector = velocityComponent.vector.normalized * settlerSpeed
-  end
-
 end
 
 function SettlerSystem:gridUpdated()
@@ -157,6 +113,7 @@ function SettlerSystem:initializeTestSettlers()
     :give(ECS.Components.id, entityReferenceManager.generateId())
     :give(ECS.Components.serialize)
     :give(ECS.Components.settler)
+    :give(ECS.Components.speed, 300)
     :give(ECS.Components.name, "Settler")
     :give(ECS.Components.inventory)
     :give(ECS.Components.worker)

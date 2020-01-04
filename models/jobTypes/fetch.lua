@@ -25,14 +25,14 @@ local function handle(self, job, settler, dt, finishedCallBack) --luacheck: igno
       settler.searched_for_path = true
 
       if path then
-        print("Have item, found path, giving path component")
+        -- print("Have item, found path, giving path component")
 
-        path.finishedCallBack = function()
-          settler.searched_for_path = false
-          local invItem = itemUtils.popInventoryItemBySelector(inventory, selector, amount) -- luacheck: ignore
-          job:get(ECS.Components.job).finishedCallBack()
-          finishedCallBack(self, settler, job)
-        end
+        -- path.finishedCallBack = function()
+        --   settler.searched_for_path = false
+        --   local invItem = itemUtils.popInventoryItemBySelector(inventory, selector, amount) -- luacheck: ignore
+        --   job:get(ECS.Components.job).finishedCallBack()
+        --   finishedCallBack(self, settler, job)
+        -- end
         settler:give(ECS.Components.path, path)
       else
         job:get(ECS.Components.job).isInaccessible = true
@@ -40,27 +40,50 @@ local function handle(self, job, settler, dt, finishedCallBack) --luacheck: igno
     else
       print("No item in inv so finding one")
       -- If we don't have item, find closest one and go fetch it
-      local itemsOnMap = itemUtils.getItemsFromGroundBySelector(selector)
-      if itemsOnMap and #itemsOnMap > 0 then
-        print("Item is on map")
-        -- TODO: Get closest item to settler, for now just pick first from list
-        local itemOnMap = itemsOnMap[love.math.random(#itemsOnMap)]
-        if itemOnMap:has(ECS.Components.position) then
-          local path = universe.getPath(
-          universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector),
-          universe.pixelsToGridCoordinates(itemOnMap:get(ECS.Components.position).vector))
-          if path then
-            print("Had path for item, giving path to settler")
+      -- If item in current location, pick it up
+      local gridPosition = universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector)
+      local itemInCurrentLocation = itemUtils.getItemFromGround(selector, gridPosition)
+      print("itemInCurrentLocation:", itemInCurrentLocation)
+      local item
+      local foundNeeded = false
+      if itemInCurrentLocation then
+        item = itemUtils.takeItemFromGround(itemInCurrentLocation, amount)
 
-            path.finishedCallBack = function()
-              settler.searched_for_path = false
-              settler:remove(ECS.Components.path)
-              table.insert(inventory, itemOnMap)
-              itemUtils.takeItemFromGround(itemOnMap, amount)
-            end
-            settler:give(ECS.Components.path, path)
+        if item then
+          if item:get(ECS.Components.amount).amount >= amount then
+            settler.searched_for_path = false
+            settler:remove(ECS.Components.path) -- TODO: Maybe not needed
+            table.insert(inventory, itemOnMap)
+            foundNeeded = true
           else
-            job:get(ECS.Components.job).isInaccessible = true
+            fetch.amount = fetch.amount - item.amount
+          end
+        end
+      end
+
+
+      if not foundNeeded then
+        local itemsOnMap = itemUtils.getItemsFromGroundBySelector(selector)
+        if itemsOnMap and #itemsOnMap > 0 then
+          print("Item is on map")
+          -- TODO: Get closest item to settler, for now just pick first from list
+          local itemOnMap = itemsOnMap[love.math.random(#itemsOnMap)]
+          if itemOnMap:has(ECS.Components.position) then
+            local path = universe.getPath(
+            universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector),
+            universe.pixelsToGridCoordinates(itemOnMap:get(ECS.Components.position).vector))
+            if path then
+              print("Had path for item, giving path to settler")
+              -- path.finishedCallBack = function()
+              --   settler.searched_for_path = false
+              --   settler:remove(ECS.Components.path)
+              --   table.insert(inventory, itemOnMap)
+              --   itemUtils.takeItemFromGround(itemOnMap, amount)
+              -- end
+              settler:give(ECS.Components.path, path)
+            else
+              job:get(ECS.Components.job).isInaccessible = true
+            end
           end
         end
       end

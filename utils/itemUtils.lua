@@ -66,9 +66,11 @@ end
 
 function ItemUtils.getItemFromGround(itemSelector, gridPosition) --luacheck: ignore
   local items = itemsOnGround[itemSelector]
+  print("Any items?", itemSelector, gridPosition, items)
   for _, item in ipairs(items) do
-    local position = item:get(ECS.Components.position).vector
-    if gridPosition == universe.pixelsToGridCoordinates(position) then
+    local position = universe.pixelsToGridCoordinates(item:get(ECS.Components.position).vector)
+    print("pos vs pos", position.x, position.y, "vs", gridPosition.x, gridPosition.y)
+    if universe.isInPosition(gridPosition, position, true) then
       return item
     end
   end

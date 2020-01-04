@@ -300,14 +300,17 @@ local function initializeComponents()
 
   local amount = ECS.Component(function(e, amount)
     e.amount = amount or 0
-    e.serialize = function()
-      return { amount = e.amount }
-    end
+    e.serialize = function() return { amount = e.amount } end
   end)
-  amount.deserialize = function(data)
-    return amount:initialize(data.amount)
-  end
+  amount.deserialize = function(data) return amount:initialize(data.amount) end
   ECS.Components.register("amount", amount)
+
+  local speed = ECS.Component(function(e, speed)
+    e.speed = speed or 0
+    e.serialize = function() return { speed = e.speed } end
+  end)
+  speed.deserialize = function(data) return speed:initialize(data.speed) end
+  ECS.Components.register("speed", speed)
 
   local light = ECS.Component(function(e, color, power)
     e.color = color or { 1, 1, 1 }
