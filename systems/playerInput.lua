@@ -49,6 +49,11 @@ function PlayerInputSystem:keypressed(pressedKey, scancode, isrepeat) --luacheck
   if pressedKey == 'f9' then
     self:getWorld():emit("loadGame")
   end
+
+  if pressedKey == 'z' then
+    DEBUG = not DEBUG
+    self:getWorld():emit("debugModeChanged", DEBUG)
+  end
 end
 
 return PlayerInputSystem

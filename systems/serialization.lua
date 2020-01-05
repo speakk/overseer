@@ -2,6 +2,7 @@ local utils = require('utils.utils')
 local nuklear = require("nuklear")
 local bitser = require('libs.bitser')
 local inspect = require('libs.inspect')
+local settings = require('settings')
 local entityReferenceManager = require('models.entityReferenceManager')
 
 local debugFont = love.graphics.newFont(12)
@@ -99,18 +100,19 @@ end
 
 function SerializationSystem:saveGame()
   local state, insp = self:serializeState()
-  love.filesystem.write('savetest', state)
+  love.filesystem.write('overseer_quicksave', state)
   love.filesystem.write('savetestPlain', insp)
 end
 
-function SerializationSystem:loadGame()
+function SerializationSystem:loadGame(saveName)
+  local saveName = saveName or 'overseer_quicksave'
   local settlerSystem = self:getWorld():getSystem(ECS.Systems.settler)
   self:getWorld():disableSystem(settlerSystem)
   self:getWorld():clear()
   entityReferenceManager.clear()
   self:getWorld():__flush()
 
-  local file = love.filesystem.read('savetest')
+  local file = love.filesystem.read(saveName)
   local entities = self:deserialize(file)
 
   for _, entity in ipairs(entities) do
@@ -160,13 +162,15 @@ function createEntityHierarchy(entity, depthLimit, depth)
 end
 
 function SerializationSystem:update(dt)
+  if not DEBUG then return end
+
   ui:frameBegin()
   ui:stylePush({
     ['font'] = debugFont
   })
   local windowWidth = love.graphics.getWidth()
   local windowHeight = love.graphics.getHeight()
-  local entityWindowWidth = 600
+  local entityWindowWidth = settings.entity_debugger_width
   local entityWindowHeight = windowHeight
 
   if ui:windowBegin('entityWindow', windowWidth-entityWindowWidth, 0, entityWindowWidth, entityWindowHeight, 'scrollbar') then
@@ -181,6 +185,7 @@ function SerializationSystem:update(dt)
 end
 
 function SerializationSystem:generateGUIDraw()
+  if not DEBUG then return end
   ui:draw()
 end
 

@@ -1,12 +1,11 @@
 local lume = require('libs.lume')
 local inspect = require('libs.inspect') -- luacheck: ignore
-local universe = require('models.universe')
 local entityReferenceManager = require('models.entityReferenceManager')
 local constructionTypes = require('data.constructionTypes')
 
 local ItemUtils = {}
 
-local itemsOnGround = {}
+--local itemsOnGround = {}
 
 -- local world
 --
@@ -54,45 +53,16 @@ function ItemUtils.createItem(selector, amount)
   return item
 end
 
-function ItemUtils.placeItemOnGround(item, gridPosition) --luacheck: ignore
-  local selector = item:get(ECS.Components.item).selector
-  if not itemsOnGround[selector] then
-    itemsOnGround[selector] = {}
-  end
+-- function ItemUtils.placeItemOnGround(item, gridPosition) --luacheck: ignore
+--   local selector = item:get(ECS.Components.item).selector
+--   if not itemsOnGround[selector] then
+--     itemsOnGround[selector] = {}
+--   end
+-- 
+--   item:give(ECS.Components.position, universe.gridPositionToPixels(gridPosition))
+--   table.insert(itemsOnGround[selector], item)
+-- end
 
-  item:give(ECS.Components.position, universe.gridPositionToPixels(gridPosition))
-  table.insert(itemsOnGround[selector], item)
-end
-
-function ItemUtils.getItemFromGround(itemSelector, gridPosition) --luacheck: ignore
-  local items = itemsOnGround[itemSelector]
-  for _, item in ipairs(items) do
-    local position = universe.pixelsToGridCoordinates(item:get(ECS.Components.position).vector)
-    if universe.isInPosition(gridPosition, position, true) then
-      return item
-    end
-  end
-
-  return nil -- Could not find item on ground
-end
-
-function ItemUtils.getItemsFromGroundBySelector(itemSelector) --luacheck: ignore
-  return itemsOnGround[itemSelector]
-end
-
-function ItemUtils.takeItemFromGround(originalItem, amount)
-  local selector = originalItem:get(ECS.Components.item).selector
-  local item, wasSplit = ItemUtils.splitItemStackIfNeeded(originalItem, amount)
-
-  if not wasSplit then
-    lume.remove(itemsOnGround[selector], originalItem)
-    if originalItem:has(ECS.Components.position) then
-      originalItem:remove(ECS.Components.position)
-    end
-  end
-
-  return item
-end
 
 function ItemUtils.popInventoryItemBySelector(inventory, selector, amount)
   local originalItem = ItemUtils.getInventoryItemBySelector(inventory, selector)

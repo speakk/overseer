@@ -103,7 +103,7 @@ function SettlerSystem:processSubJob(settler, job, dt)
 end
 
 function SettlerSystem:initializeTestSettlers()
-  for _ = 1,2,1 do
+  for _ = 1,10,1 do
     local settler = ECS.Entity()
     local worldSize = universe.getSize()
     local position

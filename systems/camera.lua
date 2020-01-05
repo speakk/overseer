@@ -16,4 +16,13 @@ function CameraSystem:resize(w, h) --luacheck: ignore
   camera:setWindow(0, 0, w, h-settings.actions_bar_height)
 end
 
+function CameraSystem:debugModeChanged(newMode)
+  local entityDebugWidth = 0
+  if newMode then
+    entityDebugWidth = settings.entity_debugger_width
+  end
+
+  camera:setWindow(0, 0, love.graphics.getWidth()-entityDebugWidth, love.graphics.getHeight()-settings.actions_bar_height)
+end
+
 return CameraSystem

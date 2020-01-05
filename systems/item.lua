@@ -2,6 +2,7 @@ local Vector = require('libs.brinevector')
 local inspect = require('libs.inspect') --luacheck: ignore
 local lume = require('libs.lume')
 
+local universe = require('models.universe')
 local itemUtils = require('utils.itemUtils')
 
 local ItemSystem = ECS.System({ECS.Components.item})
@@ -12,7 +13,7 @@ function ItemSystem:initializeTestItems(mapSize)
     raw_materials = { "wood", "iron", "stone", "steel" }
   }
 
-  for i=1,5,1 do  --luacheck: ignore
+  for i=1,20,1 do  --luacheck: ignore
     local position = Vector(math.random(mapSize.x), math.random(mapSize.y))
     local keys1 = lume.keys(randomTable)
     local key = keys1[math.random(#keys1)]
@@ -21,8 +22,10 @@ function ItemSystem:initializeTestItems(mapSize)
     local selector = key .. "." .. itemName
     local amount = love.math.random(30)
     local item = itemUtils.createItem(selector, amount)
+    item:give(ECS.Components.onMap)
+    item:give(ECS.Components.position, universe.gridPositionToPixels(position))
     self:getWorld():addEntity(item)
-    itemUtils.placeItemOnGround(item, position)
+    --itemUtils.placeItemOnGround(item, position)
   end
 end
 

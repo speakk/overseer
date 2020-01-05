@@ -37,6 +37,7 @@ function inGame:init()
   self.world:addSystem(ECS.Systems.settler, "gridUpdated")
   self.world:addSystem(ECS.Systems.item)
   self.world:addSystem(ECS.Systems.camera, "resize")
+  self.world:addSystem(ECS.Systems.camera, "debugModeChanged")
   self.world:addSystem(ECS.Systems.map, "update")
   self.world:addSystem(ECS.Systems.draw, "draw")
   self.world:addSystem(ECS.Systems.draw, "registerSpriteBatchGenerator")
@@ -56,10 +57,6 @@ function inGame:init()
   self.world:addSystem(ECS.Systems.move, "update")
   self.world:addSystem(ECS.Systems.sprite)
   self.world:addSystem(ECS.Systems.gui, "draw")
-
-  self.world:getSystem(ECS.Systems.settler):initializeTestSettlers()
-  self.world:getSystem(ECS.Systems.item):initializeTestItems(self.universe:getSize())
-  --self.world:getSystem(ECS.Systems.light):initializeTestLights()
 
   self.world:emit("registerSpriteBatchGenerator", self.world:getSystem(ECS.Systems.map),
     self.world:getSystem(ECS.Systems.map).generateSpriteBatch)
@@ -116,6 +113,17 @@ end
 
 function inGame:mousemoved(x, y, dx, dy, istouch)
   self.world:emit('mousemoved', x, y, dx, dy, istouch)
+end
+
+function inGame:enter(from, exisitingSave)
+  if exisitingSave then
+    self.world:emit('loadGame', existingSave)
+  else
+    self.world:getSystem(ECS.Systems.settler):initializeTestSettlers()
+    self.world:getSystem(ECS.Systems.item):initializeTestItems(self.universe:getSize())
+    --self.world:getSystem(ECS.Systems.light):initializeTestLights()
+  end
+
 end
 
 return inGame

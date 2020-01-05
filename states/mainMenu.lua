@@ -37,6 +37,11 @@ function mainMenu:update(dt) --luacheck: ignore
     if self.ui:button('Start game') then
       Gamestate.switch(inGame)
     end
+    if love.filesystem.getInfo('overseer_quicksave') then
+      if self.ui:button('Continue game') then
+        Gamestate.switch(inGame, 'overseer_quicksave')
+      end
+    end
     self.ui:layoutRow('dynamic', buttonHeight, 1)
     if self.ui:button('Quit') then
       love.event.quit()

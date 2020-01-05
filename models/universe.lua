@@ -5,21 +5,23 @@ local cpml = require('libs.cpml')
 local lume = require('libs.lume')
 local inspect = require('libs.inspect') --luacheck: ignore
 local utils = require('utils.utils')
+local itemUtils = require('utils.itemUtils')
 local world = nil
 
 local universe = {}
 
 universe.cellSize = 32
 local padding = 0
-local width = 30
-local height = 30
+local width = 100
+local height = 100
 local tilesetBatch = nil
 local gridInvalidated = false
 local walkable = 0
 
 
 local map = {}
-local entityMap = {}
+local entityPosMap = {}
+local entitySelectorMap = {}
 local mapColors = {}
 
 local _lastGridUpdateId = 0
@@ -83,32 +85,52 @@ function universe.onOnMapEntityAdded(pool, entity)
   local pixelPosition = entity:get(ECS.Components.position).vector
   local position = universe.pixelsToGridCoordinates(pixelPosition)
   local posString = position.x .. ":" .. position.y
-  if not entityMap[posString] then
-    entityMap[posString] = {}
+  if not entityPosMap[posString] then
+    entityPosMap[posString] = {}
   end
 
-  table.insert(entityMap[posString], entity)
+  table.insert(entityPosMap[posString], entity)
+end
+
+function universe.onOnMapItemAdded(pool, entity)
+  local itemComponent = entity:get(ECS.Components.item)
+  local selector = itemComponent.selector
+  if not entitySelectorMap[selector] then
+    entitySelectorMap[selector] = {}
+  end
+
+  table.insert(entitySelectorMap[selector], entity)
+end
+
+function universe.onOnMapItemRemoved(pool, entity)
+  local itemComponent = entity:get(ECS.Components.item)
+  local selector = itemComponent.selector
+
+  local items = entitySelectorMap[selector]
+  if items then
+    lume.remove(items, entity)
+  end
 end
 
 function universe.onOnMapEntityRemoved(pool, entity)
   local position = universe.pixelsToGridCoordinates(entity:get(ECS.Components.position).vector)
   local posString = position.x .. ":" .. position.y
 
-  if not entityMap[posString] then
+  if not entityPosMap[posString] then
     error("Trying to remove nonExistent entity from pos: " .. posString)
   end
 
-  lume.remove(entityMap[posString], entity)
+  lume.remove(entityPosMap[posString], entity)
 end
 
 function universe.getEntitiesInLocation(gridPosition)
   local posString = gridPosition.x .. ":" .. gridPosition.y
 
-  if not entityMap[posString] then
+  if not entityPosMap[posString] then
     return {}
   end
 
-  return entityMap[posString]
+  return entityPosMap[posString]
 end
 
 function universe.update(dt) --luacheck: ignore
@@ -273,5 +295,37 @@ function universe.generateSpriteBatch(l, t, w, h)
 
   return tilesetBatch
 end
+
+function universe.getItemsOnGround(selector)
+  return entitySelectorMap[selector]
+end
+
+function universe.getItemFromGround(itemSelector, gridPosition) --luacheck: ignore
+  local items = universe.getItemsOnGround(itemSelector)
+  if not items then return nil end
+
+  for _, item in ipairs(items) do
+    local position = universe.pixelsToGridCoordinates(item:get(ECS.Components.position).vector)
+    if universe.isInPosition(gridPosition, position, true) then
+      return item
+    end
+  end
+
+  return nil -- Could not find item on ground
+end
+
+function universe.takeItemFromGround(originalItem, amount)
+  local selector = originalItem:get(ECS.Components.item).selector
+  local item, wasSplit = itemUtils.splitItemStackIfNeeded(originalItem, amount)
+
+  if not wasSplit then
+    lume.remove(entitySelectorMap[selector], originalItem)
+    originalItem:remove(ECS.Components.position)
+    originalItem:remove(ECS.Components.onMap)
+  end
+
+  return item
+end
+
 
 return universe

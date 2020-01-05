@@ -29,8 +29,7 @@ local function handle(self, job, settler, dt) --luacheck: ignore
   local selector = fetch.selector
   local gridPosition = universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector)
   local itemData = job:get(ECS.Components.item).itemData
-  --local amount = itemData.requirements[selector]
-  local amount = fetch.amount -- TODO: Use this or above?
+  local amount = fetch.amount
   local inventoryComponent = settler:get(ECS.Components.inventory)
   local inventory = inventoryComponent.inventory
   local existingItem = itemUtils.getInventoryItemBySelector(inventory, selector)
@@ -50,6 +49,7 @@ local function handle(self, job, settler, dt) --luacheck: ignore
       return true
     else
       -- Have item but not in location. Get new path to location!
+      print("GETTING PATH")
       local path = universe.getPath(
       universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector),
       universe.pixelsToGridCoordinates(fetch.target:get(ECS.Components.position).vector)
@@ -64,17 +64,14 @@ local function handle(self, job, settler, dt) --luacheck: ignore
       end
     end
   else
-    print("No item in inv so finding one")
     -- If we don't have item, find closest one and go fetch it
-    local itemInCurrentLocation = itemUtils.getItemFromGround(selector, gridPosition)
-    print("itemInCurrentLocation:", itemInCurrentLocation)
+    local itemInCurrentLocation = universe.getItemFromGround(selector, gridPosition)
     local item
     local foundNeeded = false
     if itemInCurrentLocation then
-      item = itemUtils.takeItemFromGround(itemInCurrentLocation, amount)
+      item = universe.takeItemFromGround(itemInCurrentLocation, amount)
 
       if item then
-        print("amounts", item:get(ECS.Components.amount).amount, "vs required: ", amount)
         local itemAmount = item:get(ECS.Components.amount).amount
         if itemAmount >= amount then
           print("DUUDIT")
@@ -89,12 +86,13 @@ local function handle(self, job, settler, dt) --luacheck: ignore
     end
 
     if not foundNeeded then
-      local itemsOnMap = itemUtils.getItemsFromGroundBySelector(selector)
+      local itemsOnMap = universe.getItemsOnGround(selector)
       if itemsOnMap and #itemsOnMap > 0 then
         print("Item is on map")
         -- TODO: Get closest item to settler, for now just pick first from list
         local itemOnMap = itemsOnMap[love.math.random(#itemsOnMap)]
         if itemOnMap:has(ECS.Components.position) then
+          print("GETTING PATH 2")
           local path = universe.getPath(
           universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector),
           universe.pixelsToGridCoordinates(itemOnMap:get(ECS.Components.position).vector))
