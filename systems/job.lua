@@ -72,12 +72,6 @@ function JobSystem:draw()
   end
 end
 
-function JobSystem:cancelConstruction(entities)
-  for _, entity in ipairs(entities) do
-    lume.remove(self.jobs, entity)
-  end
-end
-
 -- function JobSystem:getNextUnreservedJob()
 --   for _, job in ipairs(self.jobs) do
 --     if not job:has(ECS.Components.parent) then -- Only go through tree roots

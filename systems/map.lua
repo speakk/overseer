@@ -25,6 +25,7 @@ end
 
 function MapSystem:cancelConstruction(entities)
   for _, entity in ipairs(entities) do
+    -- TODO: Deal with proper removal of already constructed entities
     -- if entity:has(ECS.Components.removeCallBack) then
     --   entity:get(ECS.Components.removeCallBack).callBack()
     -- else
