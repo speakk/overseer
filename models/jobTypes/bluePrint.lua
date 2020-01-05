@@ -1,4 +1,6 @@
+local Fetch = require('models.jobTypes.fetch')
 local universe = require('models.universe')
+local itemUtils = require('utils.itemUtils')
 local entityReferenceManager = require('models.entityReferenceManager')
 
 local function isBluePrintReadyToBuild(bluePrint)
@@ -8,8 +10,15 @@ local function isBluePrintReadyToBuild(bluePrint)
   local materialsConsumed = bluePrintComponent.materialsConsumed
   local requirements = bluePrint:get(ECS.Components.item).itemData.requirements
 
-  for selector, item in pairs(requirements) do --luacheck: ignore
-    if not materialsConsumed[selector] then
+  for selector, amount in pairs(requirements) do --luacheck: ignore
+    print("Blueprint pos", universe.pixelsToGridCoordinates(bluePrint:get(ECS.Components.position).vector))
+    local itemInPosition = itemUtils.getItemFromGround(selector, universe.pixelsToGridCoordinates(bluePrint:get(ECS.Components.position).vector))
+    print(selector, amount, itemInPosition:get(ECS.Components.amount).amount)
+    if not itemInPosition or itemInPosition:get(ECS.Components.amount).amount < amount then
+      --print("Didn't have no!", selector)
+      if itemInPosition then
+        print(itemInPosition:get(ECS.Components.amount).amount, amount)
+      end
       return false
     end
   end
@@ -90,16 +99,8 @@ local function generate(gridPosition, itemData, bluePrintItemSelector)
     job:give(ECS.Components.children, {})
     local children = job:get(ECS.Components.children).children
     for selector, amount in pairs(itemData.requirements) do
-      local subJob = ECS.Entity()
-      :give(ECS.Components.id, entityReferenceManager.generateId())
-      :give(ECS.Components.serialize)
-      subJob:give(ECS.Components.job, "fetch", function()
-        consumeRequirement(job, subJob)
-      end)
-      subJob:give(ECS.Components.name, "FetchJob")
-      subJob:give(ECS.Components.item, itemData, selector)
+      local subJob = Fetch.generate(job, itemData, selector)
       subJob:give(ECS.Components.parent, job)
-      subJob:give(ECS.Components.fetchJob, job, selector, amount)
       table.insert(children, subJob)
     end
   end

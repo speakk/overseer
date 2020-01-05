@@ -14,6 +14,7 @@ function inGame:init()
   self.world:addSystem(ECS.Systems.serialization, "mousepressed")
   self.world:addSystem(ECS.Systems.serialization, "mousereleased")
   self.world:addSystem(ECS.Systems.serialization, "mousemoved")
+  self.world:addSystem(ECS.Systems.move, "resetVelocities")
   self.world:addSystem(ECS.Systems.dayCycle, "update")
   self.world:addSystem(ECS.Systems.path, "update")
   self.world:addSystem(ECS.Systems.light, "cameraScaleChanged")
@@ -85,6 +86,7 @@ local asd = true
 local nasd = true
 
 function inGame:update(dt)
+  self.world:emit('resetVelocities')
   self.world:emit('update', dt)
 end
 

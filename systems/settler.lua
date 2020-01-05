@@ -48,6 +48,7 @@ end
 
 local function finishWork(self, settler, job)
   settler:remove(ECS.Components.work)
+  print("Uh, removing work?")
   self:getWorld():emit("jobFinished", job)
 end
 
@@ -57,7 +58,10 @@ end
 function SettlerSystem:processSettlerUpdate(settler, dt)
   if not settler:has(ECS.Components.path) then
     if settler:has(ECS.Components.work) then
-      self:processSubJob(settler, settler:get(ECS.Components.work).job, dt)
+      if self:processSubJob(settler, settler:get(ECS.Components.work).job, dt) then
+        -- Finished
+        finishWork(self, settler, settler:get(ECS.Components.work).job)
+      end
     end
   end
 end
@@ -91,7 +95,7 @@ function SettlerSystem:processSubJob(settler, job, dt)
   local jobType = job:get(ECS.Components.job).jobType
   local jobHandler = jobHandlers[jobType].handle
   if jobHandler then
-    jobHandler(self, job, settler, dt, finishWork)
+    return jobHandler(self, job, settler, dt, finishWork)
   end
 end
 

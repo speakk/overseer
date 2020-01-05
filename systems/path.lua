@@ -42,6 +42,7 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
         -- if pathComponent.path.finishedCallBack then
         --   pathComponent.path.finishedCallBack()
         -- end
+        print("Finished so removing path")
         entity:remove(ECS.Components.path)
       end
     end
