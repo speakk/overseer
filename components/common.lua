@@ -137,12 +137,6 @@ local function initializeComponents()
   end
   ECS.Components.register("path", path)
 
-  -- TODO: XXX Remove, callback in component
-  local removeCallBack = ECS.Component(function(e, callBack)
-    e.callBack = callBack or error "removeCallBack needs callBack"
-  end)
-  ECS.Components.register("removeCallBack", removeCallBack)
-
   local onMap = ECS.Component()
   ECS.Components.register("onMap", onMap)
 
@@ -172,14 +166,12 @@ local function initializeComponents()
   ECS.Components.register("healingJob", healingJob)
 
 
-  -- TODO: XXX finishedCallBack
-  local job = ECS.Component(function(e, jobType, finishedCallBack)
+  local job = ECS.Component(function(e, jobType)
     e.jobType = jobType or error("Job needs jobType")
     e.target = nil
     e.reserved = false
     e.finished = false
     e.allJobsOrNothing = false
-    e.finishedCallBack = finishedCallBack or nil
     e.isInaccessible = false
 
     e.serialize = function() return { jobType = e.jobType } end

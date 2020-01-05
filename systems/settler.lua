@@ -48,7 +48,10 @@ end
 
 local function finishWork(self, settler, job)
   settler:remove(ECS.Components.work)
-  print("Uh, removing work?")
+  local jobType = job:get(ECS.Components.job).jobType
+  if jobHandlers[jobType]["finish"] then
+    jobHandlers[jobType].finish(job)
+  end
   self:getWorld():emit("jobFinished", job)
 end
 

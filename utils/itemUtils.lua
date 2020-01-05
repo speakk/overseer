@@ -106,5 +106,19 @@ function ItemUtils.popInventoryItemBySelector(inventory, selector, amount)
   return item
 end
 
+-- TODO: Take amount away from item? Take away "amount" from parameters
+function ItemUtils.putItemIntoInventory(inventory, item, amount)
+  local itemEnt = lume.match(inventory, function(itemInInv)
+    return itemInInv:get(ECS.Components.item).selector == selector
+  end)
+
+  if itemEnt then
+    local existingAmount = itemEnt:get(ECS.Components.amount).amount 
+    existingAmount = existingAmount + amount
+    itemEnt:get(ECS.Components.amount).amount = existingAmount
+  else
+    table.insert(inventory, item)
+  end
+end
 
 return ItemUtils
