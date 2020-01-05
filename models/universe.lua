@@ -113,7 +113,10 @@ function universe.onOnMapItemRemoved(pool, entity)
 end
 
 function universe.onOnMapEntityRemoved(pool, entity)
-  local position = universe.pixelsToGridCoordinates(entity:get(ECS.Components.position).vector)
+  if not entity:has(ECS.Components.position) then return end
+  local positionComponent = entity:get(ECS.Components.position)
+  local positionPixels = positionComponent.vector
+  local position = universe.pixelsToGridCoordinates(positionPixels)
   local posString = position.x .. ":" .. position.y
 
   if not entityPosMap[posString] then
