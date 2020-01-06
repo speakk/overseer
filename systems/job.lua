@@ -98,7 +98,7 @@ local function getChildren(job)
   return nil
 end
 
-function JobSystem:clearInaccessibleFlag()
+function JobSystem:gridUpdated()
   for _, mainJob in ipairs(self.jobs) do
     utils.traverseTree(mainJob, getChildren, function(job)
       if job:has(ECS.Components.job) then
@@ -163,7 +163,7 @@ function JobSystem:getFirstSubJob(job)
   return job
 end
 
-function JobSystem:finishJob(job) --luacheck: ignore
+function JobSystem:jobFinished(job) --luacheck: ignore
   local jobComponent = job:get(ECS.Components.job)
   if job:has(ECS.Components.parent) then
     jobComponent.finished = true

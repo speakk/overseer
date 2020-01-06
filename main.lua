@@ -1,6 +1,19 @@
 DEBUG = false
 local PROFILER = false
 
+local Concord = require("libs.concord")
+
+ECS = {}
+ECS.Component = Concord.component
+ECS.Components = Concord.components
+ECS.System = Concord.system
+ECS.Systems = Concord.systems
+ECS.World = Concord.world
+ECS.Entity = Concord.entity
+
+require('components.common').initializeComponents()
+Concord.loadSystems("systems")
+
 local Gamestate = require("libs.hump.gamestate")
 
 local gameStates = {
@@ -9,18 +22,7 @@ local gameStates = {
 }
 
 
-ECS = {}
-ECS.Component = require("libs.concord").component
-ECS.Components = require("libs.concord").components
-ECS.System = require("libs.concord").system
-ECS.Systems = require("libs.concord").systems
-ECS.World = require("libs.concord").world
-ECS.Entity = require("libs.concord").entity
 
-require('components.common').initializeComponents()
-
-local Concord = require("libs.concord")
-Concord.loadSystems("systems")
 
 local windowWidth = 1000
 local windowHeight = 800

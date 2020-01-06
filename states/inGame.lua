@@ -3,60 +3,80 @@ local Gamestate = require("libs.hump.gamestate")
 
 local inGame = {}
 
+local inGameSystems = {
+  ECS.Systems.serialization,
+  ECS.Systems.dayCycle,
+  ECS.Systems.path,
+  ECS.Systems.light,
+  ECS.Systems.playerInput,
+  ECS.Systems.overseer,
+  ECS.Systems.gui,
+  ECS.Systems.bluePrint,
+  ECS.Systems.settler,
+  ECS.Systems.item,
+  ECS.Systems.camera,
+  ECS.Systems.map,
+  ECS.Systems.draw,
+  ECS.Systems.job,
+  ECS.Systems.sprite,
+  ECS.Systems.move
+}
+
 function inGame:init()
-  self.world = ECS.World("wurld")
+  self.world = ECS.World()
+  self.world:addSystems(unpack(inGameSystems))
   self.universe = require("models.universe")
   self.universe:load(self.world)
 
-  self.world:addSystem(ECS.Systems.serialization, "update")
-  self.world:addSystem(ECS.Systems.serialization, "saveGame")
-  self.world:addSystem(ECS.Systems.serialization, "loadGame")
-  self.world:addSystem(ECS.Systems.serialization, "mousepressed")
-  self.world:addSystem(ECS.Systems.serialization, "mousereleased")
-  self.world:addSystem(ECS.Systems.serialization, "mousemoved")
-  self.world:addSystem(ECS.Systems.move, "resetVelocities")
-  self.world:addSystem(ECS.Systems.dayCycle, "update")
-  self.world:addSystem(ECS.Systems.path, "update")
-  self.world:addSystem(ECS.Systems.light, "cameraScaleChanged")
-  self.world:addSystem(ECS.Systems.light, "cameraPositionChanged")
-  self.world:addSystem(ECS.Systems.light, "timeOfDayChanged")
-  self.world:addSystem(ECS.Systems.light, "self.worldSizeChanged")
-  self.world:addSystem(ECS.Systems.gui, "keypressed")
-  self.world:addSystem(ECS.Systems.gui, "mousepressed")
-  self.world:addSystem(ECS.Systems.gui, "mousereleased")
-  self.world:addSystem(ECS.Systems.gui, "mousemoved")
-  self.world:addSystem(ECS.Systems.gui, "update")
-  self.world:addSystem(ECS.Systems.playerInput, "update")
-  self.world:addSystem(ECS.Systems.playerInput, "wheelmoved")
-  self.world:addSystem(ECS.Systems.playerInput, "keypressed")
-  self.world:addSystem(ECS.Systems.bluePrint, "bluePrintsPlaced", "placeBluePrints")
-  self.world:addSystem(ECS.Systems.bluePrint, "bluePrintFinished")
-  self.world:addSystem(ECS.Systems.settler, "update")
-  self.world:addSystem(ECS.Systems.settler, "pathFinished")
-  self.world:addSystem(ECS.Systems.settler, "jobQueueUpdated")
-  self.world:addSystem(ECS.Systems.settler, "gridUpdated")
-  self.world:addSystem(ECS.Systems.item)
-  self.world:addSystem(ECS.Systems.camera, "resize")
-  self.world:addSystem(ECS.Systems.camera, "debugModeChanged")
-  self.world:addSystem(ECS.Systems.map, "update")
-  self.world:addSystem(ECS.Systems.draw, "draw")
-  self.world:addSystem(ECS.Systems.draw, "registerSpriteBatchGenerator")
-  self.world:addSystem(ECS.Systems.draw, "registerGUIDrawGenerator")
-  self.world:addSystem(ECS.Systems.overseer, "selectedModeChanged", "setSelectedAction")
-  self.world:addSystem(ECS.Systems.overseer, "dataSelectorChanged", "setDataSelector")
-  self.world:addSystem(ECS.Systems.overseer, "mapClicked", "enactClick")
-  self.world:addSystem(ECS.Systems.overseer, "mouseReleased")
-  self.world:addSystem(ECS.Systems.overseer, "update")
-  self.world:addSystem(ECS.Systems.job, "draw")
-  --self.world:addSystem(ECS.Systems.job, "jobAdded", "addJob")
-  self.world:addSystem(ECS.Systems.job, "jobFinished", "finishJob")
-  self.world:addSystem(ECS.Systems.job, "gridUpdated", "clearInaccessibleFlag")
-  self.world:addSystem(ECS.Systems.job, "cancelConstruction")
-  self.world:addSystem(ECS.Systems.settler, "cancelConstruction")
-  self.world:addSystem(ECS.Systems.map, "cancelConstruction")
-  self.world:addSystem(ECS.Systems.move, "update")
-  self.world:addSystem(ECS.Systems.sprite)
-  self.world:addSystem(ECS.Systems.gui, "draw")
+  -- self.world:addSystem(ECS.Systems.serialization, "update")
+  -- self.world:addSystem(ECS.Systems.serialization, "saveGame")
+  -- self.world:addSystem(ECS.Systems.serialization, "loadGame")
+  -- self.world:addSystem(ECS.Systems.serialization, "mousepressed")
+  -- self.world:addSystem(ECS.Systems.serialization, "mousereleased")
+  -- self.world:addSystem(ECS.Systems.serialization, "mousemoved")
+  -- self.world:addSystem(ECS.Systems.move, "resetVelocities")
+  -- self.world:addSystem(ECS.Systems.dayCycle, "update")
+  -- self.world:addSystem(ECS.Systems.path, "update")
+  -- self.world:addSystem(ECS.Systems.light, "cameraScaleChanged")
+  -- self.world:addSystem(ECS.Systems.light, "cameraPositionChanged")
+  -- self.world:addSystem(ECS.Systems.light, "timeOfDayChanged")
+  -- self.world:addSystem(ECS.Systems.light, "self.worldSizeChanged")
+  -- self.world:addSystem(ECS.Systems.gui, "keypressed")
+  -- self.world:addSystem(ECS.Systems.gui, "mousepressed")
+  -- self.world:addSystem(ECS.Systems.gui, "mousereleased")
+  -- self.world:addSystem(ECS.Systems.gui, "mousemoved")
+  -- self.world:addSystem(ECS.Systems.gui, "update")
+  -- self.world:addSystem(ECS.Systems.playerInput, "update")
+  -- self.world:addSystem(ECS.Systems.playerInput, "wheelmoved")
+  -- self.world:addSystem(ECS.Systems.playerInput, "keypressed")
+  -- self.world:addSystem(ECS.Systems.bluePrint, "bluePrintsPlaced", "placeBluePrints")
+  -- self.world:addSystem(ECS.Systems.bluePrint, "bluePrintFinished")
+  -- self.world:addSystem(ECS.Systems.settler, "update")
+  -- self.world:addSystem(ECS.Systems.settler, "pathFinished")
+  -- self.world:addSystem(ECS.Systems.settler, "jobQueueUpdated")
+  -- self.world:addSystem(ECS.Systems.settler, "gridUpdated")
+  -- self.world:addSystem(ECS.Systems.item)
+  -- self.world:addSystem(ECS.Systems.camera, "resize")
+  -- self.world:addSystem(ECS.Systems.camera, "debugModeChanged")
+  -- self.world:addSystem(ECS.Systems.map, "update")
+  -- self.world:addSystem(ECS.Systems.draw, "draw")
+  -- self.world:addSystem(ECS.Systems.draw, "registerSpriteBatchGenerator")
+  -- self.world:addSystem(ECS.Systems.draw, "registerGUIDrawGenerator")
+  -- self.world:addSystem(ECS.Systems.overseer, "selectedModeChanged", "setSelectedAction")
+  -- self.world:addSystem(ECS.Systems.overseer, "dataSelectorChanged", "setDataSelector")
+  -- self.world:addSystem(ECS.Systems.overseer, "mapClicked", "enactClick")
+  -- self.world:addSystem(ECS.Systems.overseer, "mouseReleased")
+  -- self.world:addSystem(ECS.Systems.overseer, "update")
+  -- self.world:addSystem(ECS.Systems.job, "draw")
+  -- --self.world:addSystem(ECS.Systems.job, "jobAdded", "addJob")
+  -- self.world:addSystem(ECS.Systems.job, "jobFinished", "finishJob")
+  -- self.world:addSystem(ECS.Systems.job, "gridUpdated", "clearInaccessibleFlag")
+  -- self.world:addSystem(ECS.Systems.job, "cancelConstruction")
+  -- self.world:addSystem(ECS.Systems.settler, "cancelConstruction")
+  -- self.world:addSystem(ECS.Systems.map, "cancelConstruction")
+  -- self.world:addSystem(ECS.Systems.move, "update")
+  -- self.world:addSystem(ECS.Systems.sprite)
+  -- self.world:addSystem(ECS.Systems.gui, "draw")
 
   self.world:emit("registerSpriteBatchGenerator", self.world:getSystem(ECS.Systems.map),
     self.world:getSystem(ECS.Systems.map).generateSpriteBatch)
@@ -71,11 +91,11 @@ function inGame:init()
   self.world:emit("registerGUIDrawGenerator", self.world:getSystem(ECS.Systems.serialization),
     self.world:getSystem(ECS.Systems.serialization).generateGUIDraw)
 
-  if PROFILER then
-    require('systems.profiler')
-    self.world:addSystem(ECS.Systems.profiler, "update")
-    self.world:addSystem(ECS.Systems.profiler, "draw")
-  end
+  -- if PROFILER then
+  --   require('systems.profiler')
+  --   self.world:addSystem(ECS.Systems.profiler, "update")
+  --   self.world:addSystem(ECS.Systems.profiler, "draw")
+  -- end
 
 end
 
@@ -89,6 +109,7 @@ end
 
 function inGame:draw()
   self.world:emit('draw')
+  self.world:emit('guiDraw')
 end
 
 function inGame:wheelmoved(x, y)

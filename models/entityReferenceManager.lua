@@ -24,7 +24,7 @@ local function set(id, entity)
   end
   local compstring = ''
   for cid, component in pairs(entity:getComponents()) do
-    compstring = compstring ..  component.__baseComponent.__component_name .. " | "
+    compstring = compstring ..  component:getName() .. " | "
   end
   if entities[id] then
     error ("Id already exists in entityReferenceManager, id: " .. tostring(id) .. " / " .. tostring(entity))

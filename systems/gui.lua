@@ -101,7 +101,7 @@ function GUISystem:update(dt) --luacheck: ignore
   ui:frameEnd()
 end
 
-function GUISystem:draw() --luacheck: ignore
+function GUISystem:guiDraw() --luacheck: ignore
   ui:draw()
 end
 
@@ -128,6 +128,7 @@ function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
       menuItem.selected = not menuItem.selected
       if menuItem.selected then
         self.selectedAction = menuName
+        print("Setting selectedAction", menuName)
         self:getWorld():emit('selectedModeChanged', menuName)
       else
         self.selectedAction = ""

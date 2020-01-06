@@ -1,21 +1,31 @@
---- World
+--- A collection of Systems and Entities.
+-- A world emits to let Systems iterate.
+-- A World contains any amount of Systems.
+-- A World contains any amount of Entities.
+-- @classmod World
 
 local PATH = (...):gsub('%.[^%.]+$', '')
 
-local Type = require(PATH..".type")
-local List = require(PATH..".list")
+local Entity = require(PATH..".entity")
+local Type   = require(PATH..".type")
+local List   = require(PATH..".list")
+local Utils  = require(PATH..".utils")
 
-local World = {}
-World.__index = World
+local World = {
+   ENABLE_OPTIMIZATION = true,
+}
+World.__mt = {
+   __index = World,
+}
 
 --- Creates a new World.
--- @return The new World
+-- @treturn World The new World
 function World.new()
    local world = setmetatable({
-      entities = List(),
-      systems  = List(),
+      __entities = List(),
+      __systems  = List(),
 
-      events   = {},
+      __events = {},
 
       __added   = List(), __backAdded   = List(),
       __removed = List(), __backRemoved = List(),
@@ -23,15 +33,23 @@ function World.new()
 
       __systemLookup = {},
 
+      __name    = nil,
       __isWorld = true,
-   }, World)
+   }, World.__mt)
+
+   -- Optimization: We deep copy the World class into our instance of a world.
+   -- This grants slightly faster access times at the cost of memory.
+   -- Since there (generally) won't be many instances of worlds this is a worthwhile tradeoff
+   if (World.ENABLE_OPTIMIZATION) then
+      Utils.shallowCopy(World, world)
+   end
 
    return world
 end
 
 --- Adds an Entity to the World.
--- @param e The Entity to add
--- @return self
+-- @tparam Entity e Entity to add
+-- @treturn World self
 function World:addEntity(e)
    if not Type.isEntity(e) then
       error("bad argument #1 to 'World:addEntity' (Entity expected, got "..type(e)..")", 2)
@@ -42,33 +60,41 @@ function World:addEntity(e)
    end
 
    e.__world = self
-   self.__added:add(e)
+   self.__added:__add(e)
 
    return self
 end
 
---- Removes an entity from the World.
--- @param e The Entity to mark
--- @return self
+--- Removes an Entity from the World.
+-- @tparam Entity e Entity to remove
+-- @treturn World self
 function World:removeEntity(e)
    if not Type.isEntity(e) then
       error("bad argument #1 to 'World:removeEntity' (Entity expected, got "..type(e)..")", 2)
    end
 
-   self.__removed:add(e)
+   self.__removed:__add(e)
 
    return self
 end
 
+-- Internal: Marks an Entity as dirty.
+-- @param e Entity to mark as dirty
 function World:__dirtyEntity(e)
    if not self.__dirty:has(e) then
-      self.__dirty:add(e)
+      self.__dirty:__add(e)
    end
 end
 
-
--- @return self
+-- Internal: Flushes all changes to Entities.
+-- This processes all entities. Adding and removing entities, as well as reevaluating dirty entities.
+-- @treturn World self
 function World:__flush()
+   -- Early out
+   if (self.__added.size == 0 and self.__removed.size == 0 and self.__dirty.size == 0) then
+      return self
+   end
+
    -- Switch buffers
    self.__added,   self.__backAdded   = self.__backAdded,   self.__added
    self.__removed, self.__backRemoved = self.__backRemoved, self.__removed
@@ -76,198 +102,159 @@ function World:__flush()
 
    local e
 
-   -- Added
+   -- Process added entities
    for i = 1, self.__backAdded.size do
       e = self.__backAdded[i]
 
-      self.entities:add(e)
+      self.__entities:__add(e)
 
-      for j = 1, self.systems.size do
-         self.systems[j]:__evaluate(e)
+      for j = 1, self.__systems.size do
+         self.__systems[j]:__evaluate(e)
       end
 
       self:onEntityAdded(e)
    end
-   self.__backAdded:clear()
+   self.__backAdded:__clear()
 
-   -- Removed
+   -- Process removed entities
    for i = 1, self.__backRemoved.size do
       e = self.__backRemoved[i]
 
       e.__world = nil
-      self.entities:remove(e)
+      self.__entities:__remove(e)
 
-      for j = 1, self.systems.size do
-         self.systems[j]:__remove(e)
+      for j = 1, self.__systems.size do
+         self.__systems[j]:__remove(e)
       end
 
       self:onEntityRemoved(e)
    end
-   self.__backRemoved:clear()
+   self.__backRemoved:__clear()
 
-   -- Dirty
+   -- Process dirty entities
    for i = 1, self.__backDirty.size do
       e = self.__backDirty[i]
 
-      for j = 1, self.systems.size do
-         self.systems[j]:__evaluate(e)
+      for j = 1, self.__systems.size do
+         self.__systems[j]:__evaluate(e)
       end
    end
-   self.__backDirty:clear()
+   self.__backDirty:__clear()
 
    return self
 end
 
-function World:hasSystem(baseSystem)
-   if not Type.isBaseSystem(baseSystem) then
-      error("bad argument #1 to 'World:getSystem' (baseSystem expected, got "..type(baseSystem)..")", 2)
-   end
-
-   return self.__systemLookup[baseSystem] and true or false
-end
-
-function World:getSystem(baseSystem)
-   if not Type.isBaseSystem(baseSystem) then
-      error("bad argument #1 to 'World:getSystem' (baseSystem expected, got "..type(baseSystem)..")", 2)
-   end
-
-   return self.__systemLookup[baseSystem]
-end
+-- These functions won't be seen as callbacks that will be emitted to.
+local blacklistedSystemFunctions = {
+   "init",
+   "onEnabled",
+   "onDisabled",
+}
 
 --- Adds a System to the World.
--- @param baseSystem The BaseSystem of the system to add
--- @param callbackName The callbackName to register to
--- @param callback The function name to call. Defaults to callbackName
--- @param enabled If the system is enabled. Defaults to true
--- @return self
-function World:addSystem(baseSystem, callbackName, callback, enabled)
-   if not Type.isBaseSystem(baseSystem) then
-      error("bad argument #1 to 'World:addSystem' (baseSystem expected, got "..type(baseSystem)..")", 2)
+-- Callbacks are registered automatically
+-- Entities added before are added to the System retroactively
+-- @see World:emit
+-- @tparam System systemClass SystemClass of System to add
+-- @treturn World self
+function World:addSystem(systemClass)
+   if (not Type.isSystemClass(systemClass)) then
+      error("bad argument #1 to 'World:addSystems' (SystemClass expected, got "..type(systemClass)..")", 2)
    end
 
-   local system = self.__systemLookup[baseSystem]
-   if (not system) then
-      -- System was not created for this world yet, so we create it ourselves
-      system = baseSystem(self)
-
-      self.__systemLookup[baseSystem] = system
-
-      self.systems:add(system)
+   if (self.__systemLookup[systemClass]) then
+      error("bad argument #1 to 'World:addSystems' (SystemClass was already added to World)", 2)
    end
 
-   -- Retroactively evaluate all entities for this system
-   for i = 1, self.entities.size do
-      system:__evaluate(self.entities[i])
-   end
+   -- Create instance of system
+   local system = systemClass(self)
 
-   if callbackName then
-      self.events[callbackName] = self.events[callbackName] or {}
+   self.__systemLookup[systemClass] = system
+   self.__systems:__add(system)
 
-      local i = #self.events[callbackName] + 1
-      self.events[callbackName][i] = {
-         system   = system,
-         callback = callback or callbackName,
-         enabled  = enabled == nil or enabled,
-      }
-
-      if enabled == nil or enabled then
-         system:enabledCallback(callback or callbackName)
-      end
-   end
-
-   return self
-end
-
---- Enables a System in the World.
--- @param system The System to enable
--- @param callbackName The Event it was registered to
--- @param callback The callback it was registered with. Defaults to eventName
--- @return self
-function World:enableSystem(system, callbackName, callback)
-   if not Type.isSystem(system) then
-      error("bad argument #1 to 'World:enableSystem' (System expected, got "..type(system)..")", 2)
-   end
-
-   return self:setSystem(system, callbackName, callback, true)
-end
-
---- Disables a System in the World.
--- @param system The System to disable
--- @param eventName The Event it was registered to
--- @param callback The callback it was registered with. Defaults to eventName
--- @return self
-function World:disableSystem(system, callbackName, callback)
-   if not Type.isSystem(system) then
-      error("bad argument #1 to 'World:disableSystem' (System expected, got "..type(system)..")", 2)
-   end
-
-   return self:setSystem(system, callbackName, callback, false)
-end
-
---- Sets a System 'enable' in the World.
--- @param system The System to set
--- @param eventName The Event it was registered to
--- @param callback The callback it was registered with. Defaults to eventName
--- @param enable The state to set it to
--- @return self
-function World:setSystem(system, callbackName, callback, enable)
-   if not Type.isSystem(system) then
-      error("bad argument #1 to 'World:setSystem' (System expected, got "..type(system)..")", 2)
-   end
-
-
-   if enable then
-     system.isEnabled = true
-   else
-     system.isEnabled = false
-   end
-
-   callback = callback or callbackName
-
-   if callback then
-      local listeners = self.events[callbackName]
-
-      if listeners then
-         for i = 1, #listeners do
-            local listener = listeners[i]
-
-            if listener.system == system and listener.callback == callback then
-               if enable and not listener.enabled then
-                  system:enabledCallback(callback)
-               elseif not enable and listener.enabled then
-                  system:disabledCallback(callback)
-               end
-
-               listener.enabled = enable
-
-               break
-            end
+   for callbackName, callback in pairs(systemClass) do
+      -- Skip callback if its blacklisted
+      if (not blacklistedSystemFunctions[callbackName]) then
+         -- Make container for all listeners of the callback if it does not exist yet
+         if (not self.__events[callbackName]) then
+            self.__events[callbackName] = {}
          end
+
+         -- Add callback to listeners
+         local listeners = self.__events[callbackName]
+         listeners[#listeners + 1] = {
+            system   = system,
+            callback = callback,
+         }
       end
+   end
+
+   -- Evaluate all existing entities
+   for j = 1, self.__entities.size do
+      system:__evaluate(self.__entities[j])
    end
 
    return self
 end
 
---- Emits an Event in the World.
--- @param eventName The Event that should be emitted
--- @param ... Parameters passed to listeners
--- @return self
-function World:emit(callbackName, ...)
-   if not callbackName or type(callbackName) ~= "string" then
-      error("bad argument #1 to 'World:emit' (String expected, got "..type(callbackName)..")")
+--- Adds multiple Systems to the World.
+-- Callbacks are registered automatically
+-- @see World:addSystem
+-- @see World:emit
+-- @param ... SystemClasses of Systems to add
+-- @treturn World self
+function World:addSystems(...)
+   for i = 1, select("#", ...) do
+      local systemClass = select(i, ...)
+
+      self:addSystem(systemClass)
    end
 
-   local listeners = self.events[callbackName]
+   return self
+end
+
+--- Returns if the World has a System.
+-- @tparam System systemClass SystemClass of System to check for
+-- @treturn boolean
+function World:hasSystem(systemClass)
+   if not Type.isSystemClass(systemClass) then
+      error("bad argument #1 to 'World:getSystem' (systemClass expected, got "..type(systemClass)..")", 2)
+   end
+
+   return self.__systemLookup[systemClass] and true or false
+end
+
+--- Gets a System from the World.
+-- @tparam System systemClass SystemClass of System to get
+-- @treturn System System to get
+function World:getSystem(systemClass)
+   if not Type.isSystemClass(systemClass) then
+      error("bad argument #1 to 'World:getSystem' (systemClass expected, got "..type(systemClass)..")", 2)
+   end
+
+   return self.__systemLookup[systemClass]
+end
+
+--- Emits a callback in the World.
+-- Calls all functions with the functionName of added Systems
+-- @string functionName Name of functions to call.
+-- @param ... Parameters passed to System's functions
+-- @treturn World self
+function World:emit(functionName, ...)
+   if not functionName or type(functionName) ~= "string" then
+      error("bad argument #1 to 'World:emit' (String expected, got "..type(functionName)..")")
+   end
+
+	local listeners = self.__events[functionName]
 
    if listeners then
       for i = 1, #listeners do
          local listener = listeners[i]
 
-         if listener.enabled then
+         if (listener.system.__enabled) then
             self:__flush()
 
-            listener.system[listener.callback](listener.system, ...)
+            listener.callback(listener.system, ...)
          end
       end
    end
@@ -276,22 +263,79 @@ function World:emit(callbackName, ...)
 end
 
 --- Removes all entities from the World
--- @return self
+-- @treturn World self
 function World:clear()
-   for i = 1, self.entities.size do
-      self:removeEntity(self.entities[i])
+   for i = 1, self.__entities.size do
+      self:removeEntity(self.__entities[i])
+   end
+
+   for i = 1, self.__systems.size do
+      self.__systems[i]:__clear()
    end
 
    return self
 end
 
---- Default callback for adding an Entity.
--- @param e The Entity that was added
+function World:getEntities()
+   return self.__entities
+end
+
+function World:getSystems()
+   return self.__systems
+end
+
+function World:serialize()
+   self:__flush()
+
+   local data = {}
+
+   for i = 1, self.__entities.size do
+      local entity = self.__entities[i]
+
+      local entityData = entity:serialize()
+
+      data[i] = entityData
+   end
+
+   return data
+end
+
+function World:deserialize(data, append)
+   if (not append) then
+      self:clear()
+   end
+
+   for i = 1, #data do
+      local entityData = data[i]
+
+      local entity = Entity()
+      entity:deserialize(entityData)
+
+      self:addEntity(entity)
+   end
+
+   self:__flush()
+end
+
+--- Returns true if the World has a name.
+-- @treturn boolean
+function World:hasName()
+   return self.__name and true or false
+end
+
+--- Returns the name of the World.
+-- @treturn string
+function World:getName()
+   return self.__name
+end
+
+--- Callback for when an Entity is added to the World.
+-- @tparam Entity e The Entity that was added
 function World:onEntityAdded(e) -- luacheck: ignore
 end
 
---- Default callback for removing an Entity.
--- @param e The Entity that was removed
+--- Callback for when an Entity is removed from the World.
+-- @tparam Entity e The Entity that was removed
 function World:onEntityRemoved(e) -- luacheck: ignore
 end
 

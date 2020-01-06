@@ -7,7 +7,8 @@ local BluePrintSystem = ECS.System({ECS.Components.bluePrintJob, ECS.Components.
 local BluePrint = require('models.jobTypes.bluePrint')
 
 
-function BluePrintSystem:placeBluePrints(nodes, constructionType, selector)
+function BluePrintSystem:bluePrintsPlaced(nodes, constructionType, selector)
+  print("bluePrintsPlaced")
     for node, _ in nodes do
       local gridPosition = universe.clampToWorldBounds(Vector(node:getX(), node:getY()))
       if universe.isCellAvailable(gridPosition) then

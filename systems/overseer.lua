@@ -58,7 +58,7 @@ function OverseerSystem:generateGUIDraw() --luacheck: ignore
   end
 end
 
-function OverseerSystem:setDataSelector(selector)
+function OverseerSystem:dataSelectorChanged(selector)
   self.dataSelector = selector
   --self:getWorld():emit("dataSelectorChanged", selector)
 end
@@ -67,7 +67,7 @@ function OverseerSystem:getDataSelector()
   return self.dataSelector
 end
 
-function OverseerSystem:setSelectedAction(selector)
+function OverseerSystem:selectedModeChanged(selector)
   self.selectedAction = selector
 end
 
@@ -107,7 +107,7 @@ function OverseerSystem:endDrag(mouseCoordinates)
   self:enactDrag(drag)
 end
 
-function OverseerSystem:enactClick(mouseCoordinates, button)
+function OverseerSystem:mapClicked(mouseCoordinates, button)
   local type = button == 1 and "construct" or "destruct"
   if self.selectedAction == "build" then
     if settings.mouse_toggle_construct then
