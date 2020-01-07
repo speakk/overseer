@@ -1,9 +1,11 @@
 local nuklear = require("nuklear")
+local settings = require("settings")
 local Gamestate = require("libs.hump.gamestate")
 
 local headerFont = love.graphics.newFont("fonts/MavenPro-Medium.ttf", 32)
 
 local inGame = require("states.inGame")
+local loading = require("states.loading")
 
 local mainMenu = {}
 
@@ -35,11 +37,11 @@ function mainMenu:update(dt) --luacheck: ignore
     self.ui:layoutRow('dynamic', menuHeight/2 - buttonHeight * 4, 1)
     self.ui:layoutRow('dynamic', buttonHeight, 1)
     if self.ui:button('Start game') then
-      Gamestate.switch(inGame)
+      Gamestate.switch(loading)
     end
-    if love.filesystem.getInfo('overseer_quicksave') then
+    if love.filesystem.getInfo(settings.quick_save_name) then
       if self.ui:button('Continue game') then
-        Gamestate.switch(inGame, 'overseer_quicksave')
+        Gamestate.switch(loading, settings.quick_save_name)
       end
     end
     self.ui:layoutRow('dynamic', buttonHeight, 1)

@@ -1,4 +1,5 @@
 local inspect = require('libs.inspect')
+local lume = require('libs.lume')
 local Path = require('libs.jumper.core.path')
 local Node = require('libs.jumper.core.node')
 local Vector = require('libs.brinevector')
@@ -7,46 +8,48 @@ local entityReferenceManager = require('models.entityReferenceManager')
 local function initializeComponents()
   local position = ECS.Component(function(e, vector)
     e.vector = vector or Vector(0, 0)
-    e.serialize = function() return { x = e.vector.x, y = e.vector.y } end
+    e.customSerialize = function() return { x = e.vector.x, y = e.vector.y } end
   end)
-  position.deserialize = function(data)
-    return position:initialize(Vector(data.x, data.y))
+  -- function position:serialize() return { x = e.vector.x, y = e.vector.y } end
+  -- function position:deserialize(data) self.vector = Vector(data.x, data.y) end
+  position.customDeserialize = function(data)
+    return position:__initialize(Vector(data.x, data.y))
   end
   ECS.Components.register("position", position)
 
   local velocity = ECS.Component(function(e, vector)
     e.vector = vector or Vector(0, 0)
-    e.serialize = function() return { x = e.vector.x, y = e.vector.y } end
+    e.customSerialize = function() return { x = e.vector.x, y = e.vector.y } end
   end)
-  velocity.deserialize = function(data)
-    return velocity:initialize(Vector(data.x, data.y))
+  velocity.customDeserialize = function(data)
+    return velocity:__initialize(Vector(data.x, data.y))
   end
   ECS.Components.register("velocity", velocity)
 
   local debugName = ECS.Component(function(e, name)
     e.name = name or error("Debugname needs name")
-    e.serialize = function() return { name = e.name } end
+    e.customSerialize = function() return { name = e.name } end
   end)
-  debugName.deserialize = function(data)
-    return debugName:initialize(data.name)
+  debugName.customDeserialize = function(data)
+    return debugName:__initialize(data.name)
   end
   ECS.Components.register("debugName", debugName)
 
   local name = ECS.Component(function(e, name)
     e.name = name or "-"
-    e.serialize = function() return { name = e.name } end
+    e.customSerialize = function() return { name = e.name } end
   end)
-  name.deserialize = function(data)
-    return name:initialize(data.name)
+  name.customDeserialize = function(data)
+    return name:__initialize(data.name)
   end
   ECS.Components.register("name", name)
 
   local id = ECS.Component(function(e, id)
     e.id = id or error("Id needs id")
-    e.serialize = function() return { id = e.id } end
+    e.customSerialize = function() return { id = e.id } end
   end)
-  id.deserialize = function(data)
-    return id:initialize(data.id)
+  id.customDeserialize = function(data)
+    return id:__initialize(data.id)
   end
   ECS.Components.register("id", id)
 
@@ -59,10 +62,10 @@ local function initializeComponents()
   local draw = ECS.Component(function(e, color, size)
     e.color = color or { 1, 0, 0 }
     e.size = size or Vector(32, 32)
-    e.serialize = function() return { color = e.color, size = { x = size.x, y = size.y } } end
+    e.customSerialize = function() return { color = e.color, size = { x = size.x, y = size.y } } end
   end)
-  draw.deserialize = function(data)
-    return draw:initialize(data.color, Vector(data.size.x, data.size.y))
+  draw.customDeserialize = function(data)
+    return draw:__initialize(data.color, Vector(data.size.x, data.size.y))
   end
   ECS.Components.register("draw", draw)
 
@@ -71,19 +74,19 @@ local function initializeComponents()
     -- e.image = image or error("Sprite needs image")
     -- e.x = x or error("Sprite needs x image coordinate")
     -- e.y = y or error("Sprite needs y image coordinate")
-    e.serialize = function() return { selector = e.selector } end
+    e.customSerialize = function() return { selector = e.selector } end
   end)
-  sprite.deserialize = function(data)
-    return sprite:initialize(data.selector)
+  sprite.customDeserialize = function(data)
+    return sprite:__initialize(data.selector)
   end
   ECS.Components.register("sprite", sprite)
 
   local transparent = ECS.Component(function(e, amount)
     e.amount = amount or 0.5
-    e.serialize = function() return { amount = e.amount } end
+    e.customSerialize = function() return { amount = e.amount } end
   end)
-  transparent.deserialize = function(data)
-    return transparent:initialize(data.amount)
+  transparent.customDeserialize = function(data)
+    return transparent:__initialize(data.amount)
   end
   ECS.Components.register("transparent", transparent)
 
@@ -92,16 +95,16 @@ local function initializeComponents()
     e.skills = skills or {
       construction = 15
     }
-    e.serialize = function() return { name = e.name, skills = e.skills } end
+    e.customSerialize = function() return { name = e.name, skills = e.skills } end
   end)
-  settler.deserialize = function(data)
-    return settler:initialize(data.name, data.skills)
+  settler.customDeserialize = function(data)
+    return settler:__initialize(data.name, data.skills)
   end
   ECS.Components.register("settler", settler)
 
   local work = ECS.Component(function(e, job)
     e.job = job or nil
-    e.serialize = function()
+    e.customSerialize = function()
       local serialized = {}
       if not e.job then error("Work has no job upon serializing") end
       serialized.jobId = e.job:get(ECS.Components.id).id
@@ -109,8 +112,8 @@ local function initializeComponents()
     end
   end) -- Settler work
 
-  work.deserialize = function(data)
-    local workC = work:initialize()
+  work.customDeserialize = function(data)
+    local workC = work:__initialize()
     entityReferenceManager.registerReference(function(references) 
       workC.job = references[data.jobId]
       if not workC.job then error("Failed to initialize job for work on deserialize!") end
@@ -124,16 +127,21 @@ local function initializeComponents()
   local path = ECS.Component(function(e, path, currentIndex)
     e.path = path or error("No path for Path component!")
     e.currentIndex = currentIndex or 1
-    e.serialize = function() return { pathNodes = e.path._nodes } end
+    e.customSerialize = function()
+      return {
+        pathNodes = lume.map(e.path._nodes, function(node) return { x = node._x, y = node._y } end),
+        currentIndex = e.currentIndex
+      }
+      end
   end)
-  path.deserialize = function(data)
+  path.customDeserialize = function(data)
     local gridPath = Path()
     --gridPath._nodes = data.pathNodes
     for _, node in ipairs(data.pathNodes) do
-      gridPath:addNode(Node(node._x, node._y))
+      gridPath:addNode(Node(node.x, node.y))
     end
 
-    return path:initialize(gridPath, data.currentIndex)
+    return path:__initialize(gridPath, data.currentIndex)
   end
   ECS.Components.register("path", path)
 
@@ -145,7 +153,7 @@ local function initializeComponents()
     e.selector = selector or error("Fetch has no selector!")
     e.amount = amount
 
-    e.serialize = function()
+    e.customSerialize = function()
       return {
         targetId = e.target:get(ECS.Components.id).id,
         selector = e.selector,
@@ -153,8 +161,8 @@ local function initializeComponents()
       }
     end
   end)
-  fetchJob.deserialize = function(data)
-    local newFetch = fetchJob:initialize(nil, data.selector, data.amount)
+  fetchJob.customDeserialize = function(data)
+    local newFetch = fetchJob:__initialize(nil, data.selector, data.amount)
     entityReferenceManager.registerReference(function(references) 
       newFetch.target = references[data.targetId]
     end)
@@ -174,19 +182,19 @@ local function initializeComponents()
     e.allJobsOrNothing = false
     e.isInaccessible = false
 
-    e.serialize = function() return { jobType = e.jobType } end
+    e.customSerialize = function() return { jobType = e.jobType } end
   end)
-  job.deserialize = function(data)
-    return job:initialize(data.jobType)
+  job.customDeserialize = function(data)
+    return job:__initialize(data.jobType)
   end
   ECS.Components.register("job", job)
 
   local worker = ECS.Component(function(e, available)
     e.available = available or true
-    e.serialize = function() return { available = e.available } end
+    e.customSerialize = function() return { available = e.available } end
   end)
-  worker.deserialize = function(data)
-    return worker:initialize(data.available)
+  worker.customDeserialize = function(data)
+    return worker:__initialize(data.available)
   end
   ECS.Components.register("worker", worker)
 
@@ -194,7 +202,7 @@ local function initializeComponents()
     e.constructionSpeed = constructionSpeed or 1
     e.materialsConsumed = {} or materialsConsumed
     e.buildProgress = 0 or buildProgress -- 0/100
-    e.serialize = function()
+    e.customSerialize = function()
       return {
         constructionSpeed = e.constructionSpeed,
         materialsConsumed = e.materialsConsumed,
@@ -202,8 +210,8 @@ local function initializeComponents()
       }
     end
   end)
-  bluePrintJob.deserialize = function(data)
-    return bluePrintJob:initialize(data.constructionSpeed, data.materialsConsumed, data.buildProgress)
+  bluePrintJob.customDeserialize = function(data)
+    return bluePrintJob:__initialize(data.constructionSpeed, data.materialsConsumed, data.buildProgress)
   end
   ECS.Components.register("bluePrintJob", bluePrintJob)
 
@@ -215,7 +223,7 @@ local function initializeComponents()
 
   local inventory = ECS.Component(function(e, inventory)
     e.inventory = inventory or {}
-    e.serialize = function()
+    e.customSerialize = function()
       local inv = {}
       for _, entity in ipairs(e.inventory) do
         table.insert(inv, entity:get(ECS.Components.id).id)
@@ -223,8 +231,8 @@ local function initializeComponents()
       return { inventoryIds = inv }
     end
   end)
-  inventory.deserialize = function(data)
-    local invC = inventory:initialize()
+  inventory.customDeserialize = function(data)
+    local invC = inventory:__initialize()
     for _, entityId in ipairs(data.inventoryIds) do
       entityReferenceManager.registerReference(function(references) 
         local inv = invC.inventory
@@ -240,25 +248,25 @@ local function initializeComponents()
   local item = ECS.Component(function(e, itemData, selector)
     e.itemData = itemData or {}
     e.selector = selector or error("Item needs data selector!")
-    e.serialize = function()
+    e.customSerialize = function()
       return { itemData = e.itemData, selector = e.selector }
     end
   end)
-  item.deserialize = function(data)
-    return item:initialize(data.itemData, data.selector)
+  item.customDeserialize = function(data)
+    return item:__initialize(data.itemData, data.selector)
   end
   ECS.Components.register("item", item)
 
   local parent = ECS.Component(function(e, parent)
     e.parent = parent
-    e.serialize = function()
+    e.customSerialize = function()
       return {
         parentId = e.parent:get(ECS.Components.id).id,
       }
     end
   end)
-  parent.deserialize = function(data)
-    local parentC = parent:initialize()
+  parent.customDeserialize = function(data)
+    local parentC = parent:__initialize()
     entityReferenceManager.registerReference(function(references) 
       parentC.parent = references[data.parentId]
     end)
@@ -269,7 +277,7 @@ local function initializeComponents()
 
   local children = ECS.Component(function(e, children)
     e.children = children or {}
-    e.serialize = function()
+    e.customSerialize = function()
       local childIds = {}
       for _, entity in ipairs(e.children) do
         table.insert(childIds, entity:get(ECS.Components.id).id)
@@ -277,8 +285,8 @@ local function initializeComponents()
       return { childIds = childIds }
     end
   end)
-  children.deserialize = function(data)
-    local childrenC = children:initialize()
+  children.customDeserialize = function(data)
+    local childrenC = children:__initialize()
     for _, entityId in ipairs(data.childIds) do
       entityReferenceManager.registerReference(function(references) 
         local entity = references[entityId]
@@ -292,27 +300,27 @@ local function initializeComponents()
 
   local amount = ECS.Component(function(e, amount)
     e.amount = amount or 0
-    e.serialize = function() return { amount = e.amount } end
+    e.customSerialize = function() return { amount = e.amount } end
   end)
-  amount.deserialize = function(data) return amount:initialize(data.amount) end
+  amount.customDeserialize = function(data) return amount:__initialize(data.amount) end
   ECS.Components.register("amount", amount)
 
   local speed = ECS.Component(function(e, speed)
     e.speed = speed or 0
-    e.serialize = function() return { speed = e.speed } end
+    e.customSerialize = function() return { speed = e.speed } end
   end)
-  speed.deserialize = function(data) return speed:initialize(data.speed) end
+  speed.customDeserialize = function(data) return speed:__initialize(data.speed) end
   ECS.Components.register("speed", speed)
 
   local light = ECS.Component(function(e, color, power)
     e.color = color or { 1, 1, 1 }
     e.power = power or 64
-    e.serialize = function()
+    e.customSerialize = function()
       return { color = e.color, power = e.power }
     end
   end)
-  light.deserialize = function(data)
-    return light:initialize(data.color, data.power)
+  light.customDeserialize = function(data)
+    return light:__initialize(data.color, data.power)
   end
   ECS.Components.register("light", light)
 

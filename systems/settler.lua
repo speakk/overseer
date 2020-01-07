@@ -17,9 +17,7 @@ function SettlerSystem:init()
   self.assignWaitTime = 0.5
 
   self.jobs.onEntityAdded = function(pool, entity)
-    if self.isEnabled then
-      self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
-    end
+    self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
   end
 
   self.disabledCallback = function(callbackName) -- luacheck: ignore

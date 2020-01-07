@@ -1,5 +1,6 @@
 return {
   mouse_toggle_construct = false,
   actions_bar_height = 64,
-  entity_debugger_width = 400
+  entity_debugger_width = 400,
+  quick_save_name = 'quicksave'
 }

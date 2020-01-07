@@ -4,7 +4,7 @@ local PathSystem = ECS.System({ECS.Components.path, ECS.Components.position})
 
 
 function PathSystem:update(dt)
-  for _, entity in ipairs(self.pool) do
+  for i, entity in ipairs(self.pool) do
     self:processPathFinding(entity)
   end
 end

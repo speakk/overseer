@@ -22,8 +22,8 @@ local function onIdRemoved(pool, entity) --luacheck: ignore
 end
 
 local function serializeComponent(component)
-  if component['serialize'] then
-    return component:serialize()
+  if component['customSerialize'] then
+    return component:customSerialize()
   else
     return {}
   end
@@ -32,7 +32,7 @@ end
 local function serializeComponents(entity)
   local serialized = {}
   for _, component in pairs(entity:getComponents()) do
-    serialized[component.__baseComponent.__component_name] = serializeComponent(component)
+    serialized[component:getName()] = serializeComponent(component)
   end
 
   return serialized
@@ -41,7 +41,7 @@ end
 local function serializeEntity(entity)
   local compstring = ''
   for cid, component in pairs(entity:getComponents()) do
-    compstring = compstring ..  component.__baseComponent.__component_name .. " | "
+    compstring = compstring ..  component:getName() .. " | "
   end
   return {
     components = serializeComponents(entity)
@@ -79,8 +79,8 @@ local function deserializeEntities(entityShells)
     local entity = ECS.Entity()
     for componentName, componentData in pairs(entityShell.components) do
       local baseComponent = ECS.Components[componentName]
-      if baseComponent["deserialize"] then
-        local component = baseComponent.deserialize(componentData)
+      if baseComponent["customDeserialize"] then
+        local component = baseComponent.customDeserialize(componentData)
         entity:givePopulated(component)
       else 
         entity:give(baseComponent)
@@ -98,16 +98,17 @@ function SerializationSystem:deserialize(data)
   return deserializeEntities(deserialized.entities)
 end
 
-function SerializationSystem:saveGame()
+function SerializationSystem:saveGame(filename)
   local state, insp = self:serializeState()
-  love.filesystem.write('overseer_quicksave', state)
+  love.filesystem.write(filename, state)
   love.filesystem.write('savetestPlain', insp)
 end
 
 function SerializationSystem:loadGame(saveName)
+  print("Loading", saveName)
   local saveName = saveName or 'overseer_quicksave'
-  local settlerSystem = self:getWorld():getSystem(ECS.Systems.settler)
-  self:getWorld():disableSystem(settlerSystem)
+  --local settlerSystem = self:getWorld():getSystem(ECS.Systems.settler)
+  --self:getWorld():disableSystem(settlerSystem)
   self:getWorld():clear()
   entityReferenceManager.clear()
   self:getWorld():__flush()
@@ -122,7 +123,7 @@ function SerializationSystem:loadGame(saveName)
   self:getWorld():__flush()
 
   entityReferenceManager.initializeReferences()
-  self:getWorld():enableSystem(settlerSystem)
+  --self:getWorld():enableSystem(settlerSystem)
 end
 
 function createEntityHierarchy(entity, depthLimit, depth)
@@ -143,7 +144,7 @@ function createEntityHierarchy(entity, depthLimit, depth)
       local components = entity:getComponents()
       for cid, component in pairs(components) do
         local selected = false
-        local name = component.__baseComponent.__component_name .. " / " .. tostring(component)
+        local name = component:getName() .. " / " .. tostring(component)
         if ui:selectable(name, selected) then
         end
         for _, prop in pairs(component) do

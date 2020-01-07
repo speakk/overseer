@@ -65,6 +65,15 @@ function Entity:give(componentClass, ...)
    return self
 end
 
+function Entity:givePopulated(component)
+  self[component.__componentClass] = component
+  self.__components[component.__componentClass] = component
+
+  self:__dirty()
+
+  return self
+end
+
 --- Ensures an Entity to have a Component.
 -- If the Component already exists, no action is taken
 -- @tparam Component componentClass ComponentClass to add an instance of
@@ -208,6 +217,7 @@ function Entity:deserialize(data)
       self:__dirty()
    end
 end
+
 
 return setmetatable(Entity, {
    __call = function(_, ...)

@@ -87,6 +87,7 @@ local function handle(self, job, settler, dt) --luacheck: ignore
 
     if not foundNeeded then
       local itemsOnMap = universe.getItemsOnGround(selector)
+      --print("Trying to find from map:", #itemsOnMap)
       if itemsOnMap and #itemsOnMap > 0 then
         print("Item is on map")
         -- TODO: Get closest item to settler, for now just pick first from list
