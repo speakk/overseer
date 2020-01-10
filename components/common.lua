@@ -267,10 +267,8 @@ local function initializeComponents()
     end
 
     e.findItem = function(e, selector) -- luacheck: ignore
-      print("Trying to get item", selector)
       local itemId = lume.match(e.inventory, function(itemId)
         local item = entityReferenceManager.getEntity(itemId)
-        print("Comparing item selector", item:get(ECS.Components.item).selector, selector)
         return item:get(ECS.Components.item).selector == selector
       end)
       return itemId

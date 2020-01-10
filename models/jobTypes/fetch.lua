@@ -28,7 +28,7 @@ end
 local function handle(self, job, settler, dt) --luacheck: ignore
   local fetch = job:get(ECS.Components.fetchJob)
   local targetId = job:get(ECS.Components.fetchJob).targetId
-  print("TARGETID", targetId)
+  --print("TARGETID", targetId)
   local target = entityReferenceManager.getEntity(targetId)
   local selector = fetch.selector
   local gridPosition = universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector)
@@ -39,7 +39,6 @@ local function handle(self, job, settler, dt) --luacheck: ignore
   local existingItemId = inventory:findItem(selector)
   local existingItem = entityReferenceManager.getEntity(existingItemId)
   -- If already have the item, then place item on ground at target site
-  if existingItem then print("Had existingItem", existingItem:get(ECS.Components.amount).amount) end
   if existingItem and existingItem:has(ECS.Components.amount) and
     existingItem:get(ECS.Components.amount).amount >= fetch.amount then
     print("Had item and enough of it")
@@ -73,11 +72,13 @@ local function handle(self, job, settler, dt) --luacheck: ignore
       end
     end
   else
+    if settler.searched_for_path then return nil end
     -- If we don't have item, find closest one and go fetch it
     print("we don't have item, find closest one and go fetch it")
     local itemInCurrentLocation = universe.getItemFromGround(selector, gridPosition)
     local item
     local foundNeeded = false
+    settler.searched_for_path = true
     if itemInCurrentLocation then
       print("itemInCurrentLocation")
       item = universe.takeItemFromGround(itemInCurrentLocation, amount)
@@ -97,6 +98,8 @@ local function handle(self, job, settler, dt) --luacheck: ignore
         else
           fetch.amount = fetch.amount - itemAmount
         end
+      else
+        settler.searched_for_path = true
       end
     end
 
