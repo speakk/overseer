@@ -24,7 +24,7 @@ function ItemSystem:initializeTestItems(mapSize)
     local item = itemUtils.createItem(selector, amount)
     item:give(ECS.Components.onMap)
     item:give(ECS.Components.position, universe.gridPositionToPixels(position))
-    self:getWorld():addEntity(item)
+    --self:getWorld():addEntity(item)
     --itemUtils.placeItemOnGround(item, position)
   end
 end

@@ -20,6 +20,14 @@ local mediaDB = {
   {
     name = "items",
     items = { 'torch01' }
+  },
+  {
+    name = "seeds",
+    items = { 'seeds_potato' }
+  },
+  {
+    name = "farming",
+    items = { 'potato_phase_1', 'potato_phase_2', 'potato_phase_3', 'potato_phase_4'  }
   }
 }
 

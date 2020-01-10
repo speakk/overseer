@@ -2,6 +2,8 @@ local inspect = require('libs.inspect') -- luacheck: ignore
 local lume = require('libs.lume')
 local utils = require('utils.utils')
 
+local entityReferenceManager = require('models.entityReferenceManager')
+
 local JobSystem = ECS.System({ECS.Components.job, 'jobs'})
 
 local function onJobAdded(self, pool, job)
@@ -52,11 +54,12 @@ local function printJob(job, level, y, isChild)
   love.graphics.print(name, 40 + level * space, 40 + y * space, 0, 1.1, 1.1)
 
   if job:has(ECS.Components.children) then
-    local children = job:get(ECS.Components.children).children
+    local childrenIds = job:get(ECS.Components.children).children
     --print("Childcomp?", job:get(ECS.Components.children).children)
 
-    if children then
-      for _, child in ipairs(children) do
+    if childrenIds then
+      for _, childId in ipairs(childrenIds) do
+        local child = entityReferenceManager.getEntity(childId)
         printJob(child, level + 1, y + 1, true)
       end
     end
@@ -92,7 +95,9 @@ end
 
 local function getChildren(job)
   if job:get(ECS.Components.children) then
-    return job:get(ECS.Components.children).children
+    return lume.map(job:get(ECS.Components.children).children, function(childId)
+      return entityReferenceManager.getEntity(childId)
+    end)
   end
 
   return nil
@@ -136,8 +141,9 @@ function JobSystem:getFirstSubJob(job)
   local allChildrenFinished = true
 
   if job:has(ECS.Components.children) then
-    local children = job:get(ECS.Components.children).children
-    for _, child in ipairs(children) do
+    local childrenIds = job:get(ECS.Components.children).children
+    for _, childId in ipairs(childrenIds) do
+      local child = entityReferenceManager.getEntity(childId)
       local firstChildJob = self:getFirstSubJob(child)
       if firstChildJob then
         local firstChildJobComponent = firstChildJob:get(ECS.Components.job)

@@ -1,13 +1,18 @@
 local universe = require('models.universe')
 local camera = require('models.camera')
 
+local entityReferenceManager = require('models.entityReferenceManager')
+
 local Vector = require('libs.brinevector')
 local lume = require('libs.lume')
+local inspect = require('libs.inspect')
 
 local constructionTypes = require('data.constructionTypes')
 local settings = require('settings')
 
 local OverseerSystem = ECS.System()
+
+local zoneColor = { 0.3, 0.3, 0.9, 1.0 }
 
 
 local drag = {
@@ -23,7 +28,29 @@ function OverseerSystem:init()
   }
 
   self.actionCallbacks = {
-    build = function(gridCoordinates) self:build(gridCoordinates) end
+    build = {
+      action1 = function(mouseCoordinates, button)
+        --actions.action1(mouseCoordinates, button)
+        self:dragAction(mouseCoordinates, button, function(nodes, rect)
+          self:build(nodes)
+        end,
+        { 1, 1, 1, 1 })
+      end,
+      action2 = function(mouseCoordinates, button)
+        self:dragAction(mouseCoordinates, button, function(nodes, rect)
+          self:destruct(nodes)
+        end,
+        { 1, 0, 0, 1 })
+      end,
+    },
+    zones = {
+      action1 = function(mouseCoordinates, button)
+        self:dragAction(mouseCoordinates, button, function(nodes, rect)
+          self:zones(nodes, rect)
+        end,
+        zoneColor)
+      end
+    }
   }
 
   self.selectedAction = ""
@@ -43,11 +70,17 @@ function OverseerSystem:generateGUIDraw() --luacheck: ignore
     local camStart = Vector(camera:toScreen(startPoint.x, startPoint.y))
     local camEnd = Vector(camera:toScreen(endPoint.x, endPoint.y))
     --camera:draw(function(l,t,w,h) --luacheck: ignore
-      if (drag.type == "construct") then
-        love.graphics.setColor(1, 1, 1, 1)
+      -- if (drag.type == "construct") then
+      --   love.graphics.setColor(1, 1, 1, 1)
+      -- else
+      --   love.graphics.setColor(1, 0.2, 0.2, 1)
+      -- end
+      if drag.color then
+        love.graphics.setColor(unpack(drag.color))
       else
-        love.graphics.setColor(1, 0.2, 0.2, 1)
+        love.graphics.setColor(1, 1, 1, 1)
       end
+
       love.graphics.rectangle("line",
         camStart.x,
         camStart.y,
@@ -79,6 +112,7 @@ function OverseerSystem:update(dt) --luacheck: ignore
 end
 
 function OverseerSystem:enactDrag(dragEvent)
+  if not dragEvent or not dragEvent.action then print("uh what") return end
   local gridCoordsStart = universe.pixelsToGridCoordinates(dragEvent.startPoint)
   local gridCoordsEnd = universe.pixelsToGridCoordinates(dragEvent.endPoint)
 
@@ -88,15 +122,22 @@ function OverseerSystem:enactDrag(dragEvent)
   math.max(gridCoordsStart.x, gridCoordsEnd.x),
   math.max(gridCoordsStart.y, gridCoordsEnd.y))
 
-  if dragEvent.type == 'construct' then
-    self:build(nodes)
-  elseif dragEvent.type == 'destruct' then
-    self:destruct(nodes)
-  end
+  dragEvent.action(nodes, {
+    x1 = gridCoordsStart.x,
+    y1 = gridCoordsStart.y, 
+    x2 = gridCoordsEnd.x, 
+    y2 = gridCoordsEnd.y 
+  })
+
+  -- if dragEvent.type == 'construct' then
+  --   self:build(nodes)
+  -- elseif dragEvent.type == 'destruct' then
+  --   self:destruct(nodes)
+  -- end
 end
 
-function OverseerSystem:startDrag(mouseCoordinates, type) --luacheck: ignore
-  drag.type = type
+function OverseerSystem:startDrag(mouseCoordinates, action) --luacheck: ignore
+  drag.action = action
   drag.active = true
   drag.startPoint = mouseCoordinates
 end
@@ -107,23 +148,28 @@ function OverseerSystem:endDrag(mouseCoordinates)
   self:enactDrag(drag)
 end
 
-function OverseerSystem:mapClicked(mouseCoordinates, button)
-  local type = button == 1 and "construct" or "destruct"
-  if self.selectedAction == "build" then
-    if settings.mouse_toggle_construct then
-      if drag.active then
-        self:endDrag(mouseCoordinates)
-      else
-        self:startDrag(mouseCoordinates, type)
-      end
+function OverseerSystem:mapClicked(mouseCoordinates, button, actionType)
+  if not actionType then return end
+  local actions = self.actionCallbacks[actionType]
+  if button == 1 then
+    actions.action1(mouseCoordinates, button)
+  else
+    actions.action2(mouseCoordinates, button)
+  end
+  --self:mapClicked(mouseCoordinates, button, actions.action1, actions.action2)
+end
+
+function OverseerSystem:dragAction(mouseCoordinates, button, callBack, color)
+  if settings.mouse_toggle_drag then
+    if drag.active then
+      self:endDrag(mouseCoordinates)
     else
-      self:startDrag(mouseCoordinates, type)
-    --   -- TODO: Also make actual drag & drop, for now the one below
-    --   -- is just a placeholder (individual clicks
-    --   if self.selectedAction and self.actionCallbacks[self.selectedAction] then
-    --     self.actionCallbacks[self.selectedAction](mouseCoordinates)
-    --   end
+      drag.color = color
+      self:startDrag(mouseCoordinates, callBack)
     end
+  else
+    drag.color = color
+    self:startDrag(mouseCoordinates, callBack)
   end
 end
 
@@ -136,6 +182,16 @@ end
 function OverseerSystem:build(nodes)
   local data = constructionTypes.getBySelector(self.dataSelector)
   self:getWorld():emit("bluePrintsPlaced", nodes, data, self.dataSelector)
+end
+
+function OverseerSystem:zones(nodes, rect)
+  local zoneEntity = ECS.Entity()
+  zoneEntity:give(ECS.Components.id, entityReferenceManager.generateId())
+  zoneEntity:give(ECS.Components.zone)
+  zoneEntity:give(ECS.Components.color, zoneColor)
+  zoneEntity:give(ECS.Components.rect, rect.x1, rect.y1, rect.x2, rect.y2)
+
+  self:getWorld():addEntity(zoneEntity)
 end
 
 function OverseerSystem:destruct(nodes)

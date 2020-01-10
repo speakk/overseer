@@ -59,6 +59,7 @@ function inGame:init()
       ECS.Systems.camera,
       ECS.Systems.draw,
       ECS.Systems.sprite,
+      ECS.Systems.zone,
       ECS.Systems.move
     }
 
@@ -67,8 +68,6 @@ function inGame:init()
     end
 
     self.world:addSystems(unpack(inGameSystems))
-    self.universe = require("models.universe")
-    self.universe:load(self.world)
 
     self.world:emit("registerSpriteBatchGenerator", self.world:getSystem(ECS.Systems.map),
     self.world:getSystem(ECS.Systems.map).generateSpriteBatch)
@@ -80,6 +79,8 @@ function inGame:init()
     self.world:getSystem(ECS.Systems.overseer).generateGUIDraw)
     self.world:emit("registerGUIDrawGenerator", self.world:getSystem(ECS.Systems.bluePrint),
     self.world:getSystem(ECS.Systems.bluePrint).generateGUIDraw, true)
+    self.world:emit("registerGUIDrawGenerator", self.world:getSystem(ECS.Systems.zone),
+    self.world:getSystem(ECS.Systems.zone).generateGUIDraw, true)
     self.world:emit("registerGUIDrawGenerator", self.world:getSystem(ECS.Systems.serialization),
     self.world:getSystem(ECS.Systems.serialization).generateGUIDraw)
 

@@ -1,6 +1,7 @@
 local Gamestate = require("libs.hump.gamestate")
 
 local inGame = require('states.inGame')
+local itemUtils = require('utils.itemUtils')
 
 local loading = {}
 
@@ -25,9 +26,10 @@ function loading:enter(from, existingSave)
     ECS.Systems.item
   }
   self.world = ECS.World()
-  self.world:addSystems(unpack(systems))
   self.universe = require("models.universe")
   self.universe:load(self.world)
+  itemUtils:load(self.world)
+  self.world:addSystems(unpack(systems))
   print("Entering", existingSave)
   print("Entering2", existingSave)
 

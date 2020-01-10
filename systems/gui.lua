@@ -7,6 +7,9 @@ local camera = require("models.camera")
 
 local constructionTypes = require('data.constructionTypes')
 
+local menuWidth = 400
+local menuHeight = 300
+
 local ui
 
 local GUISystem = ECS.System()
@@ -51,13 +54,33 @@ function GUISystem:init()
   self.dataSelector = nil
 
   self.menuHierarchy = {
-    build = {
+    {
       name = "Build",
+      id = "build",
       shortCut = "q",
       subItems = constructionTypes.data
     },
-    settlers = {
+    {
+      name = "Zones",
+      id = "zones",
+      shortCut = "e",
+      subItems = {
+        farming = {
+          name = "Farming",
+          subItems = {
+            potato = {
+              name = "Potato",
+              requirements = {
+                ["seeds.potato_seed"] = 1
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       name = "Settlers",
+      id = "settlers",
       subItems = {}
     }
   }
@@ -71,12 +94,12 @@ function GUISystem:update(dt) --luacheck: ignore
 
   if ui:windowBegin('actions_bar', 0, windowHeight-actionsBarHeight, windowWidth, actionsBarHeight) then
     ui:layoutRow('dynamic', actionsBarHeight-10, 10)
-    for menuName, menuItem in pairs(self.menuHierarchy) do
-      local sel = { value = menuName == self.selectedAction }
+    for _, menuItem in ipairs(self.menuHierarchy) do
+      local sel = { value = menuItem.id == self.selectedAction }
       if ui:selectable(menuItem.name .. ' (' .. (menuItem.shortCut or '') .. ')', sel) then
         if sel.value then
-          self.selectedAction = menuName
-          self:getWorld():emit("selectedModeChanged", menuName)
+          self.selectedAction = menuItem.id
+          self:getWorld():emit("selectedModeChanged", menuItem.id)
         else
           self.selectedAction = ""
           self:getWorld():emit("selectedModeChanged", "")
@@ -86,11 +109,9 @@ function GUISystem:update(dt) --luacheck: ignore
   end
   ui:windowEnd()
 
-  local menuSize = 200
-  local menuWidth = 400
-  for menuName, menuItem in pairs(self.menuHierarchy) do
-    if self.selectedAction == menuName then
-      if ui:windowBegin('menu', 0, windowHeight-menuSize-actionsBarHeight, menuWidth, menuSize) then
+  for _, menuItem in pairs(self.menuHierarchy) do
+    if self.selectedAction == menuItem.id then
+      if ui:windowBegin('menu', 0, windowHeight-menuHeight-actionsBarHeight, menuWidth, menuHeight) then
         for key, subItem in pairs(menuItem.subItems) do
           buildMenuHierarchy(self, subItem, key)
         end
@@ -110,7 +131,7 @@ function GUISystem:mousepressed(x, y, button, istouch, presses)
     return
   end
   local globalX, globalY = camera:toWorld(x, y)
-  self:getWorld():emit("mapClicked", Vector(globalX, globalY), button)
+  self:getWorld():emit("mapClicked", Vector(globalX, globalY), button, self.selectedAction)
 end
 
 function GUISystem:mousereleased(x, y, button, istouch, presses) --luacheck: ignore
@@ -123,13 +144,13 @@ end
 
 
 function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
-  for menuName, menuItem in pairs(self.menuHierarchy) do
+  for _, menuItem in pairs(self.menuHierarchy) do
     if menuItem.shortCut == pressedKey then
       menuItem.selected = not menuItem.selected
       if menuItem.selected then
-        self.selectedAction = menuName
-        print("Setting selectedAction", menuName)
-        self:getWorld():emit('selectedModeChanged', menuName)
+        self.selectedAction = menuItem.id
+        print("Setting selectedAction", menuItem.id)
+        self:getWorld():emit('selectedModeChanged', menuItem.id)
       else
         self.selectedAction = ""
         self:getWorld():emit('selectedModeChanged', "")

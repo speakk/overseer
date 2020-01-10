@@ -29,6 +29,7 @@ function MapSystem:cancelConstruction(entities)
     -- if entity:has(ECS.Components.removeCallBack) then
     --   entity:get(ECS.Components.removeCallBack).callBack()
     -- else
+      --entityReferenceManager.entityRemoved
       self:getWorld():removeEntity(entity)
     --end
   end

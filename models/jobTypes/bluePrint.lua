@@ -10,10 +10,12 @@ local function isBluePrintReadyToBuild(bluePrint)
   local requirements = bluePrint:get(ECS.Components.item).itemData.requirements
 
   for selector, amount in pairs(requirements) do --luacheck: ignore
-    local itemInv = itemUtils.getInventoryItemBySelector(bluePrint:get(ECS.Components.inventory).inventory, selector)
+    local itemId = bluePrint:get(ECS.Components.inventory):findItem(selector)
+    local item = entityReferenceManager.getEntity(itemId)
+    --local itemInv = itemUtils.getInventoryItemBySelector(bluePrint:get(ECS.Components.inventory).inventory, selector)
     -- print("Blueprint pos", universe.pixelsToGridCoordinates(bluePrint:get(ECS.Components.position).vector))
     -- local itemInPosition = itemUtils.getItemFromGround(selector, universe.pixelsToGridCoordinates(bluePrint:get(ECS.Components.position).vector))
-    if not itemInv or itemInv:get(ECS.Components.amount).amount < amount then
+    if not item or item:get(ECS.Components.amount).amount < amount then
       --print("Didn't have no!", selector)
       return false
     end
@@ -65,30 +67,38 @@ end
 
 local function generate(gridPosition, itemData, bluePrintItemSelector)
   local job = ECS.Entity()
-  job:give(ECS.Components.job, "bluePrint", function()
-  end)
+  job:give(ECS.Components.job, "bluePrint")
   job:give(ECS.Components.name, "BluePrintJob")
   :give(ECS.Components.id, entityReferenceManager.generateId())
-  :give(ECS.Components.serialize)
   :give(ECS.Components.onMap)
   :give(ECS.Components.bluePrintJob, itemData.constructionSpeed or 1)
   :give(ECS.Components.inventory) -- Item consumed so far
-  :give(ECS.Components.sprite, itemData.sprite)
   :give(ECS.Components.item, itemData, bluePrintItemSelector)
   :give(ECS.Components.position, universe.gridPositionToPixels(gridPosition))
   :give(ECS.Components.transparent)
 
-  if itemData.requirements then
-    job:give(ECS.Components.children, {})
-    local children = job:get(ECS.Components.children).children
-    for selector, amount in pairs(itemData.requirements) do
-      local subJob = Fetch.generate(job, itemData, selector)
-      subJob:give(ECS.Components.parent, job)
-      table.insert(children, subJob)
+  if itemData.components then
+    for _, component in ipairs(itemData.components) do
+      if not component.afterConstructed then
+        job:give(ECS.Components[component.name], unpack(component.properties))
+      end
     end
   end
 
-  return job
+  local children = {}
+
+  if itemData.requirements then
+    job:give(ECS.Components.children, {})
+    local childrenIds = job:get(ECS.Components.children).children
+    for selector, amount in pairs(itemData.requirements) do
+      local subJob = Fetch.generate(job:get(ECS.Components.id).id, itemData, selector)
+      subJob:give(ECS.Components.parent, job:get(ECS.Components.id).id)
+      table.insert(children, subJob)
+      table.insert(childrenIds, subJob:get(ECS.Components.id).id)
+    end
+  end
+
+  return job, children
 end
 
 local function finish(job)
@@ -99,7 +109,9 @@ local function finish(job)
 
     if itemData.components then
       for _, component in ipairs(itemData.components) do
-        job:give(ECS.Components[component.name], unpack(component.properties))
+        if component.afterConstructed then
+          job:give(ECS.Components[component.name], unpack(component.properties))
+        end
       end
     end
 end

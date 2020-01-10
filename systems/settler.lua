@@ -44,7 +44,8 @@ function SettlerSystem:update(dt) --luacheck: ignore
   end
 end
 
-local function finishWork(self, settler, job)
+local function finishWork(self, settler, jobId)
+  local job = entityReferenceManager.getEntity(jobId)
   settler:remove(ECS.Components.work)
   local jobType = job:get(ECS.Components.job).jobType
   if jobHandlers[jobType]["finish"] then
@@ -59,9 +60,9 @@ end
 function SettlerSystem:processSettlerUpdate(settler, dt)
   if not settler:has(ECS.Components.path) then
     if settler:has(ECS.Components.work) then
-      if self:processSubJob(settler, settler:get(ECS.Components.work).job, dt) then
+      if self:processSubJob(settler, settler:get(ECS.Components.work).jobId, dt) then
         -- Finished
-        finishWork(self, settler, settler:get(ECS.Components.work).job)
+        finishWork(self, settler, settler:get(ECS.Components.work).jobId)
       end
     end
   end
@@ -92,7 +93,8 @@ function SettlerSystem:gridUpdated()
   end
 end
 
-function SettlerSystem:processSubJob(settler, job, dt)
+function SettlerSystem:processSubJob(settler, jobId, dt)
+  local job = entityReferenceManager.getEntity(jobId)
   local jobType = job:get(ECS.Components.job).jobType
   local jobHandler = jobHandlers[jobType].handle
   if jobHandler then
@@ -116,7 +118,6 @@ function SettlerSystem:initializeTestSettlers()
     --:give(ECS.Components.draw, {1,1,0})
     :give(ECS.Components.sprite, 'characters.settler')
     :give(ECS.Components.id, entityReferenceManager.generateId())
-    :give(ECS.Components.serialize)
     :give(ECS.Components.settler)
     :give(ECS.Components.speed, 300)
     :give(ECS.Components.name, "Settler")
@@ -129,7 +130,7 @@ end
 
 function SettlerSystem:startJob(settler, job, jobQueue) -- luacheck: ignore
   job:get(ECS.Components.job).reserved = settler
-  settler:give(ECS.Components.work, job)
+  settler:give(ECS.Components.work, job:get(ECS.Components.id).id)
   lume.remove(jobQueue, job)
 end
 
@@ -140,11 +141,19 @@ end
 -- TODO: Needs to prioritize stuff
 function SettlerSystem:assignJobsForSettlers(jobQueue)
   while true do
-    local availableWorker = lume.match(self.pool,
-    function(potentialSettler)
-      return not potentialSettler:has(ECS.Components.work)
+    local availableWorker = nil
+    for _, entity in ipairs(self.pool) do
+      if not entity:has(ECS.Components.work) then
+        availableWorker = entity
+        break
+      end
     end
-    )
+    --local availableWorker = lume.match(self.pool,
+    --function(potentialSettler)
+    --  --print("potentialSettler", potentialSettler, inspect(self.pool))
+    --  return not potentialSettler:has(ECS.Components.work)
+    --end
+    --)
 
     if not availableWorker then break end
     local nextJob = jobQueue[1]

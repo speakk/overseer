@@ -9,16 +9,18 @@ local debugFont = love.graphics.newFont(12)
 
 local ui
 
-local SerializationSystem = ECS.System({ECS.Components.serialize}, {ECS.Components.id, 'ids'})
+local SerializationSystem = ECS.System({ECS.Components.id, 'ids'})
 
 local function onIdAdded(pool, entity) --luacheck: ignore
   local id = entity:get(ECS.Components.id).id
-  entityReferenceManager.set(id, entity)
+  entityReferenceManager.onEntityAdded(entity)
+  --entityReferenceManager.set(id, entity)
 end
 
 local function onIdRemoved(pool, entity) --luacheck: ignore
   local id = entity:get(ECS.Components.id).id
-  entityReferenceManager.removeByEntity(entity)
+  entityReferenceManager.onEntityRemoved(entity)
+  --entityReferenceManager.removeByEntity(entity, id)
 end
 
 local function serializeComponent(component)
@@ -51,8 +53,9 @@ end
 local function serializeEntities(entities)
   local serialized = {}
 
-  for _, entity in ipairs(entities) do
+  for _, entity in pairs(entities) do
     local id = entity:get(ECS.Components.id).id
+    print("OKAY ID", id)
     serialized[id] = serializeEntity(entity)
   end
 
@@ -102,6 +105,7 @@ function SerializationSystem:saveGame(filename)
   local state, insp = self:serializeState()
   love.filesystem.write(filename, state)
   love.filesystem.write('savetestPlain', insp)
+  print("Saved?", filename)
 end
 
 function SerializationSystem:loadGame(saveName)

@@ -5,6 +5,12 @@ local constructionTypes = require('data.constructionTypes')
 
 local ItemUtils = {}
 
+function ItemUtils:load(world)
+  print("Setting world as", world)
+  self.world = world
+end
+
+
 --local itemsOnGround = {}
 
 -- local world
@@ -12,12 +18,6 @@ local ItemUtils = {}
 -- function ItemUtils.init(newWorld)
 --   world = newWorld
 -- end
-
-function ItemUtils.getInventoryItemBySelector(inventory, selector) -- luacheck: ignore
-  local itemEnt = lume.match(inventory, function(itemInInv)
-    return itemInInv:get(ECS.Components.item).selector == selector end)
-  return itemEnt
-end
 
 -- Return item, wasSplit
 function ItemUtils.splitItemStackIfNeeded(item, amount)
@@ -42,13 +42,17 @@ function ItemUtils.createItem(selector, amount)
   local itemData = constructionTypes.getBySelector(selector)
   --local color = itemData.color or { 0.5, 0.5, 0.5 }
   item:give(ECS.Components.item, itemData, selector)
-  :give(ECS.Components.sprite, itemData.sprite)
   :give(ECS.Components.amount, amount)
   :give(ECS.Components.name, "Item: " .. selector)
-  :give(ECS.Components.serialize)
   :give(ECS.Components.id, entityReferenceManager.generateId())
 
-  --world:addEntity(item)
+  for _, component in ipairs(itemData.components) do
+    item:give(ECS.Components[component.name], unpack(component.properties))
+  end
+
+  print("Adding to world", item:get(ECS.Components.id).id)
+  ItemUtils.world:addEntity(item)
+  ItemUtils.world:__flush()
 
   return item
 end
@@ -64,31 +68,31 @@ end
 -- end
 
 
-function ItemUtils.popInventoryItemBySelector(inventory, selector, amount)
-  local originalItem = ItemUtils.getInventoryItemBySelector(inventory, selector)
-  print("Getting selection", selector, originalItem)
-  if not originalItem then return end
-  local item, wasSplit = ItemUtils.splitItemStackIfNeeded(originalItem, amount)
-  if not wasSplit then
-    lume.remove(inventory, item)
-  end
-
-  return item
-end
+-- function ItemUtils.popInventoryItemBySelector(inventory, selector, amount)
+--   local originalItem = ItemUtils.getInventoryItemBySelector(inventory, selector)
+--   print("Getting selection", selector, originalItem)
+--   if not originalItem then return end
+--   local item, wasSplit = ItemUtils.splitItemStackIfNeeded(originalItem, amount)
+--   if not wasSplit then
+--     lume.remove(inventory, item)
+--   end
+-- 
+--   return item
+-- end
 
 -- TODO: Take amount away from item? Take away "amount" from parameters
-function ItemUtils.putItemIntoInventory(inventory, item, amount)
-  local itemEnt = lume.match(inventory, function(itemInInv)
-    return itemInInv:get(ECS.Components.item).selector == selector
-  end)
-
-  if itemEnt then
-    local existingAmount = itemEnt:get(ECS.Components.amount).amount 
-    existingAmount = existingAmount + amount
-    itemEnt:get(ECS.Components.amount).amount = existingAmount
-  else
-    table.insert(inventory, item)
-  end
-end
+-- function ItemUtils.putItemIntoInventory(inventory, item, amount)
+--   local itemEnt = lume.match(inventory, function(itemInInv)
+--     return itemInInv:get(ECS.Components.item).selector == selector
+--   end)
+-- 
+--   if itemEnt then
+--     local existingAmount = itemEnt:get(ECS.Components.amount).amount 
+--     existingAmount = existingAmount + amount
+--     itemEnt:get(ECS.Components.amount).amount = existingAmount
+--   else
+--     table.insert(inventory, item)
+--   end
+-- end
 
 return ItemUtils

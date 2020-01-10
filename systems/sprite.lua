@@ -3,6 +3,7 @@ local utils = require('utils.utils')
 local universe = require('models.universe')
 local media = require('utils.media')
 local Vector = require('libs.brinevector')
+local entityReferenceManager = require('models.entityReferenceManager')
 
 local SpriteSystem = ECS.System({ECS.Components.sprite, ECS.Components.position})
 
@@ -88,7 +89,8 @@ function SpriteSystem:generateGUIDraw()
         local inventory = entity:get(ECS.Components.inventory).inventory
         local invIndex = 0
         local lineSpace = 10
-        for _, item in ipairs(inventory) do
+        for _, itemId in ipairs(inventory) do
+          local item = entityReferenceManager.getEntity(itemId)
           local amount = item:get(ECS.Components.amount).amount
           local selector = item:get(ECS.Components.item).selector
           love.graphics.setColor(1, 1, 1, 1)

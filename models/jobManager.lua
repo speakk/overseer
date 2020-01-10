@@ -1,9 +1,12 @@
+local entityReferenceManager = require('models.entityReferenceManager')
+
 local function getFirstSubJob(job)
   local allChildrenFinished = true
 
   if job:has(ECS.Components.children) then
     local children = job:get(ECS.Components.children).children
-    for _, child in ipairs(children) do
+    for _, childId in ipairs(children) do
+      local child = entityReferenceManager.getEntity(childId)
       local firstChildJob = getFirstSubJob(child)
       if firstChildJob then
         local firstChildJobComponent = firstChildJob:get(ECS.Components.job)

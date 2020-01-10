@@ -6,7 +6,7 @@ local data = {
     subItems = {
       wooden_wall = {
         name = "Wooden wall",
-        sprite = "tiles.wall_wood01",
+        components = { { name = "sprite", properties = { "tiles.wall_wood01" } } },
         requirements = {
           ["raw_materials.wood"] = 2
         },
@@ -15,7 +15,7 @@ local data = {
       },
       iron_wall = {
         name = "Iron wall",
-        sprite = "tiles.wall_iron01",
+        components = { { name = "sprite", properties = { "tiles.wall_iron01" } } },
         requirements = {
           ["raw_materials.steel"] = 1,
           ["raw_materials.wood"] = 1
@@ -30,7 +30,7 @@ local data = {
     subItems = {
       wooden_door = {
         name = "Wooden door",
-        sprite = "tiles.door_wood01",
+        components = { { name = "sprite", properties = { "tiles.door_wood01" } } },
         requirements = {
           ["raw_materials.wood"] = 1
         },
@@ -39,7 +39,7 @@ local data = {
       },
       stone_door = {
         name = "Stone door",
-        sprite = "tiles.wall_stone01",
+        components = { { name = "sprite", properties = { "tiles.wall_stone01" } } },
         requirements = {
           ["raw_materials.stone"] = 1
         },
@@ -53,14 +53,15 @@ local data = {
     subItems = {
       torch = {
         name = "Torch",
-        sprite = "items.torch01",
         constructionSpeed = 5,
         requirements = {
           ["raw_materials.wood"] = 1
         },
         components = {
+          { name = "sprite", properties = { "items.torch01" } },
           {
             name = "light",
+            afterConstructed = true,
             properties = { { 1.0, 1.0, 0.5 } }
           }
         }
@@ -80,24 +81,61 @@ local data = {
       }
     }
   },
+  growing = {
+    name = "Grow",
+    subItems = {
+      potato = {
+        name = "Potato",
+        requirements = {
+          ["seeds.potato_seed"] = 1
+        },
+        components = {
+          {
+            name = "plant",
+            afterConstructed = true
+          },
+          {
+            name = "animation",
+            frames = {
+              "potato_phase_1",
+              "potato_phase_2",
+              "potato_phase_3",
+              "potato_phase_4",
+            }
+          }
+        }
+      }
+    }
+  },
   raw_materials = {
     name = "Raw materials",
+    hideFromMenu = true,
     subItems = {
       wood = {
         name = "Wood",
-        sprite = "resources.wood01"
+        components = { { name = "sprite", properties = { "resources.wood01" } } }
       },
       iron = {
         name = "Iron",
-        sprite = "resources.iron01"
+        components = { { name = "sprite", properties = { "resources.iron01" } } }
       },
       stone = {
         name = "Stone",
-        sprite = "resources.stone01"
+        components = { { name = "sprite", properties = { "resources.stone01" } } }
       },
       steel = {
         name = "Steel",
-        sprite = "resources.steel01"
+        components = { { name = "sprite", properties = { "resources.steel01" } } }
+      }
+    }
+  },
+  seeds = {
+    name = "Seeds",
+    hideFromMenu = true,
+    subItems = {
+      potato_seed = {
+        name = "Potato seed",
+        components = { { name = "sprite", properties = { "seeds.potato01" } } }
       }
     }
   }

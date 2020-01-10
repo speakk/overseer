@@ -1,5 +1,6 @@
 local inspect = require('libs.inspect') --luacheck: ignore
 local Vector = require('libs.brinevector')
+local entityReferenceManager = require('models.entityReferenceManager')
 
 local universe = require('models.universe')
 local BluePrintSystem = ECS.System({ECS.Components.bluePrintJob, ECS.Components.job})
@@ -12,9 +13,10 @@ function BluePrintSystem:bluePrintsPlaced(nodes, constructionType, selector)
     for node, _ in nodes do
       local gridPosition = universe.clampToWorldBounds(Vector(node:getX(), node:getY()))
       if universe.isCellAvailable(gridPosition) then
-        local job = BluePrint.generate(gridPosition, constructionType, selector)
-        if job:has(ECS.Components.children) then
-          for _, child in ipairs(job:get(ECS.Components.children).children) do
+        local job, children = BluePrint.generate(gridPosition, constructionType, selector)
+        if children then
+          for _, child in ipairs(children) do
+            --local child = entityReferenceManager.getEntity(childId)
             self:getWorld():addEntity(child)
           end
         end
