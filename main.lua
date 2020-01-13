@@ -1,3 +1,7 @@
+local inspect = require('libs.inspect')
+limits = love.graphics.getSystemLimits( )
+print(inspect(limits))
+
 DEBUG = false
 local PROFILER = false
 

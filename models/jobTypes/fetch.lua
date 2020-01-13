@@ -30,6 +30,11 @@ local function handle(self, job, settler, dt) --luacheck: ignore
   local targetId = job:get(ECS.Components.fetchJob).targetId
   --print("TARGETID", targetId)
   local target = entityReferenceManager.getEntity(targetId)
+  if not target then
+    fetch:destroy()
+    return
+  end
+
   local selector = fetch.selector
   local gridPosition = universe.pixelsToGridCoordinates(settler:get(ECS.Components.position).vector)
   local itemData = job:get(ECS.Components.item).itemData
@@ -78,7 +83,7 @@ local function handle(self, job, settler, dt) --luacheck: ignore
     local itemInCurrentLocation = universe.getItemFromGround(selector, gridPosition)
     local item
     local foundNeeded = false
-    settler.searched_for_path = true
+    --settler.searched_for_path = true
     if itemInCurrentLocation then
       print("itemInCurrentLocation")
       item = universe.takeItemFromGround(itemInCurrentLocation, amount)

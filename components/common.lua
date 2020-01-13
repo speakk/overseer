@@ -233,8 +233,8 @@ local function initializeComponents()
 
   local bluePrintJob = ECS.Component(function(e, constructionSpeed, materialsConsumed, buildProgress)
     e.constructionSpeed = constructionSpeed or 1
-    e.materialsConsumed = {} or materialsConsumed
-    e.buildProgress = 0 or buildProgress -- 0/100
+    e.materialsConsumed = materialsConsumed or {}
+    e.buildProgress = buildProgress or 0 -- 0/100
     e.customSerialize = function()
       return {
         constructionSpeed = e.constructionSpeed,
@@ -260,8 +260,8 @@ local function initializeComponents()
 
     e.customSerialize = function()
       local inv = {}
-      for _, entity in ipairs(e.inventory) do
-        table.insert(inv, entity:get(ECS.Components.id).id)
+      for _, entityId in ipairs(e.inventory) do
+        table.insert(inv, entityId)
       end
       return { inventoryIds = inv }
     end
@@ -411,7 +411,7 @@ local function initializeComponents()
   end)
 
   rect.customDeserialize = function(data)
-    return square:__initialize(data.x1, data.y1, data.x2, data.y2)
+    return rect:__initialize(data.x1, data.y1, data.x2, data.y2)
   end
 
   ECS.Components.register("rect", rect)

@@ -13,7 +13,7 @@ function ItemSystem:initializeTestItems(mapSize)
     raw_materials = { "wood", "iron", "stone", "steel" }
   }
 
-  for i=1,5,1 do  --luacheck: ignore
+  for i=1,20,1 do  --luacheck: ignore
     local position = Vector(math.random(mapSize.x), math.random(mapSize.y))
     local keys1 = lume.keys(randomTable)
     local key = keys1[math.random(#keys1)]

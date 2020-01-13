@@ -60,9 +60,16 @@ end
 function SettlerSystem:processSettlerUpdate(settler, dt)
   if not settler:has(ECS.Components.path) then
     if settler:has(ECS.Components.work) then
-      if self:processSubJob(settler, settler:get(ECS.Components.work).jobId, dt) then
+      local jobId = settler:get(ECS.Components.work).jobId
+
+      if not entityReferenceManager.getEntity(jobId) then
+        settler:get(ECS.Components.work):destroy()
+        return
+      end
+
+      if self:processSubJob(settler, jobId, dt) then
         -- Finished
-        finishWork(self, settler, settler:get(ECS.Components.work).jobId)
+        finishWork(self, settler, jobId)
       end
     end
   end

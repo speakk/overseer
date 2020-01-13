@@ -1,0 +1,65 @@
+Jobs
+
+- Can have subjobs. And subjobs of subjobs.
+- Can be interrupted. And continued.
+- Can be cancelled.
+- Have a measure of progress
+
+Does a job have a person, or a person have a job?
+  - Job can be reserved, determine with job.reservedBy ?
+
+What if a subJob gets cancelled?
+For example:
+- A blueprint job has a fetch job
+  -> Fetch target gets destroyed
+  -> What happens? Options:
+    -> Fetch gets cancelled
+      -> Then we need to make a new fetchJob. Who is responsible for this and how to handle?
+    -> Fetch has a selector + amount for what it wants. Could just get a new target. << This seems like the correct solution. edit: NO!!!! Target refers to destination: Note: Probably rename "target" to Destination.
+
+  -> What if fetch path gets invalidated? Get a new path for the same resource if it exists.
+
+
+Job lifecycle, fetch as an example:
+  1) Job gets started. Has guaranteed: Selector + Amount + Destination
+  1b) If already have enough item in settler inventory, move to step 7
+
+  2) Try to find target for selector + amount.
+    -> If not found, do not search again unless something invalidated this state:
+      -> a) Map changes in some way. b) Items added onto map.
+    -> If found and in current location, get item, skip to 6
+
+  3) If found, try to create path.
+    -> If can't create path
+      -> Set cantReach=true for that particular potential destination
+      -> If more potential destinations, try next one
+    -> If no more potential destinations, set fetch itself as noTargets
+      -> Do not search again unless something invalidated this state. Look at a) and b) above for conditions
+
+  4) If created path, what to do?
+    -> Give settler a path?
+      -> How could we avoid knowing about the settler in fetch handling?
+      -> I guess in a generalized form fetch always has a "handler"
+
+    -- If settler has a path, jobs do not get processed --
+
+  5) When a path is finished!
+    -> Just by the virtue of path being deleted, fetch job can be continued?
+    -> Or should the path send an event "pathFinished"? Would jobsystem handle an event like this and re-start jobs?
+    -> How do we handle what state fetch should continue in? Check the conditions again?
+
+  6) Pick up the specified amount of target item.
+    -> What if one stack doesn't have enough?
+      -> Delete amount we have from "Amount" and Go to step 2, 
+
+  7) Have enough of item? Create a new path to Destination
+    -> No path to destination? 
+      -> Mark as cantReach
+      -> Abandon fetch? What happens if it's abandoned? Reset back to original state?
+  
+  8) Move to Destination.
+  9) Do what the fetch job end goal is:
+    - Do we express this how? Original thought was to insert into targetInventory.
+    - If original job has reference to Settler or whatever is doing the fetch, does the Doer decide what to do? How?
+    - Emit event that fetch is done with particular job and/or particular settler?
+      - Maybe jobSystem could direct this even to the correct parent job which is interested in the fetch job being finished, and thusly consume the resources

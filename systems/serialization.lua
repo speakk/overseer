@@ -126,7 +126,7 @@ function SerializationSystem:loadGame(saveName)
 
   self:getWorld():__flush()
 
-  entityReferenceManager.initializeReferences()
+  --entityReferenceManager.initializeReferences()
   --self:getWorld():enableSystem(settlerSystem)
 end
 

@@ -41,14 +41,16 @@ local test = {}
 -- 
 local function onEntityRemoved(entity)
   local id = entity:get(ECS.Components.id).id
-  if not id or not references[id] then return end
+  --if not id or not references[id] then return end
 
-  for _, onRemove in ipairs(references[id]) do
-    onRemove(id)
-  end
+  -- for _, onRemove in ipairs(references[id]) do
+  --   onRemove(id)
+  -- end
 
-  table.remove(references, id)
-  table.remove(entities, id)
+  -- table.remove(references, id)
+  -- table.remove(entities, id)
+  references[id] = nil
+  entities[id] = nil
 end
 
 local function onEntityAdded(entity)
