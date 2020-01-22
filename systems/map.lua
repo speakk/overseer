@@ -2,9 +2,9 @@ local universe = require('models.universe')
 local inspect = require('libs.inspect') --luacheck: ignore
 local Vector = require('libs.brinevector') --luacheck: ignore
 
-local MapSystem = ECS.System({ECS.Components.collision, "collision"},
-  {ECS.Components.onMap, ECS.Components.position, "onMap"},
-  {ECS.Components.onMap, ECS.Components.position, ECS.Components.item, "onMapItem"})
+local MapSystem = ECS.System({ECS.c.collision, "collision"},
+  {ECS.c.onMap, ECS.c.position, "onMap"},
+  {ECS.c.onMap, ECS.c.position, ECS.c.item, "onMapItem"})
 
 function MapSystem:init()
   self.collision.onEntityAdded = universe.onCollisionEntityAdded
@@ -26,10 +26,10 @@ end
 function MapSystem:cancelConstruction(entities)
   for _, entity in ipairs(entities) do
     -- TODO: Deal with proper removal of already constructed entities
-    -- if entity:has(ECS.Components.removeCallBack) then
-    --   entity:get(ECS.Components.removeCallBack).callBack()
+    -- if entity:has(ECS.c.removeCallBack) then
+    --   entity:get(ECS.c.removeCallBack).callBack()
     -- else
-      --entityReferenceManager.entityRemoved
+      --entityManager.entityRemoved
       self:getWorld():removeEntity(entity)
     --end
   end

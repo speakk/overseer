@@ -3,7 +3,7 @@ local Vector = require('libs.brinevector')
 local universe = require('models.universe')
 local camera = require('models.camera')
 
-local LightSystem = ECS.System({ECS.Components.light})
+local LightSystem = ECS.System({ECS.c.light})
 
 
 local lightGradientImage = love.graphics.newImage("media/misc/light_gradient.png")
@@ -29,13 +29,13 @@ end
 function LightSystem:initializeTestLights()
   for _=1,50 do
     local light = ECS.Entity()
-    light:give(ECS.Components.position,
+    light:give(ECS.c.position,
       universe.snapPixelToGrid(
         Vector(love.math.random(universeSize.x*cellSize)+32, love.math.random(universeSize.y*cellSize)+32)))
-    light:give(ECS.Components.sprite, "items.torch01")
-    --light:give(ECS.Components.light,
+    light:give(ECS.c.sprite, "items.torch01")
+    --light:give(ECS.c.light,
     --{ love.math.random(), love.math.random(), love.math.random() }, love.math.random(200))
-    light:give(ECS.Components.light,
+    light:give(ECS.c.light,
       { math.ceil(love.math.random()-0.5), math.ceil(love.math.random()-0.5), math.ceil(love.math.random()-0.5)}, 8)
     self:getWorld():addEntity(light)
   end
@@ -56,8 +56,8 @@ function LightSystem:lightsOrMapChanged()
   love.graphics.setBlendMode("add")
   love.graphics.setShader(radialLightShader)
   for _, light in ipairs(self.pool) do
-    local position = light:get(ECS.Components.position).vector
-    local color = light:get(ECS.Components.light).color
+    local position = light:get(ECS.c.position).vector
+    local color = light:get(ECS.c.light).color
     radialLightShader:send("color", color)
     love.graphics.draw(lightCircleImage,
       position.x-lightCircleImageWidth*lightCircleImageScale*0.5,
@@ -107,8 +107,8 @@ function LightSystem:renderLights(l, t, w, h, f) --luacheck: ignore
   love.graphics.setCanvas()
   love.graphics.setBlendMode("add")
   for _, light in ipairs(self.pool) do
-    local position = light:get(ECS.Components.position).vector
-    local color = light:get(ECS.Components.light).color
+    local position = light:get(ECS.c.position).vector
+    local color = light:get(ECS.c.light).color
     love.graphics.setColor(unpack(color))
     love.graphics.draw(lightGradientImage, 16+position.x-lightWidth/2, 16+position.y-lightHeight/2,
       0, lightScale, lightScale)

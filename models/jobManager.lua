@@ -1,15 +1,15 @@
-local entityReferenceManager = require('models.entityReferenceManager')
+local entityManager = require('models.entityManager')
 
 local function getFirstSubJob(job)
   local allChildrenFinished = true
 
-  if job:has(ECS.Components.children) then
-    local children = job:get(ECS.Components.children).children
+  if job:has(ECS.c.children) then
+    local children = job:get(ECS.c.children).children
     for _, childId in ipairs(children) do
-      local child = entityReferenceManager.getEntity(childId)
+      local child = entityManager.get(childId)
       local firstChildJob = getFirstSubJob(child)
       if firstChildJob then
-        local firstChildJobComponent = firstChildJob:get(ECS.Components.job)
+        local firstChildJobComponent = firstChildJob:get(ECS.c.job)
         if firstChildJobComponent then
           if not firstChildJobComponent.finished then
             allChildrenFinished = false
@@ -23,7 +23,7 @@ local function getFirstSubJob(job)
   end
 
   if allChildrenFinished then
-    local jobComponent = job:get(ECS.Components.job)
+    local jobComponent = job:get(ECS.c.job)
     if jobComponent then
       jobComponent.canStart = true
     end
@@ -33,12 +33,12 @@ local function getFirstSubJob(job)
 end
 local function getNextUnreservedJob(allJobs)
   for _, job in ipairs(jobs) do
-    if not job:has(ECS.Components.parent) then -- Only go through tree roots
-      local jobComponent = job:get(ECS.Components.job)
+    if not job:has(ECS.c.parent) then -- Only go through tree roots
+      local jobComponent = job:get(ECS.c.job)
       if not jobComponent.reserved and not jobComponent.finished then
         local firstSubJob = getFirstSubJob(job)
         if firstSubJob then
-          local subJobComponent = firstSubJob:get(ECS.Components.job)
+          local subJobComponent = firstSubJob:get(ECS.c.job)
           --return firstSubJob
           if not subJobComponent.finished and not subJobComponent.isInaccessible then
             if not subJobComponent.reserved and subJobComponent.canStart then return firstSubJob end
@@ -52,12 +52,12 @@ end
 local function getUnreservedJobs(jobs)
   local unreservedJobs = {}
   for _, job in ipairs(jobs) do
-    if not job:has(ECS.Components.parent) then -- Only go through tree roots
-      local jobComponent = job:get(ECS.Components.job)
+    if not job:has(ECS.c.parent) then -- Only go through tree roots
+      local jobComponent = job:get(ECS.c.job)
       if not jobComponent.reserved and not jobComponent.finished then
         local firstSubJob = getFirstSubJob(job)
         if firstSubJob then
-          local subJobComponent = firstSubJob:get(ECS.Components.job)
+          local subJobComponent = firstSubJob:get(ECS.c.job)
           --return firstSubJob
           if not subJobComponent.finished and not subJobComponent.isInaccessible then
             if not subJobComponent.reserved and subJobComponent.canStart then

@@ -1,7 +1,7 @@
 local universe = require('models.universe')
 local camera = require('models.camera')
 
-local entityReferenceManager = require('models.entityReferenceManager')
+local entityManager = require('models.entityManager')
 
 local Vector = require('libs.brinevector')
 local lume = require('libs.lume')
@@ -186,10 +186,10 @@ end
 
 function OverseerSystem:zones(nodes, rect)
   local zoneEntity = ECS.Entity()
-  zoneEntity:give(ECS.Components.id, entityReferenceManager.generateId())
-  zoneEntity:give(ECS.Components.zone)
-  zoneEntity:give(ECS.Components.color, zoneColor)
-  zoneEntity:give(ECS.Components.rect, rect.x1, rect.y1, rect.x2, rect.y2)
+  zoneEntity:give(ECS.c.id, entityManager.generateId())
+  zoneEntity:give(ECS.c.zone)
+  zoneEntity:give(ECS.c.color, zoneColor)
+  zoneEntity:give(ECS.c.rect, rect.x1, rect.y1, rect.x2, rect.y2)
 
   self:getWorld():addEntity(zoneEntity)
 end

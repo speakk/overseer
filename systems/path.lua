@@ -1,6 +1,6 @@
 local Vector = require('libs.brinevector')
 local universe = require('models.universe')
-local PathSystem = ECS.System({ECS.Components.path, ECS.Components.position})
+local PathSystem = ECS.System({ECS.c.path, ECS.c.position})
 
 
 function PathSystem:update(dt)
@@ -10,8 +10,8 @@ function PathSystem:update(dt)
 end
 
 function PathSystem:processPathFinding(entity) --luacheck: ignore
-  local pathComponent = entity:get(ECS.Components.path)
-  local velocityComponent = entity:get(ECS.Components.velocity)
+  local pathComponent = entity:get(ECS.c.path)
+  local velocityComponent = entity:get(ECS.c.velocity)
 
   velocityComponent.vector = Vector(0, 0)
 
@@ -19,7 +19,7 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
     return
   end
 
-  local position = entity:get(ECS.Components.position).vector
+  local position = entity:get(ECS.c.position).vector
   local nextGridPosition
 
   for node, count in pathComponent.path:nodes() do
@@ -43,7 +43,7 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
         --   pathComponent.path.finishedCallBack()
         -- end
         print("Finished so removing path")
-        entity:remove(ECS.Components.path)
+        entity:remove(ECS.c.path)
       end
     end
     velocityComponent.vector = velocityComponent.vector.normalized

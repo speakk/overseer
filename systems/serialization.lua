@@ -3,24 +3,24 @@ local nuklear = require("nuklear")
 local bitser = require('libs.bitser')
 local inspect = require('libs.inspect')
 local settings = require('settings')
-local entityReferenceManager = require('models.entityReferenceManager')
+local entityManager = require('models.entityManager')
 
 local debugFont = love.graphics.newFont(12)
 
 local ui
 
-local SerializationSystem = ECS.System({ECS.Components.id, 'ids'})
+local SerializationSystem = ECS.System({ECS.c.id, 'ids'})
 
 local function onIdAdded(pool, entity) --luacheck: ignore
-  local id = entity:get(ECS.Components.id).id
-  entityReferenceManager.onEntityAdded(entity)
-  --entityReferenceManager.set(id, entity)
+  local id = entity:get(ECS.c.id).id
+  entityManager.onEntityAdded(entity)
+  --entityManager.set(id, entity)
 end
 
 local function onIdRemoved(pool, entity) --luacheck: ignore
-  local id = entity:get(ECS.Components.id).id
-  entityReferenceManager.onEntityRemoved(entity)
-  --entityReferenceManager.removeByEntity(entity, id)
+  local id = entity:get(ECS.c.id).id
+  entityManager.onEntityRemoved(entity)
+  --entityManager.removeByEntity(entity, id)
 end
 
 local function serializeComponent(component)
@@ -54,7 +54,7 @@ local function serializeEntities(entities)
   local serialized = {}
 
   for _, entity in pairs(entities) do
-    local id = entity:get(ECS.Components.id).id
+    local id = entity:get(ECS.c.id).id
     print("OKAY ID", id)
     serialized[id] = serializeEntity(entity)
   end
@@ -70,9 +70,9 @@ end
 
 function SerializationSystem:serializeState() --luacheck: ignore
   return bitser.dumps({
-    entities = serializeEntities(entityReferenceManager.getEntities())
+    entities = serializeEntities(entityManager.getEntities())
   }),
-  inspect(serializeEntities(entityReferenceManager.getEntities()))
+  inspect(serializeEntities(entityManager.getEntities()))
 end
 
 local function deserializeEntities(entityShells)
@@ -81,7 +81,7 @@ local function deserializeEntities(entityShells)
   for id, entityShell in pairs(entityShells) do
     local entity = ECS.Entity()
     for componentName, componentData in pairs(entityShell.components) do
-      local baseComponent = ECS.Components[componentName]
+      local baseComponent = ECS.c[componentName]
       if baseComponent["customDeserialize"] then
         local component = baseComponent.customDeserialize(componentData)
         entity:givePopulated(component)
@@ -114,7 +114,7 @@ function SerializationSystem:loadGame(saveName)
   --local settlerSystem = self:getWorld():getSystem(ECS.Systems.settler)
   --self:getWorld():disableSystem(settlerSystem)
   self:getWorld():clear()
-  entityReferenceManager.clear()
+  entityManager.clear()
   self:getWorld():__flush()
 
   local file = love.filesystem.read(saveName)
@@ -126,7 +126,7 @@ function SerializationSystem:loadGame(saveName)
 
   self:getWorld():__flush()
 
-  --entityReferenceManager.initializeReferences()
+  --entityManager.initializeReferences()
   --self:getWorld():enableSystem(settlerSystem)
 end
 
@@ -134,17 +134,17 @@ function createEntityHierarchy(entity, depthLimit, depth)
   depth = depth + 1
   if depth > depthLimit then return nil end
 
-  if depth == 0 and entity:has(ECS.Components.parent) then return nil end
+  if depth == 0 and entity:has(ECS.c.parent) then return nil end
 
-  local id = tostring(entity:get(ECS.Components.id).id) .. " / " .. tostring(entity)
-  if entity:has(ECS.Components.children) then
+  local id = tostring(entity:get(ECS.c.id).id) .. " / " .. tostring(entity)
+  if entity:has(ECS.c.children) then
     id = id .. "*"
   end
-  if entity:has(ECS.Components.name) then
-    id = id .. " (" .. entity:get(ECS.Components.name).name .. ")"
+  if entity:has(ECS.c.name) then
+    id = id .. " (" .. entity:get(ECS.c.name).name .. ")"
   end
   if ui:treePush('tab', id) then
-    if not entity:has(ECS.Components.children) then
+    if not entity:has(ECS.c.children) then
       local components = entity:getComponents()
       for cid, component in pairs(components) do
         local selected = false
@@ -158,7 +158,7 @@ function createEntityHierarchy(entity, depthLimit, depth)
         end
       end
     else
-      for _, kid in ipairs(entity:get(ECS.Components.children).children) do
+      for _, kid in ipairs(entity:get(ECS.c.children).children) do
         createEntityHierarchy(kid, depthLimit, depth)
       end
     end
@@ -179,7 +179,7 @@ function SerializationSystem:update(dt)
   local entityWindowHeight = windowHeight
 
   if ui:windowBegin('entityWindow', windowWidth-entityWindowWidth, 0, entityWindowWidth, entityWindowHeight, 'scrollbar') then
-    for id, entity in pairs(entityReferenceManager.getEntities()) do
+    for id, entity in pairs(entityManager.getEntities()) do
       createEntityHierarchy(entity, 4, 0)
     end
     ui:windowEnd()

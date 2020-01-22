@@ -1,6 +1,6 @@
 local lume = require('libs.lume')
 local inspect = require('libs.inspect') -- luacheck: ignore
-local entityReferenceManager = require('models.entityReferenceManager')
+local entityManager = require('models.entityManager')
 local constructionTypes = require('data.constructionTypes')
 
 local ItemUtils = {}
@@ -22,16 +22,16 @@ end
 -- Return item, wasSplit
 function ItemUtils.splitItemStackIfNeeded(item, amount)
   if not item then error("Trying to split nil item") end
-  local currentAmount = item:get(ECS.Components.amount).amount
+  local currentAmount = item:get(ECS.c.amount).amount
   local diff = currentAmount - amount
   if diff <= 0 then
     return item, false
   end
 
-  local selector = item:get(ECS.Components.item).selector
-  item:give(ECS.Components.amount, diff)
+  local selector = item:get(ECS.c.item).selector
+  item:give(ECS.c.amount, diff)
   local itemCopy = ItemUtils.createItem(selector, amount)
-  itemCopy:give(ECS.Components.amount, amount)
+  itemCopy:give(ECS.c.amount, amount)
   return itemCopy, true
 end
 
@@ -41,16 +41,16 @@ function ItemUtils.createItem(selector, amount)
   local item = ECS.Entity()
   local itemData = constructionTypes.getBySelector(selector)
   --local color = itemData.color or { 0.5, 0.5, 0.5 }
-  item:give(ECS.Components.item, itemData, selector)
-  :give(ECS.Components.amount, amount)
-  :give(ECS.Components.name, "Item: " .. selector)
-  :give(ECS.Components.id, entityReferenceManager.generateId())
+  item:give(ECS.c.item, itemData, selector)
+  :give(ECS.c.amount, amount)
+  :give(ECS.c.name, "Item: " .. selector)
+  :give(ECS.c.id, entityManager.generateId())
 
   for _, component in ipairs(itemData.components) do
-    item:give(ECS.Components[component.name], unpack(component.properties))
+    item:give(ECS.c[component.name], unpack(component.properties))
   end
 
-  print("Adding to world", item:get(ECS.Components.id).id)
+  print("Adding to world", item:get(ECS.c.id).id)
   ItemUtils.world:addEntity(item)
   ItemUtils.world:__flush()
 
@@ -58,12 +58,12 @@ function ItemUtils.createItem(selector, amount)
 end
 
 -- function ItemUtils.placeItemOnGround(item, gridPosition) --luacheck: ignore
---   local selector = item:get(ECS.Components.item).selector
+--   local selector = item:get(ECS.c.item).selector
 --   if not itemsOnGround[selector] then
 --     itemsOnGround[selector] = {}
 --   end
 -- 
---   item:give(ECS.Components.position, universe.gridPositionToPixels(gridPosition))
+--   item:give(ECS.c.position, universe.gridPositionToPixels(gridPosition))
 --   table.insert(itemsOnGround[selector], item)
 -- end
 
@@ -83,13 +83,13 @@ end
 -- TODO: Take amount away from item? Take away "amount" from parameters
 -- function ItemUtils.putItemIntoInventory(inventory, item, amount)
 --   local itemEnt = lume.match(inventory, function(itemInInv)
---     return itemInInv:get(ECS.Components.item).selector == selector
+--     return itemInInv:get(ECS.c.item).selector == selector
 --   end)
 -- 
 --   if itemEnt then
---     local existingAmount = itemEnt:get(ECS.Components.amount).amount 
+--     local existingAmount = itemEnt:get(ECS.c.amount).amount 
 --     existingAmount = existingAmount + amount
---     itemEnt:get(ECS.Components.amount).amount = existingAmount
+--     itemEnt:get(ECS.c.amount).amount = existingAmount
 --   else
 --     table.insert(inventory, item)
 --   end

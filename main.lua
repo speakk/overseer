@@ -9,7 +9,7 @@ local Concord = require("libs.concord")
 
 ECS = {}
 ECS.Component = Concord.component
-ECS.Components = Concord.components
+ECS.c = Concord.components
 ECS.System = Concord.system
 ECS.Systems = Concord.systems
 ECS.World = Concord.world

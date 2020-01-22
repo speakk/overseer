@@ -2,7 +2,7 @@ local Vector = require('libs.brinevector')
 local universe = require('models.universe')
 local camera = require('models.camera')
 
-local ZoneSystem = ECS.System({ECS.Components.zone, ECS.Components.rect})
+local ZoneSystem = ECS.System({ECS.c.zone, ECS.c.rect})
 
 function ZoneSystem:init()
 
@@ -11,7 +11,7 @@ end
 function ZoneSystem:generateGUIDraw()
   -- TODO: Optimize the _heck_ out of this. Possibly store pixel coords in rect component and then just draw here
   for _, entity in ipairs(self.pool) do
-    local rect = entity:get(ECS.Components.rect)
+    local rect = entity:get(ECS.c.rect)
 
     local left = math.min(rect.x1, rect.x2)
     local top = math.min(rect.y1, rect.y2)
@@ -20,8 +20,8 @@ function ZoneSystem:generateGUIDraw()
     local startPoint = universe.gridPositionToPixels(Vector(left, top), "left_top", 0)
     local endPoint = universe.gridPositionToPixels(Vector(right, bottom), "right_bottom", 0)
 
-    if entity:has(ECS.Components.color) then
-      love.graphics.setColor(unpack(entity:get(ECS.Components.color).color))
+    if entity:has(ECS.c.color) then
+      love.graphics.setColor(unpack(entity:get(ECS.c.color).color))
     else
       love.graphics.setColor(1, 1, 1, 1)
     end
@@ -33,8 +33,8 @@ function ZoneSystem:generateGUIDraw()
       endPoint.y - startPoint.y
     )
 
-    if entity:has(ECS.Components.color) then
-      local color = { unpack(entity:get(ECS.Components.color).color) }
+    if entity:has(ECS.c.color) then
+      local color = { unpack(entity:get(ECS.c.color).color) }
       color[4] = 0.1
       love.graphics.setColor(color)
     else

@@ -70,19 +70,19 @@ function universe.getSize()
 end
 
 function universe.onCollisionEntityAdded(pool, entity) --luacheck: ignore
-  local position = universe.pixelsToGridCoordinates(entity:get(ECS.Components.position).vector)
+  local position = universe.pixelsToGridCoordinates(entity:get(ECS.c.position).vector)
   map[position.y][position.x] = 1
   gridInvalidated = true
 end
 
 function universe.onCollisionEntityRemoved(pool, entity)
-    local position = universe.pixelsToGridCoordinates(entity:get(ECS.Components.position).vector)
+    local position = universe.pixelsToGridCoordinates(entity:get(ECS.c.position).vector)
     map[position.y][position.x] = 0
     gridInvalidated = true
 end
 
 function universe.onOnMapEntityAdded(pool, entity)
-  local pixelPosition = entity:get(ECS.Components.position).vector
+  local pixelPosition = entity:get(ECS.c.position).vector
   local position = universe.pixelsToGridCoordinates(pixelPosition)
   local posString = position.x .. ":" .. position.y
   if not entityPosMap[posString] then
@@ -93,7 +93,7 @@ function universe.onOnMapEntityAdded(pool, entity)
 end
 
 function universe.onOnMapItemAdded(pool, entity)
-  local itemComponent = entity:get(ECS.Components.item)
+  local itemComponent = entity:get(ECS.c.item)
   local selector = itemComponent.selector
   if not entitySelectorMap[selector] then
     entitySelectorMap[selector] = {}
@@ -103,7 +103,7 @@ function universe.onOnMapItemAdded(pool, entity)
 end
 
 function universe.onOnMapItemRemoved(pool, entity)
-  local itemComponent = entity:get(ECS.Components.item)
+  local itemComponent = entity:get(ECS.c.item)
   local selector = itemComponent.selector
 
   local items = entitySelectorMap[selector]
@@ -113,8 +113,8 @@ function universe.onOnMapItemRemoved(pool, entity)
 end
 
 function universe.onOnMapEntityRemoved(pool, entity)
-  if not entity:has(ECS.Components.position) then return end
-  local positionComponent = entity:get(ECS.Components.position)
+  if not entity:has(ECS.c.position) then return end
+  local positionComponent = entity:get(ECS.c.position)
   local positionPixels = positionComponent.vector
   local position = universe.pixelsToGridCoordinates(positionPixels)
   local posString = position.x .. ":" .. position.y
@@ -308,7 +308,7 @@ function universe.getItemFromGround(itemSelector, gridPosition) --luacheck: igno
   if not items then return nil end
 
   for _, item in ipairs(items) do
-    local position = universe.pixelsToGridCoordinates(item:get(ECS.Components.position).vector)
+    local position = universe.pixelsToGridCoordinates(item:get(ECS.c.position).vector)
     if universe.isInPosition(gridPosition, position, true) then
       return item
     end
@@ -318,13 +318,13 @@ function universe.getItemFromGround(itemSelector, gridPosition) --luacheck: igno
 end
 
 function universe.takeItemFromGround(originalItem, amount)
-  local selector = originalItem:get(ECS.Components.item).selector
+  local selector = originalItem:get(ECS.c.item).selector
   local item, wasSplit = itemUtils.splitItemStackIfNeeded(originalItem, amount)
 
   if not wasSplit then
     lume.remove(entitySelectorMap[selector], originalItem)
-    originalItem:remove(ECS.Components.position)
-    originalItem:remove(ECS.Components.onMap)
+    originalItem:remove(ECS.c.position)
+    originalItem:remove(ECS.c.onMap)
   end
 
   return item

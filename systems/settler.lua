@@ -5,12 +5,12 @@ local media = require('utils.media')
 local universe = require('models.universe')
 local jobManager = require('models.jobManager')
 local jobHandlers = require('models.jobTypes.jobTypes')
-local entityReferenceManager = require('models.entityReferenceManager')
+local entityManager = require('models.entityManager')
 
 local settlerSpeed = 200
 
-local SettlerSystem = ECS.System({ECS.Components.settler, ECS.Components.worker,
-ECS.Components.position, ECS.Components.velocity}, {ECS.Components.job, 'jobs'})
+local SettlerSystem = ECS.System({ECS.c.settler, ECS.c.worker,
+ECS.c.position, ECS.c.velocity}, {ECS.c.job, 'jobs'})
 
 function SettlerSystem:init()
   self.lastAssigned = 0
@@ -45,9 +45,9 @@ function SettlerSystem:update(dt) --luacheck: ignore
 end
 
 local function finishWork(self, settler, jobId)
-  local job = entityReferenceManager.getEntity(jobId)
-  settler:remove(ECS.Components.work)
-  local jobType = job:get(ECS.Components.job).jobType
+  local job = entityManager.get(jobId)
+  settler:remove(ECS.c.work)
+  local jobType = job:get(ECS.c.job).jobType
   if jobHandlers[jobType]["finish"] then
     jobHandlers[jobType].finish(job)
   end
@@ -58,12 +58,12 @@ function SettlerSystem:pathFinished(entity)
 end
 
 function SettlerSystem:processSettlerUpdate(settler, dt)
-  if not settler:has(ECS.Components.path) then
-    if settler:has(ECS.Components.work) then
-      local jobId = settler:get(ECS.Components.work).jobId
+  if not settler:has(ECS.c.path) then
+    if settler:has(ECS.c.work) then
+      local jobId = settler:get(ECS.c.work).jobId
 
-      if not entityReferenceManager.getEntity(jobId) then
-        settler:get(ECS.Components.work):destroy()
+      if not entityManager.get(jobId) then
+        settler:get(ECS.c.work):destroy()
         return
       end
 
@@ -78,21 +78,21 @@ end
 function SettlerSystem:gridUpdated()
   for _, settler in ipairs(self.pool) do
     -- Invalidate paths
-    if settler:has(ECS.Components.path) then
-      local path = settler:get(ECS.Components.path).path
+    if settler:has(ECS.c.path) then
+      local path = settler:get(ECS.c.path).path
       if not universe.pathStillValid(path) then
-        settler:remove(ECS.Components.path)
+        settler:remove(ECS.c.path)
         settler.searched_for_path = false
         print("Path was not valid, setting 'searched_for_path' to false")
       end
     else
       -- Make sure current location is valid
-      local position = settler:get(ECS.Components.position).vector
+      local position = settler:get(ECS.c.position).vector
       local gridCoordinates = universe.pixelsToGridCoordinates(position)
       if not universe.isCellAvailable(gridCoordinates) then
         local newPath = universe.findPathToClosestEmptyCell(gridCoordinates)
         if newPath then
-          settler:give(ECS.Components.path, newPath)
+          settler:give(ECS.c.path, newPath)
         end
       end
     end
@@ -101,8 +101,8 @@ function SettlerSystem:gridUpdated()
 end
 
 function SettlerSystem:processSubJob(settler, jobId, dt)
-  local job = entityReferenceManager.getEntity(jobId)
-  local jobType = job:get(ECS.Components.job).jobType
+  local job = entityManager.get(jobId)
+  local jobType = job:get(ECS.c.job).jobType
   local jobHandler = jobHandlers[jobType].handle
   if jobHandler then
     return jobHandler(self, job, settler, dt, finishWork)
@@ -121,23 +121,23 @@ function SettlerSystem:initializeTestSettlers()
       end
     end
 
-    settler:give(ECS.Components.position, universe.gridPositionToPixels(position))
-    --:give(ECS.Components.draw, {1,1,0})
-    :give(ECS.Components.sprite, 'characters.settler')
-    :give(ECS.Components.id, entityReferenceManager.generateId())
-    :give(ECS.Components.settler)
-    :give(ECS.Components.speed, 300)
-    :give(ECS.Components.name, "Settler")
-    :give(ECS.Components.inventory)
-    :give(ECS.Components.worker)
-    :give(ECS.Components.velocity)
+    settler:give(ECS.c.position, universe.gridPositionToPixels(position))
+    --:give(ECS.c.draw, {1,1,0})
+    :give(ECS.c.sprite, 'characters.settler')
+    :give(ECS.c.id, entityManager.generateId())
+    :give(ECS.c.settler)
+    :give(ECS.c.speed, 300)
+    :give(ECS.c.name, "Settler")
+    :give(ECS.c.inventory)
+    :give(ECS.c.worker)
+    :give(ECS.c.velocity)
     self:getWorld():addEntity(settler)
   end
 end
 
 function SettlerSystem:startJob(settler, job, jobQueue) -- luacheck: ignore
-  job:get(ECS.Components.job).reserved = settler
-  settler:give(ECS.Components.work, job:get(ECS.Components.id).id)
+  job:get(ECS.c.job).reserved = settler
+  settler:give(ECS.c.work, job:get(ECS.c.id).id)
   lume.remove(jobQueue, job)
 end
 
@@ -150,7 +150,7 @@ function SettlerSystem:assignJobsForSettlers(jobQueue)
   while true do
     local availableWorker = nil
     for _, entity in ipairs(self.pool) do
-      if not entity:has(ECS.Components.work) then
+      if not entity:has(ECS.c.work) then
         availableWorker = entity
         break
       end
@@ -158,7 +158,7 @@ function SettlerSystem:assignJobsForSettlers(jobQueue)
     --local availableWorker = lume.match(self.pool,
     --function(potentialSettler)
     --  --print("potentialSettler", potentialSettler, inspect(self.pool))
-    --  return not potentialSettler:has(ECS.Components.work)
+    --  return not potentialSettler:has(ECS.c.work)
     --end
     --)
 
@@ -174,10 +174,10 @@ end
 function SettlerSystem:cancelConstruction(entities)
   for _, job in ipairs(entities) do
     for _, settler in ipairs(self.pool) do
-      if settler:has(ECS.Components.work) then
-        local settlerJob = settler:get(ECS.Components.work).job
+      if settler:has(ECS.c.work) then
+        local settlerJob = settler:get(ECS.c.work).job
         if job == settlerJob then
-          settler:remove(ECS.Components.work)
+          settler:remove(ECS.c.work)
           break
         end
       end

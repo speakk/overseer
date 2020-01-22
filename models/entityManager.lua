@@ -29,7 +29,7 @@ local test = {}
 --     compstring = compstring ..  component:getName() .. " | "
 --   end
 --   if entities[id] then
---     error ("Id already exists in entityReferenceManager, id: " .. tostring(id) .. " / " .. tostring(entity))
+--     error ("Id already exists in entityManager, id: " .. tostring(id) .. " / " .. tostring(entity))
 --   end
 --   entities[id] = entity
 --   print("Adding", id, entities[id], entity)
@@ -40,7 +40,7 @@ local test = {}
 -- end
 -- 
 local function onEntityRemoved(entity)
-  local id = entity:get(ECS.Components.id).id
+  local id = entity:get(ECS.c.id).id
   --if not id or not references[id] then return end
 
   -- for _, onRemove in ipairs(references[id]) do
@@ -54,7 +54,7 @@ local function onEntityRemoved(entity)
 end
 
 local function onEntityAdded(entity)
-  local id = entity:get(ECS.Components.id).id
+  local id = entity:get(ECS.c.id).id
   if not id then error "No ID for entity on removal" end
   print("Adding entity", id, entity)
   print("entities table", entities)
@@ -66,7 +66,7 @@ local function registerReference(referenceId, onRemove)
   table.insert(references[referenceId], onRemove)
 end
 
-local function getEntity(referenceId)
+local function get(referenceId)
   return entities[referenceId]
 end
 
@@ -103,15 +103,15 @@ return {
   registerReference = registerReference,
   onEntityAdded = onEntityAdded,
   onEntityRemoved = onEntityRemoved,
-  getEntity = getEntity,
+  get = get,
   clear = clear,
   generateId = generateId,
   getEntities = function()
   --  print("All entities!")
   --  for id, entity in pairs(entities) do
   --    local jobtext = ""
-  --    if entity:has(ECS.Components.job) then
-  --      jobtext = entity:get(ECS.Components.job).jobType
+  --    if entity:has(ECS.c.job) then
+  --      jobtext = entity:get(ECS.c.job).jobType
   --    end
   --    print("Entity:", id, entity, jobtext)
   --  end
