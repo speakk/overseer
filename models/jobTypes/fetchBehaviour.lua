@@ -36,4 +36,3 @@ local moveItemFromTo = BehaviourTree.Task:new({
 --local moveItemFromTo = function(fromInventory, toInventory, item)
 --  targetInventory:insertItem(invItem:get(ECS.Components.id).id)
 --end
-
