@@ -18,11 +18,8 @@ local moveItemFromTo = BehaviourTree.Task:new({
 
   end,
   run = function(task, vars) -- vars: settler, target
-    local jobId = settler:get(ECS.c.work).jobId
-    local job = entityManager.get(jobId)
-    --local job = entities.getById(settler:get(ECS.c.work).jobId)
-    local targetId = job:get(ECS.c.fetchJob).targetId
-    local target = entityManager.get(targetId)
+    local job = entityManager.get(settler:get(ECS.c.work).jobId)
+    local target = entityManager.get(job:get(ECS.c.fetchJob).targetId)
 
     settler.searched_for_path = false
     local inventory = settler:get(ECS.c.inventory)
