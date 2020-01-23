@@ -18,13 +18,10 @@ local moveItemFromTo = BehaviourTree.Task:new({
 
   end,
   run = function(task, vars) -- vars: settler, target
-    local jobId = settler:get(ECS.c.work).jobId
-    local job = entityManager.get(jobId)
-    --local job = entities.getById(settler:get(ECS.c.work).jobId)
-    local targetId = job:get(ECS.c.fetchJob).targetId
-    local target = entityManager.get(targetId)
-
-    settler.searched_for_path = false
+    local fetch = job:get(ECS.c.fetchJob)
+    local selector = fetch.selector
+    local job = entityManager.get(settler:get(ECS.c.work).jobId)
+    local target = entityManager.get(job:get(ECS.c.fetchJob).targetId)
     local inventory = settler:get(ECS.c.inventory)
     local invItem = inventory:popItem(selector, amount)
     local targetInventory = target:get(ECS.c.inventory)
@@ -33,6 +30,16 @@ local moveItemFromTo = BehaviourTree.Task:new({
     -- JOB FINISHED!
   end
 })
+
+local fetchTree = BehaviourTree:new({
+   tree = BehaviourTree.Sequence:new({
+    nodes = {
+      hasItem,
+      getItem,
+      moveItemFromTo,
+    }
+})
+
 
 --local moveItemFromTo = function(fromInventory, toInventory, item)
 --  targetInventory:insertItem(invItem:get(ECS.c.id).id)
