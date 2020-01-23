@@ -22,6 +22,7 @@ local moveItemFromTo = BehaviourTree.Task:new({
     local selector = fetch.selector
     local job = entityManager.get(settler:get(ECS.c.work).jobId)
     local target = entityManager.get(job:get(ECS.c.fetchJob).targetId)
+    settler.searched_for_path = false
     local inventory = settler:get(ECS.c.inventory)
     local invItem = inventory:popItem(selector, amount)
     local targetInventory = target:get(ECS.c.inventory)
