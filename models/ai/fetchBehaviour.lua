@@ -38,10 +38,11 @@ local getPotentialItemStack = BehaviourTree.Task:new({
 local insertItemIntoDestination = BehaviourTree.Task:new({
   run = function(task, blackboard)
     print("insertItemIntoDestination")
-    local invItem = blackboard.inventory:popItem(selector, amount)
+    local invItem = blackboard.inventory:popItem(blackboard.selector, blackboard.targetAmount)
     local targetInventory = blackboard.currentTarget:get(ECS.c.inventory)
     targetInventory:insertItem(invItem:get(ECS.c.id).id)
     task:success()
+    blackboard.world:emit("treeFinished", blackboard.settler, blackboard.jobType)
     print("Putting into the targetInventory, as in job finished")
   end
 })
@@ -89,20 +90,35 @@ local areWeAtTarget = BehaviourTree.Task:new({
   end
 })
 
+local clearCurrentTarget = BehaviourTree.Task:new({
+  run = function(task, blackboard)
+    print("clearCurrentTarget")
+    blackboard.currentTarget = nil
+    task:success()
+  end
+})
+
 -- TODO: Check for current path for settler??
 local getPathToTarget = BehaviourTree.Task:new({
   run = function(task, blackboard)
     print("getPathToTarget")
     if not blackboard.currentTarget then
-      task:fail()
       print("getPathToTarget fail#1")
+      task:fail()
       return
     end
 
     if blackboard.settler:has(ECS.c.path) then
-      print("getPathToTarget has path already")
-      task:running()
-      return
+      if blackboard.settler:get(ECS.c.path).finished then
+        print("Path finished, success")
+        blackboard.settler:remove(ECS.c.path)
+        task:success()
+        return
+      else
+        print("getPathToTarget has path already")
+        task:running()
+        return
+      end
     end
 
     print("What is our current target eh?")
@@ -114,6 +130,7 @@ local getPathToTarget = BehaviourTree.Task:new({
     )
 
     if not path then
+      print("No path, failing")
       task:fail()
       return
     end
@@ -159,7 +176,7 @@ local setDestinationAsCurrentTarget = BehaviourTree.Task:new({
   end
 })
 
-function createTree(settler)
+function createTree(settler, world, jobType)
   local inventory = settler:get(ECS.c.inventory)
   local job = entityManager.get(settler:get(ECS.c.work).jobId)
   local fetch = job:get(ECS.c.fetchJob)
@@ -191,7 +208,8 @@ function createTree(settler)
                                 getPathToTarget, -- TODO: Add a "now there?" leaf after this
                               }
                             }),
-                            pickItemAmountUp
+                            pickItemAmountUp,
+                            clearCurrentTarget
                           }
                         })
                       }
@@ -224,7 +242,9 @@ function createTree(settler)
     fetch = fetch,
     targetAmount = targetAmount,
     job = job,
-    destination = destination
+    destination = destination,
+    world = world,
+    jobType = jobType
   })
 
   return tree
