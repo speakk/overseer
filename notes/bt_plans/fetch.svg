@@ -28,15 +28,15 @@
      borderopacity="1.0"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7"
-     inkscape:cx="420.497"
-     inkscape:cy="1694.6687"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="1137.1482"
+     inkscape:cy="534.73868"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="g1264"
      showgrid="false"
      units="px"
-     inkscape:window-width="1918"
-     inkscape:window-height="1178"
+     inkscape:window-width="1438"
+     inkscape:window-height="878"
      inkscape:window-x="0"
      inkscape:window-y="20"
      inkscape:window-maximized="1"
@@ -945,7 +945,7 @@
          d="m 118.66767,35.610387 25.65787,9.621703"
          style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
       <g
-         transform="translate(83.15285,88.328447)"
+         transform="translate(83.15285,148.73136)"
          id="g4887">
         <g
            transform="translate(-1.5119048,7.1815477)"
@@ -978,6 +978,33 @@
          id="path1072"
          d="m 180.6742,162.83068 -33.14142,43.8322"
          style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <g
+         transform="translate(85.682235,-377.35096)"
+         id="g4805-3">
+        <rect
+           y="116.05853"
+           x="47.267715"
+           height="29.132378"
+           width="32.60688"
+           id="rect4791-5"
+           style="fill:#ffeda1;fill-opacity:1;stroke:#000000;stroke-width:0.26458332;stroke-opacity:1" />
+        <flowRoot
+           transform="matrix(0.41041869,0,0,0.41041869,-279.69312,7.6946486)"
+           style="font-style:normal;font-weight:normal;font-size:13.33333397px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+           id="flowRoot4803-6"
+           xml:space="preserve"><flowRegion
+             style="font-size:13.33333397px;text-align:center;text-anchor:middle"
+             id="flowRegion4795-2"><rect
+               style="font-size:13.33333397px;text-align:center;text-anchor:middle"
+               y="268.00302"
+               x="774.47314"
+               height="110.10665"
+               width="123.23862"
+               id="rect4793-9" /></flowRegion><flowPara
+             id="flowPara4801-1">get</flowPara><flowPara
+             id="flowPara4816-2">potential</flowPara><flowPara
+             id="flowPara4812-7">item</flowPara><flowPara
+             id="flowPara4814-0">stack</flowPara></flowRoot>      </g>
     </g>
     <g
        id="g4871-6"
@@ -1136,5 +1163,41 @@
        cx="182.5625"
        cy="-233.67859"
        r="2.6458333" />
+    <circle
+       style="fill:#e5fffc;fill-opacity:1;stroke:#000000;stroke-width:0.26458332;stroke-opacity:1"
+       id="path1096-3"
+       cx="13.229167"
+       cy="-314.56549"
+       r="2.4568453" />
+    <circle
+       style="fill:#e5fffc;fill-opacity:1;stroke:#000000;stroke-width:0.26458332;stroke-opacity:1"
+       id="path1096-6"
+       cx="44.601192"
+       cy="-314.1875"
+       r="2.4568453" />
+    <circle
+       style="fill:#e5fffc;fill-opacity:1;stroke:#000000;stroke-width:0.26458332;stroke-opacity:1"
+       id="path1096-7"
+       cx="76.729164"
+       cy="-315.69943"
+       r="2.4568453" />
+    <circle
+       style="fill:#e5fffc;fill-opacity:1;stroke:#000000;stroke-width:0.26458332;stroke-opacity:1"
+       id="path1096-5"
+       cx="107.34524"
+       cy="-316.45538"
+       r="2.4568453" />
+    <circle
+       style="fill:#e5fffc;fill-opacity:1;stroke:#000000;stroke-width:0.26458332;stroke-opacity:1"
+       id="path1096-5-9"
+       cx="175.38095"
+       cy="-313.80954"
+       r="2.4568453" />
+    <circle
+       style="fill:#e5fffc;fill-opacity:1;stroke:#000000;stroke-width:0.26458332;stroke-opacity:1"
+       id="path1096-5-9-3"
+       cx="141.74107"
+       cy="-316.07739"
+       r="2.4568453" />
   </g>
 </svg>

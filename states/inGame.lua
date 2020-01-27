@@ -59,6 +59,7 @@ function inGame:init()
       ECS.Systems.camera,
       ECS.Systems.draw,
       ECS.Systems.sprite,
+      ECS.Systems.ai,
       ECS.Systems.zone,
       ECS.Systems.move
     }

@@ -305,10 +305,12 @@ end
 
 function universe.getItemFromGround(itemSelector, gridPosition) --luacheck: ignore
   local items = universe.getItemsOnGround(itemSelector)
+  print("Any items anywhere?", itemSelector, items, #items)
   if not items then return nil end
 
   for _, item in ipairs(items) do
     local position = universe.pixelsToGridCoordinates(item:get(ECS.c.position).vector)
+    print("Position", inspect(position))
     if universe.isInPosition(gridPosition, position, true) then
       return item
     end
