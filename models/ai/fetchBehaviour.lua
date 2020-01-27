@@ -73,6 +73,22 @@ local pickItemAmountUp = BehaviourTree.Task:new({
   end
 })
 
+local areWeAtTarget = BehaviourTree.Task:new({
+  run = function(task, blackboard)
+    print("areWeAtTarget")
+    local gridPosition = universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector)
+    local targetPosition = universe.pixelsToGridCoordinates(blackboard.currentTarget:get(ECS.c.position).vector)
+
+    if universe.isInPosition(gridPosition, targetPosition, true) then
+      print("areWeAtTarget true")
+      task:success()
+    else
+      print("areWeAtTarget false")
+      task:fail()
+    end
+  end
+})
+
 -- TODO: Check for current path for settler??
 local getPathToTarget = BehaviourTree.Task:new({
   run = function(task, blackboard)
@@ -107,7 +123,8 @@ local getPathToTarget = BehaviourTree.Task:new({
     print("to:", universe.pixelsToGridCoordinates(blackboard.currentTarget:get(ECS.c.position).vector))
     --blackboard.currentPath = path
     blackboard.settler:give(ECS.c.path, path)
-    task:success()
+    task:running()
+    --task:success()
   end
 })
 
@@ -168,7 +185,12 @@ function createTree(settler)
                             BehaviourTree.InvertDecorator:new({
                               node = hasEnoughOfItem
                             }),
-                            getPathToTarget, -- TODO: Add a "now there?" leaf after this
+                            BehaviourTree.Priority:new({
+                              nodes = {
+                                areWeAtTarget,
+                                getPathToTarget, -- TODO: Add a "now there?" leaf after this
+                              }
+                            }),
                             pickItemAmountUp
                           }
                         })
@@ -182,7 +204,12 @@ function createTree(settler)
         BehaviourTree.Sequence:new({
           nodes = {
             setDestinationAsCurrentTarget,
-            getPathToTarget,
+            BehaviourTree.Priority:new({
+              nodes = {
+                areWeAtTarget,
+                getPathToTarget,
+              }
+            }),
             insertItemIntoDestination
           }
         })
