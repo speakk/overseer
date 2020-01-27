@@ -1,4 +1,5 @@
 local BehaviourTree = require('libs.behaviourtree')
+local lume = require('libs.lume')
 
 local universe = require('models.universe')
 local entityManager = require('models.entityManager')
@@ -29,7 +30,7 @@ local getPotentialItemStack = BehaviourTree.Task:new({
       return
     end
 
-    blackboard.potentialItemsStack = itemsOnMap
+    blackboard.potentialItemsStack = lume.extend({}, itemsOnMap)
     task:success()
   end
 })
@@ -37,8 +38,8 @@ local getPotentialItemStack = BehaviourTree.Task:new({
 local insertItemIntoDestination = BehaviourTree.Task:new({
   run = function(task, blackboard)
     print("insertItemIntoDestination")
-    local invItem = inventory:popItem(selector, amount)
-    local targetInventory = target:get(ECS.c.inventory)
+    local invItem = blackboard.inventory:popItem(selector, amount)
+    local targetInventory = blackboard.currentTarget:get(ECS.c.inventory)
     targetInventory:insertItem(invItem:get(ECS.c.id).id)
     task:success()
     print("Putting into the targetInventory, as in job finished")
@@ -145,6 +146,7 @@ function createTree(settler)
   local inventory = settler:get(ECS.c.inventory)
   local job = entityManager.get(settler:get(ECS.c.work).jobId)
   local fetch = job:get(ECS.c.fetchJob)
+  local targetAmount = fetch.amount
   local selector = fetch.selector
   local destination = entityManager.get(job:get(ECS.c.fetchJob).targetId)
   local tree = BehaviourTree:new({
@@ -193,6 +195,7 @@ function createTree(settler)
     inventory = inventory,
     selector = selector,
     fetch = fetch,
+    targetAmount = targetAmount,
     job = job,
     destination = destination
   })

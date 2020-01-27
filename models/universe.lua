@@ -300,6 +300,7 @@ function universe.generateSpriteBatch(l, t, w, h)
 end
 
 function universe.getItemsOnGround(selector)
+  print("getItemsOnGround!!!", selector, #entitySelectorMap[selector])
   return entitySelectorMap[selector]
 end
 
