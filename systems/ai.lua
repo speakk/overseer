@@ -4,7 +4,8 @@ local inspect = require('libs.inspect')
 local AISystem = ECS.System({ECS.c.work, "work"})
 
 local behaviours = {
-  fetch = require('models.ai.fetchBehaviour').createTree
+  fetch = require('models.ai.fetchBehaviour').createTree,
+  bluePrint = require('models.ai.bluePrintBehaviour').createTree
 }
 
 local attachedBehaviours = {}
@@ -15,12 +16,10 @@ function attachBehaviour(entity, type, world)
 
   print("type", id, type, entity)
   attachedBehaviours[id][type] = behaviours[type](entity, world, type)
-  --table.insert(attachedBehaviours[id], behaviours[type](entity))
 end
 
 function detachBehaviour(entity, type)
   local id = entity:get(ECS.c.id).id
-
   attachedBehaviours[id][type] = nil
 end
 
@@ -33,9 +32,11 @@ function AISystem:init()
   end
 
   self.work.onEntityRemoved = function(pool, entity)
-    local jobComponent = entityManager.get(entity:get(ECS.c.work).jobId):get(ECS.c.job)
-    local jobType = jobComponent.jobType
-    detachBehaviour(entity, jobType)
+    if entity:has(ECS.c.work) then
+      local jobComponent = entityManager.get(entity:get(ECS.c.work).jobId):get(ECS.c.job)
+      local jobType = jobComponent.jobType
+      detachBehaviour(entity, jobType)
+    end
   end
 end
 
@@ -49,7 +50,7 @@ function AISystem:update(dt)
     local jobComponent = entityManager.get(entity:get(ECS.c.work).jobId):get(ECS.c.job)
     local jobType = jobComponent.jobType
     --print("attachBehaviour", inspect(attachedBehaviours[id]))
-    print("Ticking tree")
+    --print("Ticking tree")
     attachedBehaviours[id][jobType]:run()
   end
 end

@@ -44,7 +44,7 @@ function SettlerSystem:update(dt) --luacheck: ignore
   end
 end
 
-local function finishWork(self, settler, jobId)
+function SettlerSystem:finishWork(settler, jobId)
   local job = entityManager.get(jobId)
   settler:remove(ECS.c.work)
   local jobType = job:get(ECS.c.job).jobType
@@ -69,7 +69,7 @@ function SettlerSystem:processSettlerUpdate(settler, dt)
 
       if self:processSubJob(settler, jobId, dt) then
         -- Finished
-        finishWork(self, settler, jobId)
+        self:finishWork(settler, jobId)
       end
     end
   end

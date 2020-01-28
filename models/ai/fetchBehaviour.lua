@@ -41,8 +41,10 @@ local insertItemIntoDestination = BehaviourTree.Task:new({
     local invItem = blackboard.inventory:popItem(blackboard.selector, blackboard.targetAmount)
     local targetInventory = blackboard.currentTarget:get(ECS.c.inventory)
     targetInventory:insertItem(invItem:get(ECS.c.id).id)
-    task:success()
     blackboard.world:emit("treeFinished", blackboard.settler, blackboard.jobType)
+    blackboard.world:emit("finishWork", blackboard.settler, blackboard.settler:get(ECS.c.work).jobId)
+    blackboard.world:emit("jobFinished", blackboard.job)
+    task:success()
     print("Putting into the targetInventory, as in job finished")
   end
 })

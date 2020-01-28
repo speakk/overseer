@@ -44,10 +44,6 @@ local function handle(self, job, settler, dt, finishCallback)
       if bluePrintComponent.buildProgress >= 100 then
         consumeRequirements(job)
         return true
-        --finishWork(self, settler, job)
-        --
-        --job:get(ECS.c.job).finishedCallBack()
-        --finishCallback(self, settler, job)
       end
     end
   else
