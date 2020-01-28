@@ -62,7 +62,6 @@ local isBluePrintFinished = BehaviourTree.Task:new({
 
 local getPathToTarget = BehaviourTree.Task:new({
   run = function(task, blackboard)
-    print("getPathToTarget")
     if blackboard.settler:has(ECS.c.path) then
       if blackboard.settler:get(ECS.c.path).finished then
         print("Path finished, success")
@@ -70,7 +69,6 @@ local getPathToTarget = BehaviourTree.Task:new({
         task:success()
         return
       else
-        print("getPathToTarget has path already")
         task:running()
         return
       end
@@ -111,9 +109,7 @@ function createTree(settler, world, jobType)
             })
           }
         }),
-        BehaviourTree.Sequence:new({
-          getPathToTarget,
-        })
+        getPathToTarget,
       }
     })
 

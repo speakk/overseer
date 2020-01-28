@@ -49,8 +49,6 @@ function AISystem:update(dt)
     local id = entity:get(ECS.c.id).id
     local jobComponent = entityManager.get(entity:get(ECS.c.work).jobId):get(ECS.c.job)
     local jobType = jobComponent.jobType
-    --print("attachBehaviour", inspect(attachedBehaviours[id]))
-    --print("Ticking tree")
     attachedBehaviours[id][jobType]:run()
   end
 end
