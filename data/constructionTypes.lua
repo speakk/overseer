@@ -148,7 +148,7 @@ local function getDataBySelectorTable(dataRemaining, selectorTable)
   local newTable = {unpack(selectorTable)}
   local lastSelector = table.remove(newTable, 1)
 
-  if #selectorTable > 1 then return getDataBySelectorTable(dataRemaining[lastSelector]["subItems"], newTable) end
+  if #selectorTable > 1 and dataRemaining[lastSelector] then return getDataBySelectorTable(dataRemaining[lastSelector]["subItems"], newTable) end
   if #selectorTable == 1 then return getDataBySelectorTable(dataRemaining[lastSelector], newTable) end
 end
 

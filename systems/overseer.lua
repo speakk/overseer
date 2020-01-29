@@ -151,6 +151,8 @@ end
 function OverseerSystem:mapClicked(mouseCoordinates, button, actionType)
   if not actionType then return end
   local actions = self.actionCallbacks[actionType]
+  if not actions then return end
+
   if button == 1 then
     actions.action1(mouseCoordinates, button)
   else
@@ -180,8 +182,11 @@ function OverseerSystem:mouseReleased(mouseCoordinates, button) --luacheck: igno
 end
 
 function OverseerSystem:build(nodes)
+  if not self.dataSelector then return end
   local data = constructionTypes.getBySelector(self.dataSelector)
-  self:getWorld():emit("bluePrintsPlaced", nodes, data, self.dataSelector)
+  if data then
+    self:getWorld():emit("bluePrintsPlaced", nodes, data, self.dataSelector)
+  end
 end
 
 function OverseerSystem:zones(nodes, rect)
