@@ -12,6 +12,7 @@ local function generate(targetId, itemData, selector)
   --subJob:give(ECS.c.fetchJob, target, selector, itemData.requirements[selector])
   subJob:give(ECS.c.fetchJob, targetId, selector, itemData.requirements[selector])
 
+  print("Generating fetch", subJob, targetId, itemData, selector)
   return subJob
 end
 

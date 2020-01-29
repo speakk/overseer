@@ -67,10 +67,10 @@ function SettlerSystem:processSettlerUpdate(settler, dt)
         return
       end
 
-      if self:processSubJob(settler, jobId, dt) then
-        -- Finished
-        self:finishWork(settler, jobId)
-      end
+      -- if self:processSubJob(settler, jobId, dt) then
+      --   -- Finished
+      --   self:finishWork(settler, jobId)
+      -- end
     end
   end
 end
@@ -100,14 +100,14 @@ function SettlerSystem:gridUpdated()
   end
 end
 
-function SettlerSystem:processSubJob(settler, jobId, dt)
-  local job = entityManager.get(jobId)
-  local jobType = job:get(ECS.c.job).jobType
-  local jobHandler = jobHandlers[jobType].handle
-  if jobHandler then
-    return jobHandler(self, job, settler, dt, finishWork)
-  end
-end
+-- function SettlerSystem:processSubJob(settler, jobId, dt)
+--   local job = entityManager.get(jobId)
+--   local jobType = job:get(ECS.c.job).jobType
+--   local jobHandler = jobHandlers[jobType].handle
+--   if jobHandler then
+--     return jobHandler(self, job, settler, dt, finishWork)
+--   end
+-- end
 
 function SettlerSystem:initializeTestSettlers()
   for _ = 1,10,1 do

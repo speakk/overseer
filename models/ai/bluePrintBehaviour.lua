@@ -50,6 +50,7 @@ local areWeAtTarget = BehaviourTree.Task:new({
 local isBluePrintFinished = BehaviourTree.Task:new({
   run = function(task, blackboard)
     if blackboard.bluePrintComponent.buildProgress >= 100 then
+      print("Blue print finished!")
       blackboard.world:emit("treeFinished", blackboard.settler, blackboard.jobType)
       blackboard.world:emit("finishWork", blackboard.settler, blackboard.settler:get(ECS.c.work).jobId)
       blackboard.world:emit("jobFinished", blackboard.job)

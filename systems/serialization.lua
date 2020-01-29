@@ -136,7 +136,8 @@ function createEntityHierarchy(entity, depthLimit, depth)
 
   if depth == 0 and entity:has(ECS.c.parent) then return nil end
 
-  local id = tostring(entity:get(ECS.c.id).id) .. " / " .. tostring(entity)
+  --local id = tostring(entity:get(ECS.c.id).id) .. " / " .. tostring(entity)
+  local id = tostring(entity)
   if entity:has(ECS.c.children) then
     id = id .. "*"
   end

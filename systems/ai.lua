@@ -14,12 +14,15 @@ function attachBehaviour(entity, type, world)
   local id = entity:get(ECS.c.id).id
   attachedBehaviours[id] = attachedBehaviours[id] or {}
 
-  print("type", id, type, entity)
+  print("type", id, type, entity, entity:get(ECS.c.work), entity:get(ECS.c.work).jobId)
+  local job = entityManager.get(entity:get(ECS.c.work).jobId)
+  print("job", job, job:get(ECS.c.job), job:get(ECS.c.job).jobType)
   attachedBehaviours[id][type] = behaviours[type](entity, world, type)
 end
 
 function detachBehaviour(entity, type)
   local id = entity:get(ECS.c.id).id
+  print("Detaching behaviour", id)
   attachedBehaviours[id][type] = nil
 end
 
