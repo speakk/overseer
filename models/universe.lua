@@ -291,6 +291,8 @@ function universe.generateSpriteBatch(l, t, w, h)
         if color.grass == 1 then
           imageArrayIndex = math.floor(math.random()+0.5)+1
         end
+        local randColor = 0.97+color.a*0.03
+        tilesetBatch:setColor(randColor, randColor, randColor, 1)
         tilesetBatch:addLayer(imageArrayIndex, cellNum*universe.cellSize, rowNum*universe.cellSize, 0, 2, 2)
       end
     end

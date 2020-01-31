@@ -49,6 +49,13 @@ function createTree(settler, world, jobType)
     run = function(task, blackboard)
       print("insertItemIntoDestination")
       local invItem = blackboard.inventory:popItem(blackboard.selector, blackboard.targetAmount)
+
+      if not invItem then
+        print("Something went wrong, do not have item upon arriving at destination")
+        task:fail()
+        return
+      end
+
       local targetInventory = blackboard.currentTarget:get(ECS.c.inventory)
       targetInventory:insertItem(invItem:get(ECS.c.id).id)
       print("Fetch finished!")

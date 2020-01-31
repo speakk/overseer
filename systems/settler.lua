@@ -63,7 +63,7 @@ function SettlerSystem:processSettlerUpdate(settler, dt)
       local jobId = settler:get(ECS.c.work).jobId
 
       if not entityManager.get(jobId) then
-        settler:get(ECS.c.work):destroy()
+        settler:remove(ECS.c.work)
         return
       end
 
