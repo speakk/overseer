@@ -137,6 +137,7 @@ end
 
 function SettlerSystem:startJob(settler, job, jobQueue) -- luacheck: ignore
   job:get(ECS.c.job).reserved = settler
+  print("Starting job!", settler, job)
   settler:give(ECS.c.work, job:get(ECS.c.id).id)
   lume.remove(jobQueue, job)
 end

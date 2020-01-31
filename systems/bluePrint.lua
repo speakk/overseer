@@ -51,4 +51,8 @@ function BluePrintSystem:generateGUIDraw()
   end
 end
 
+function BluePrintSystem:bluePrintProgress(bluePrintComponent, constructionSkill)
+  bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + (constructionSkill * bluePrintComponent.constructionSpeed) * love.timer.getDelta()
+end
+
 return BluePrintSystem

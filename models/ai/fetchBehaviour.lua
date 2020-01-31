@@ -103,6 +103,7 @@ local clearCurrentTarget = BehaviourTree.Task:new({
 -- TODO: Check for current path for settler??
 local getPathToTarget = BehaviourTree.Task:new({
   run = function(task, blackboard)
+    print("getPathToTarget")
     if not blackboard.currentTarget then
       print("getPathToTarget fail#1")
       task:fail()
