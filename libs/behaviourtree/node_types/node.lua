@@ -19,6 +19,7 @@ function Node:finish() end
 function Node:run() end
 
 function Node:call_run(object)
+  print("call_run", object)
   success = function() self:success() end
   fail = function()    self:fail() end
   running = function() self:running() end
@@ -31,10 +32,13 @@ function Node:setObject(object)
 end
 
 function Node:setControl(control)
+  print("Setting control?", control)
   self.control = control
 end
 
 function Node:running()
+  print("running")
+  print("But no control?", self.control)
   if self.control then
     self.control:running(self)
   end

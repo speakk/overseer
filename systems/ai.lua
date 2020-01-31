@@ -14,7 +14,7 @@ function attachBehaviour(entity, type, world)
   local id = entity:get(ECS.c.id).id
   attachedBehaviours[id] = attachedBehaviours[id] or {}
 
-  print("type", id, type, entity, entity:get(ECS.c.work), entity:get(ECS.c.work).jobId)
+  print("Attaching behaviour type", id, type, "settler:", entity, entity:get(ECS.c.work), entity:get(ECS.c.work).jobId)
   local job = entityManager.get(entity:get(ECS.c.work).jobId)
   print("job", job, job:get(ECS.c.job), job:get(ECS.c.job).jobType)
   attachedBehaviours[id][type] = behaviours[type](entity, world, type)
