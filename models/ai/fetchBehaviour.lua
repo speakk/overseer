@@ -20,13 +20,16 @@ function createTree(settler, world, jobType)
   local hasEnoughOfItem = BehaviourTree.Task:new({
     run = function(task, blackboard)
       print("hasEnoughOfItem")
-      local invItem = blackboard.inventory:findItem(blackboard.selector)
-      print("selector", blackboard.selector)
-      if invItem and invItem:get(ECS.c.amount).amount >= blackboard.targetAmount then
-        task:success()
-      else
-        task:fail()
+      local invItemId = blackboard.inventory:findItem(blackboard.selector)
+      if invItemId then
+        local invItem = entityManager.get(invItemId)
+        if invItem and invItem:get(ECS.c.amount).amount >= blackboard.targetAmount then
+          task:success()
+          return
+        end
       end
+
+      task:fail()
     end
   })
 

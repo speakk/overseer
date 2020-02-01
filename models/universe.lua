@@ -318,10 +318,13 @@ function universe.draw(l, t, w, h)
 
     local canvas = love.graphics.newCanvas(width*universe.cellSize, height*universe.cellSize, { type = "array" })
     love.graphics.setCanvas(canvas, 1)
+    local shader = love.graphics.getShader()
+    love.graphics.setShader()
     love.graphics.clear()
     love.graphics.draw(tilesetBatch)
     love.graphics.setCanvas()
     cachedCanvas = canvas
+    love.graphics.setShader(shader)
     love.graphics.pop()
     love.graphics.setScissor(scissorX, scissorY, scissorW, scissorH)
     return canvas
