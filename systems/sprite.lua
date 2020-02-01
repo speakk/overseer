@@ -17,7 +17,6 @@ function SpriteSystem:customDraw(l, t, w, h)
     self:drawEntity(l, t, w, h, entity)
   end
 
-  love.graphics.setShader()
   love.graphics.draw(self.tilesetBatch)
 end
 
