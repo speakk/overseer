@@ -12,11 +12,13 @@ local universe = {}
 
 universe.cellSize = 32
 local padding = 0
-local width = 30
-local height = 30
+local width = 60
+local height = 60
 local tilesetBatch = nil
 local gridInvalidated = false
 local walkable = 0
+
+local cachedCanvas = nil
 
 
 local map = {}
@@ -50,6 +52,10 @@ function universe:load(newWorld)
     map[y] = row
     mapColors[y] = colorRow
   end
+
+  mapColors[1][1].grass = 1
+  mapColors[2][2].grass = 1
+  mapColors[3][3].grass = 1
 
   self.recalculateGrid(map, true)
 
@@ -256,6 +262,7 @@ end
 function universe.recalculateGrid(newMap, stopEmit)
   map = newMap
   grid = Grid(newMap)
+  cachedCanvas = nil
   myFinder = Pathfinder(grid, 'JPS', walkable)
   myFinder:setMode('ORTHOGONAL')
   _lastGridUpdateId = _lastGridUpdateId + 1
@@ -275,30 +282,51 @@ function universe.pathStillValid(path)
   return true
 end
 
-function universe.generateSpriteBatch(l, t, w, h)
-  tilesetBatch:clear()
+function universe.draw(l, t, w, h)
+  if cachedCanvas then
+    return cachedCanvas
+  else
+    tilesetBatch:clear()
+    love.graphics.push()
+    love.graphics.origin()
+    local scissorX, scissorY, scissorW, scissorH = love.graphics.getScissor()
+    love.graphics.setScissor()
+    --love.graphics.replaceTransform(transform)
+    --love.graphics.translate(-600, -600)
+    --love.graphics.setShader()
 
-  for rowNum, row in ipairs(map) do
-    for cellNum, cellValue in ipairs(row) do --luacheck: ignore
-      local drawMargin = universe.cellSize
-      local x1 = (cellNum * universe.cellSize)
-      local x2 = x1 + universe.cellSize
-      local y1 = rowNum * universe.cellSize
-      local y2 = y1 + universe.cellSize
-      if utils.withinBounds(x1, y1, x2, y2, l, t, l+w, t+h, drawMargin*2) then
-        local color = mapColors[rowNum][cellNum]
-        local imageArrayIndex = 3
-        if color.grass == 1 then
-          imageArrayIndex = math.floor(math.random()+0.5)+1
-        end
-        local randColor = 0.97+color.a*0.03
-        tilesetBatch:setColor(randColor, randColor, randColor, 1)
-        tilesetBatch:addLayer(imageArrayIndex, cellNum*universe.cellSize, rowNum*universe.cellSize, 0, 2, 2)
+    for rowNum, row in ipairs(map) do
+      for cellNum, cellValue in ipairs(row) do --luacheck: ignore
+        -- local drawMargin = universe.cellSize
+        -- local x1 = (cellNum * universe.cellSize)
+        -- local x2 = x1 + universe.cellSize
+        -- local y1 = rowNum * universe.cellSize
+        -- local y2 = y1 + universe.cellSize
+        -- if utils.withinBounds(x1, y1, x2, y2, l, t, l+w, t+h, drawMargin*2) then
+          local color = mapColors[rowNum][cellNum]
+          local imageArrayIndex = 3
+          if color.grass == 1 then
+            imageArrayIndex = math.floor(math.random()+0.5)+1
+          end
+          local randColor = 0.97+color.a*0.03
+          tilesetBatch:setColor(randColor, randColor, randColor, 1)
+          tilesetBatch:addLayer(imageArrayIndex, cellNum*universe.cellSize-universe.cellSize, rowNum*universe.cellSize-universe.cellSize, 0, 2, 2)
+        -- end
       end
     end
-  end
 
-  return tilesetBatch
+
+    local canvas = love.graphics.newCanvas(width*universe.cellSize, height*universe.cellSize, { type = "array" })
+    love.graphics.setCanvas(canvas, 1)
+    love.graphics.clear()
+    love.graphics.draw(tilesetBatch)
+    love.graphics.setCanvas()
+    cachedCanvas = canvas
+    love.graphics.pop()
+    love.graphics.setScissor(scissorX, scissorY, scissorW, scissorH)
+    return canvas
+    --return tilesetBatch
+  end
 end
 
 function universe.getItemsOnGround(selector)

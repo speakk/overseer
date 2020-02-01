@@ -11,13 +11,14 @@ function SpriteSystem:init()
   self.tilesetBatch = love.graphics.newSpriteBatch(media.sprites, 500)
 end
 
-function SpriteSystem:generateSpriteBatch(l, t, w, h)
+function SpriteSystem:customDraw(l, t, w, h)
   self.tilesetBatch:clear()
   for _, entity in ipairs(self.pool) do
     self:drawEntity(l, t, w, h, entity)
   end
 
-  return self.tilesetBatch
+  love.graphics.setShader()
+  love.graphics.draw(self.tilesetBatch)
 end
 
 

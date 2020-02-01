@@ -176,8 +176,8 @@ function gamera:draw(f)
 
   love.graphics.push()
     local scale = self.scale
-    love.graphics.scale(scale)
 
+    love.graphics.scale(scale)
     love.graphics.translate((self.w2 + self.l) / scale, (self.h2+self.t) / scale)
     love.graphics.rotate(-self.angle)
     love.graphics.translate(-self.x, -self.y)

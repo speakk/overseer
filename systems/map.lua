@@ -19,8 +19,16 @@ function MapSystem:update(dt) --luacheck: ignore
   universe.update(dt)
 end
 
-function MapSystem:generateSpriteBatch(l, t, w, h) --luacheck: ignore
-  return universe.generateSpriteBatch(l, t, w, h)
+function MapSystem:customDraw(l, t, w, h) --luacheck: ignore
+  local draw = universe.draw(l, t, w, h)
+  --love.graphics.push()
+  --local transform = love.math.newTransform()
+  --love.graphics.replaceTransform(transform)
+  --love.graphics.origin()
+  love.graphics.draw(draw, 32, 32)
+  --love.graphics.draw(draw, 100, 100)
+  --love.graphics.draw(draw, -300, -600)
+  --love.graphics.pop()
 end
 
 function MapSystem:cancelConstruction(entities)
