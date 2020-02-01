@@ -12,8 +12,8 @@ local universe = {}
 
 universe.cellSize = 32
 local padding = 0
-local width = 60
-local height = 60
+local width = 100
+local height = 100
 local tilesetBatch = nil
 local gridInvalidated = false
 local walkable = 0
@@ -264,7 +264,7 @@ function universe.recalculateGrid(newMap, stopEmit)
   grid = Grid(newMap)
   cachedCanvas = nil
   myFinder = Pathfinder(grid, 'JPS', walkable)
-  myFinder:setMode('ORTHOGONAL')
+  --myFinder:setMode('ORTHOGONAL')
   _lastGridUpdateId = _lastGridUpdateId + 1
 
   if not stopEmit then
