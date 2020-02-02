@@ -1,6 +1,7 @@
 local inspect = require('libs.inspect')
 local utils = require('utils.utils')
 local universe = require('models.universe')
+local camera = require('models.camera')
 local media = require('utils.media')
 local Vector = require('libs.brinevector')
 local entityManager = require('models.entityManager')
@@ -108,11 +109,13 @@ function SpriteSystem:generateGUIDraw()
             local pixelPosition = universe.gridPositionToPixels(
             Vector(node:getX(), node:getY()), 'center', 2
             )
+            love.graphics.circle('fill', pixelPosition.x, pixelPosition.y, 5)
             table.insert(vertices, pixelPosition.x)
             table.insert(vertices, pixelPosition.y)
           end
           if #vertices >= 4 then
             love.graphics.setColor(1, 1, 1)
+            love.graphics.setLineWidth(2)
             love.graphics.line(vertices)
           end
         end

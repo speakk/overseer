@@ -10,7 +10,7 @@ local world = nil
 
 local universe = {}
 
-universe.cellSize = 32
+local cellSize = 32
 local padding = 0
 local width = 100
 local height = 100
@@ -156,17 +156,17 @@ end
 -- Marked for optimization
 function universe.gridPositionToPixels(gridPosition, positionFlag, entitySize)
   positionFlag = positionFlag or "left_top"
-  local tilePosition = gridPosition * universe.cellSize
+  local tilePosition = gridPosition * cellSize
 
   if positionFlag == "left_top" then return tilePosition end
 
   if positionFlag == "center" then
     entitySize = entitySize or 10
-    return tilePosition + Vector((universe.cellSize-padding-entitySize)/2, (universe.cellSize-padding-entitySize)/2)
+    return tilePosition + Vector((cellSize-padding-entitySize)/2, (cellSize-padding-entitySize)/2)
   end
 
   if positionFlag == "right_bottom" then
-    return tilePosition + Vector(universe.cellSize,universe.cellSize)
+    return tilePosition + Vector(cellSize,cellSize)
   end
 
   return tilePosition
@@ -177,11 +177,11 @@ function universe.snapPixelToGrid(pixelPosition, positionFlag, entitySize)
 end
 
 function universe.pixelsToGridCoordinates(pixelPosition)
-  return Vector(math.floor(pixelPosition.x/universe.cellSize), math.floor(pixelPosition.y/universe.cellSize))
+  return Vector(math.floor(pixelPosition.x/cellSize), math.floor(pixelPosition.y/cellSize))
 end
 
 function universe.getCellSize()
-  return universe.cellSize
+  return cellSize
 end
 
 function universe.getPadding()
@@ -297,11 +297,11 @@ function universe.draw(l, t, w, h)
 
     for rowNum, row in ipairs(map) do
       for cellNum, cellValue in ipairs(row) do --luacheck: ignore
-        -- local drawMargin = universe.cellSize
-        -- local x1 = (cellNum * universe.cellSize)
-        -- local x2 = x1 + universe.cellSize
-        -- local y1 = rowNum * universe.cellSize
-        -- local y2 = y1 + universe.cellSize
+        -- local drawMargin = cellSize
+        -- local x1 = (cellNum * cellSize)
+        -- local x2 = x1 + cellSize
+        -- local y1 = rowNum * cellSize
+        -- local y2 = y1 + cellSize
         -- if utils.withinBounds(x1, y1, x2, y2, l, t, l+w, t+h, drawMargin*2) then
           local color = mapColors[rowNum][cellNum]
           local imageArrayIndex = 3
@@ -310,13 +310,13 @@ function universe.draw(l, t, w, h)
           end
           local randColor = 0.97+color.a*0.03
           tilesetBatch:setColor(randColor, randColor, randColor, 1)
-          tilesetBatch:addLayer(imageArrayIndex, cellNum*universe.cellSize-universe.cellSize, rowNum*universe.cellSize-universe.cellSize, 0, 2, 2)
+          tilesetBatch:addLayer(imageArrayIndex, cellNum*cellSize-cellSize, rowNum*cellSize-cellSize, 0, 2, 2)
         -- end
       end
     end
 
 
-    local canvas = love.graphics.newCanvas(width*universe.cellSize, height*universe.cellSize, { type = "array" })
+    local canvas = love.graphics.newCanvas(width*cellSize, height*cellSize, { type = "array" })
     love.graphics.setCanvas(canvas, 1)
     local shader = love.graphics.getShader()
     love.graphics.setShader()
@@ -344,7 +344,7 @@ function universe.getItemFromGround(itemSelector, gridPosition) --luacheck: igno
 
   for _, item in ipairs(items) do
     local position = universe.pixelsToGridCoordinates(item:get(ECS.c.position).vector)
-    print("Position", inspect(position))
+    --print("Position", inspect(position))
     if universe.isInPosition(gridPosition, position, true) then
       return item
     end

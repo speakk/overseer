@@ -66,11 +66,6 @@ function SettlerSystem:processSettlerUpdate(settler, dt)
         settler:remove(ECS.c.work)
         return
       end
-
-      -- if self:processSubJob(settler, jobId, dt) then
-      --   -- Finished
-      --   self:finishWork(settler, jobId)
-      -- end
     end
   end
 end
@@ -99,15 +94,6 @@ function SettlerSystem:gridUpdated()
 
   end
 end
-
--- function SettlerSystem:processSubJob(settler, jobId, dt)
---   local job = entityManager.get(jobId)
---   local jobType = job:get(ECS.c.job).jobType
---   local jobHandler = jobHandlers[jobType].handle
---   if jobHandler then
---     return jobHandler(self, job, settler, dt, finishWork)
---   end
--- end
 
 function SettlerSystem:initializeTestSettlers()
   for _ = 1,10,1 do
@@ -156,12 +142,6 @@ function SettlerSystem:assignJobsForSettlers(jobQueue)
         break
       end
     end
-    --local availableWorker = lume.match(self.pool,
-    --function(potentialSettler)
-    --  --print("potentialSettler", potentialSettler, inspect(self.pool))
-    --  return not potentialSettler:has(ECS.c.work)
-    --end
-    --)
 
     if not availableWorker then break end
     local nextJob = jobQueue[1]

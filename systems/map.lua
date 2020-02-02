@@ -1,4 +1,5 @@
 local universe = require('models.universe')
+local entityManager = require('models.entityManager')
 local inspect = require('libs.inspect') --luacheck: ignore
 local Vector = require('libs.brinevector') --luacheck: ignore
 
@@ -31,6 +32,16 @@ function MapSystem:customDraw(l, t, w, h) --luacheck: ignore
   --love.graphics.pop()
 end
 
+function recursiveDelete(self, entity)
+  if entity:has(ECS.c.children) then
+    for _, childId in ipairs(entity:get(ECS.c.children).children) do
+      local child = entityManager.get(childId)
+      recursiveDelete(self, child)
+    end
+  end
+  self:getWorld():removeEntity(entity)
+end
+
 function MapSystem:cancelConstruction(entities)
   for _, entity in ipairs(entities) do
     -- TODO: Deal with proper removal of already constructed entities
@@ -38,7 +49,9 @@ function MapSystem:cancelConstruction(entities)
     --   entity:get(ECS.c.removeCallBack).callBack()
     -- else
       --entityManager.entityRemoved
-      self:getWorld():removeEntity(entity)
+      recursiveDelete(self, entity)
+
+      --self:getWorld():removeEntity(entity)
     --end
   end
 end

@@ -67,7 +67,7 @@ function createTree(settler, world, jobType)
       --print("pickItemAmountUp")
       local gridPosition = universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector)
       --print("gridPosition", gridPosition)
-      local itemInCurrentLocation = universe.getItemFromGround(blackboard.selector, gridPosition)
+      local itemInCurrentLocation = universe.getItemFromGround(blackboard.selector, gridPosition, true)
       --print("itemInCurrentLocation", blackboard.selector, itemInCurrentLocation)
       if not itemInCurrentLocation then
         --print("Failing, not itemInCurrentLocation")

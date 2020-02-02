@@ -10,6 +10,9 @@ local behaviours = {
 
 local attachedBehaviours = {}
 
+local aiTimer = 0
+local aiInterval = 0.5
+
 function attachBehaviour(entity, type, world)
   local id = entity:get(ECS.c.id).id
   attachedBehaviours[id] = attachedBehaviours[id] or {}
@@ -45,11 +48,17 @@ function AISystem:treeFinished(entity, jobType)
 end
 
 function AISystem:update(dt)
-  for _, entity in ipairs(self.work) do
-    local id = entity:get(ECS.c.id).id
-    local jobComponent = entityManager.get(entity:get(ECS.c.work).jobId):get(ECS.c.job)
-    local jobType = jobComponent.jobType
-    attachedBehaviours[id][jobType]:run()
+  aiTimer = aiTimer + dt
+  if aiTimer >= aiInterval then
+    --print("AI UPDATE")
+    aiTimer = aiTimer - aiInterval
+
+    for _, entity in ipairs(self.work) do
+      local id = entity:get(ECS.c.id).id
+      local jobComponent = entityManager.get(entity:get(ECS.c.work).jobId):get(ECS.c.job)
+      local jobType = jobComponent.jobType
+      attachedBehaviours[id][jobType]:run()
+    end
   end
 end
 
