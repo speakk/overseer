@@ -14,7 +14,7 @@ ECS.c.position, ECS.c.velocity}, {ECS.c.job, 'jobs'})
 
 function SettlerSystem:init()
   self.lastAssigned = 0
-  self.assignWaitTime = 0.5
+  self.assignWaitTime = 3.0
 
   self.jobs.onEntityAdded = function(pool, entity)
     self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
@@ -33,11 +33,11 @@ end
 end
 
 function SettlerSystem:update(dt) --luacheck: ignore
-  -- local time = love.timer.getTime()
-  -- if time - self.lastAssigned > self.assignWaitTime then
-  --   self:assignJobsForSettlers()
-  --   self.lastAssigned = time
-  -- end
+  local time = love.timer.getTime()
+  if time - self.lastAssigned > self.assignWaitTime then
+    self:assignJobsForSettlers(jobManager.getUnreservedJobs(self.jobs))
+    self.lastAssigned = time
+  end
 
   for _, settler in ipairs(self.pool) do
     self:processSettlerUpdate(settler, dt)
@@ -96,7 +96,7 @@ function SettlerSystem:gridUpdated()
 end
 
 function SettlerSystem:initializeTestSettlers()
-  for _ = 1,10,1 do
+  for _ = 1,30,1 do
     local settler = ECS.Entity()
     local worldSize = universe.getSize()
     local position

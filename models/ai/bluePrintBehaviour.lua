@@ -99,11 +99,18 @@ function createTree(settler, world, jobType)
   })
 
   local progressBuilding = BehaviourTree.Task:new({
+    start = function(task, blackboard)
+      blackboard.lastBuildTick = love.timer.getTime()
+    end,
     run = function(task, blackboard)
       local constructionSkill = blackboard.settler:get(ECS.c.settler).skills.construction
-      blackboard.world:emit('bluePrintProgress', blackboard.bluePrintComponent, constructionSkill)
       if blackboard.bluePrintComponent.buildProgress < 100 then
         print("Progress building!")
+        local time = love.timer.getTime()
+        local delta = time - blackboard.lastBuildTick
+        print("delta", time, constructionSkill * delta)
+        blackboard.world:emit('bluePrintProgress', blackboard.bluePrintComponent, constructionSkill * delta)
+        blackboard.lastBuildTick = time
         task:running()
         return
       else

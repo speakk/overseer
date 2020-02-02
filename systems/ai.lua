@@ -55,9 +55,12 @@ function AISystem:update(dt)
 
     for _, entity in ipairs(self.work) do
       local id = entity:get(ECS.c.id).id
-      local jobComponent = entityManager.get(entity:get(ECS.c.work).jobId):get(ECS.c.job)
-      local jobType = jobComponent.jobType
-      attachedBehaviours[id][jobType]:run()
+      local job = entityManager.get(entity:get(ECS.c.work).jobId)
+      if job then
+        local jobComponent = job:get(ECS.c.job)
+        local jobType = jobComponent.jobType
+        attachedBehaviours[id][jobType]:run()
+      end
     end
   end
 end
