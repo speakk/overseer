@@ -14,15 +14,12 @@ function attachBehaviour(entity, type, world)
   local id = entity:get(ECS.c.id).id
   attachedBehaviours[id] = attachedBehaviours[id] or {}
 
-  print("Attaching behaviour type", id, type, "settler:", entity, entity:get(ECS.c.work), entity:get(ECS.c.work).jobId)
   local job = entityManager.get(entity:get(ECS.c.work).jobId)
-  print("job", job, job:get(ECS.c.job), job:get(ECS.c.job).jobType)
   attachedBehaviours[id][type] = behaviours[type](entity, world, type)
 end
 
 function detachBehaviour(entity, type)
   local id = entity:get(ECS.c.id).id
-  print("Detaching behaviour", id)
   attachedBehaviours[id][type] = nil
 end
 
@@ -52,7 +49,6 @@ function AISystem:update(dt)
     local id = entity:get(ECS.c.id).id
     local jobComponent = entityManager.get(entity:get(ECS.c.work).jobId):get(ECS.c.job)
     local jobType = jobComponent.jobType
-    print("Running AI", id, jobType)
     attachedBehaviours[id][jobType]:run()
   end
 end

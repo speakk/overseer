@@ -9,7 +9,7 @@ local UntilDecorator = require('models.ai.decorators.until')
 
 local isBluePrintReadyToBuild = BehaviourTree.Task:new({
   run = function(task, blackboard)
-    print("isBluePrintReadyToBuild")
+    --print("isBluePrintReadyToBuild")
     local bluePrint = blackboard.job
     if bluePrint:get(ECS.c.job).finished then return false end
 
@@ -24,28 +24,28 @@ local isBluePrintReadyToBuild = BehaviourTree.Task:new({
       -- local itemInPosition = itemUtils.getItemFromGround(selector, universe.pixelsToGridCoordinates(bluePrint:get(ECS.c.position).vector))
       if not item or item:get(ECS.c.amount).amount < amount then
         --print("Didn't have no!", selector)
-        print("Failing isBluePrintReadyToBuild")
+        --print("Failing isBluePrintReadyToBuild")
         task:fail()
         return
       end
     end
 
-    print("Success isBluePrintReadyToBuild")
+    --print("Success isBluePrintReadyToBuild")
     task:success()
   end
 })
 
 local areWeAtTarget = BehaviourTree.Task:new({
   run = function(task, blackboard)
-    print("bluePrint areWeAtTarget")
+    --print("bluePrint areWeAtTarget")
     local gridPosition = universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector)
     local targetPosition = universe.pixelsToGridCoordinates(blackboard.job:get(ECS.c.position).vector)
 
     if universe.isInPosition(gridPosition, targetPosition, true) then
-      print("areWeAtTarget true")
+      --print("areWeAtTarget true")
       task:success()
     else
-      print("areWeAtTarget false")
+      --print("areWeAtTarget false")
       task:fail()
     end
   end
@@ -53,9 +53,9 @@ local areWeAtTarget = BehaviourTree.Task:new({
 
 local isBluePrintFinished = BehaviourTree.Task:new({
   run = function(task, blackboard)
-    print("isBluePrintFinished")
+    --print("isBluePrintFinished")
     if blackboard.bluePrintComponent.buildProgress >= 100 then
-      print("Blue print finished!")
+      --print("Blue print finished!")
       blackboard.world:emit("treeFinished", blackboard.settler, blackboard.jobType)
       blackboard.world:emit("finishWork", blackboard.settler, blackboard.settler:get(ECS.c.work).jobId)
       blackboard.world:emit("jobFinished", blackboard.job)
@@ -68,10 +68,10 @@ local isBluePrintFinished = BehaviourTree.Task:new({
 
 local getPathToTarget = BehaviourTree.Task:new({
   run = function(task, blackboard)
-    print("bluePrint getPathToTarget")
+    --print("bluePrint getPathToTarget")
     if blackboard.settler:has(ECS.c.path) then
       if blackboard.settler:get(ECS.c.path).finished then
-        print("Path finished, success")
+        --print("Path finished, success")
         blackboard.settler:remove(ECS.c.path)
         task:success()
         return
@@ -87,7 +87,7 @@ local getPathToTarget = BehaviourTree.Task:new({
     )
 
     if not path then
-      print("No path, failing")
+      --print("No path, failing")
       task:fail()
       return
     end
@@ -100,7 +100,7 @@ local getPathToTarget = BehaviourTree.Task:new({
 local progressBuilding = BehaviourTree.Task:new({
   run = function(task, blackboard)
     local constructionSkill = blackboard.settler:get(ECS.c.settler).skills.construction
-    print("bluePrint progressBuilding")
+    --print("bluePrint progressBuilding")
     blackboard.world:emit('bluePrintProgress', blackboard.bluePrintComponent, constructionSkill)
     task:success()
   end

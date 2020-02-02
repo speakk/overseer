@@ -12,7 +12,6 @@ end
 function PathSystem:processPathFinding(entity) --luacheck: ignore
   local pathComponent = entity:get(ECS.c.path)
   local velocityComponent = entity:get(ECS.c.velocity)
-  print("Index now", entity, pathComponent.currentIndex)
 
   velocityComponent.vector = Vector(0, 0)
 
@@ -59,8 +58,6 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
 
   --if universe.pixelsToGridCoordinates(position) == nextGridPosition then
   if universe.isInPosition(universe.pixelsToGridCoordinates(position), nextGridPosition) then
-
-    print("Nodes wtf?", pathComponent.currentIndex, #pathComponent.path._nodes)
     if pathComponent.currentIndex == #pathComponent.path._nodes then
       self:getWorld():emit("pathFinished", entity)
       -- if pathComponent.path.finishedCallBack then
