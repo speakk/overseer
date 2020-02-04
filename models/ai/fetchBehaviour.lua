@@ -28,10 +28,11 @@ function createTree(settler, world, jobType)
 
   local getPotentialItemStack = BehaviourTree.Task:new({
     run = function(task, blackboard)
-      --print("getPotentialItemStack", blackboard.selector)
+      print("getPotentialItemStack", blackboard.selector)
       local itemsOnMap = universe.getItemsOnGround(blackboard.selector)
 
       if not itemsOnMap or #itemsOnMap == 0 then
+        print("NO ITEMSONMAP JESUS CHRIST")
         task:fail()
         return
       end
@@ -120,12 +121,13 @@ function createTree(settler, world, jobType)
   -- TODO: Check for current path for settler??
   local getPathToTarget = BehaviourTree.Task:new({
     run = function(task, blackboard)
+      print("Has onMap?!", blackboard.currentTarget:has(ECS.c.onMap))
       -- blackboard.settler:get(ECS.c.position).vector = Vector(0, 0) + blackboard.currentTarget:get(ECS.c.position).vector
       -- task:success()
       -- if true then return end
 
       --print("getPathToTarget")
-      if not blackboard.currentTarget then
+      if not blackboard.currentTarget or not blackboard.currentTarget:has(ECS.c.onMap) then
         --print("getPathToTarget fail#1")
         task:fail()
         return
@@ -215,11 +217,11 @@ function createTree(settler, world, jobType)
             hasEnoughOfItem,
             BehaviourTree.Sequence:new({
               nodes = {
-                getPotentialItemStack,
                 UntilDecorator:new({
                   node = 
                   BehaviourTree.Sequence:new({
                     nodes = {
+                      getPotentialItemStack,
                       popTargetFromItemStack,
                       BehaviourTree.Sequence:new({
                         nodes = {
