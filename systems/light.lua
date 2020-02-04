@@ -1,4 +1,5 @@
 local Vector = require('libs.brinevector')
+local bresenham = require('libs.bresenham')
 
 local universe = require('models.universe')
 local camera = require('models.camera')
@@ -47,6 +48,38 @@ end
 --   return self.pool
 -- end
 
+function calcShadows(self)
+  xs = {1, universeSize.x}
+  ys = {1, universeSize.y}
+
+  local shadowMap = {}
+  for y = 1,universeSize.x do
+    local row = {}
+    for x = 1,universeSize.y do row[x] = 1 end
+    shadowMap[y] = row
+  end
+
+  for x in ipairs({1, universeSize.x}) do
+    for y = 1,universeSize.y do
+      for _, light in ipairs(self.pool) do
+        local lightPos = light:get(ECS.c.position).vector
+        bresenham.los(x,y,lightPos.x,lightPos.y, function(x, y)
+          local available = universe.isCellAvailable(Vector(x, y))
+          if available then
+            shadowMap[y][x] = 0
+            return true
+          else
+            return false
+          end
+        end)
+      end
+    end
+  end
+
+  return shadowMap
+end
+
+
 function LightSystem:lightsOrMapChanged()
   love.graphics.setCanvas(lightCanvas)
   love.graphics.clear()
@@ -64,6 +97,18 @@ function LightSystem:lightsOrMapChanged()
       position.y-lightCircleImageHeight*lightCircleImageScale*0.5,
       0, lightCircleImageScale, lightCircleImageScale)
   end
+
+  local shadowMap = calcShadows(self)
+
+  local cellSize = universe.getCellSize()
+
+  for y = 1,#shadowMap do
+    for x = 1,#shadowMap[y] do
+      love.graphics.setColor(1, 0, 0, 1)
+      love.graphics.rectangle('fill', x*cellSize, y*cellSize, cellSize, cellSize)
+    end
+  end
+
   love.graphics.setBlendMode("alpha")
   love.graphics.setShader()
   love.graphics.setCanvas()
