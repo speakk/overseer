@@ -136,6 +136,8 @@ function createEntityHierarchy(entity, depthLimit, depth)
 
   if depth == 0 and entity:has(ECS.c.parent) then return nil end
 
+  --print("What is entity?", entity)
+
   --local id = tostring(entity:get(ECS.c.id).id) .. " / " .. tostring(entity)
   local id = tostring(entity)
   if entity:has(ECS.c.children) then
@@ -160,7 +162,9 @@ function createEntityHierarchy(entity, depthLimit, depth)
       end
     else
       for _, kid in ipairs(entity:get(ECS.c.children).children) do
-        createEntityHierarchy(kid, depthLimit, depth)
+        if type(kid) == "table" and kid["has"] then
+          createEntityHierarchy(kid, depthLimit, depth)
+        end
       end
     end
     ui:treePop()

@@ -22,7 +22,6 @@ function loading:enter(from, existingSave)
     ECS.Systems.serialization,
     ECS.Systems.map,
     ECS.Systems.bluePrint,
-    ECS.Systems.job,
     ECS.Systems.item
   }
   self.world = ECS.World()

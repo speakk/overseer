@@ -20,7 +20,7 @@ function BluePrintSystem:bluePrintsPlaced(nodes, constructionType, selector)
             self:getWorld():addEntity(child)
           end
         end
-        print("Adding job in bluePrintsPlaced")
+        print("Adding job in bluePrintsPlaced", job)
         self:getWorld():addEntity(job)
         --self:getWorld():emit("jobAdded", job)
       end

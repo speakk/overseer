@@ -61,6 +61,7 @@ function inGame:init()
       ECS.Systems.sprite,
       ECS.Systems.ai,
       ECS.Systems.zone,
+      ECS.Systems.job,
       ECS.Systems.move
     }
 
