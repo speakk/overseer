@@ -9,7 +9,6 @@ function PathSystem:update(dt)
 end
 
 function PathSystem:processPathFinding(entity) --luacheck: ignore
-  love.mouse.setGrabbed(true)
   local pathComponent = entity:get(ECS.c.path)
   local velocityComponent = entity:get(ECS.c.velocity)
 
@@ -44,12 +43,9 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
   --   return
   -- end
 
-  --local nextPosition = universe.gridPositionToPixels(nextGridPosition, "center")
   local nextPosition = universe.gridPositionToPixels(nextGridPosition, "center", 2)
   local angle = math.atan2(nextPosition.y - position.y, nextPosition.x - position.x)
   velocityComponent.vector = Vector(math.cos(angle), math.sin(angle)).normalized
-
-  --if universe.pixelsToGridCoordinates(position) == nextGridPosition then
 
   if universe.isInPosition(universe.pixelsToGridCoordinates(position), nextGridPosition) then
     print("currentIndex", pathComponent.currentIndex, "length:", #pathComponent.path._nodes)
