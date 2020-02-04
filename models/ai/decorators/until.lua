@@ -10,5 +10,9 @@ function UntilDecorator:success()
   self.control:success()
 end
 
+function UntilDecorator:running()
+  self.control:running()
+end
+
 return UntilDecorator
 

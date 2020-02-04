@@ -22,7 +22,7 @@ function JobSystem:init()
 end
 
 local function printJob(job, level, y, isChild)
-  if not job:has(ECS.c.job) then return nil end
+  if not job or not job:has(ECS.c.job) then return nil end
   local name = tostring(job) .. ": " .. job:get(ECS.c.job).jobType
   if isChild then name = name .. " (child)" end
   local space = 15

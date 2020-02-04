@@ -10,13 +10,15 @@ local world = nil
 
 local universe = {}
 
-universe.cellSize = 32
+local cellSize = 32
 local padding = 0
 local width = 100
 local height = 100
 local tilesetBatch = nil
 local gridInvalidated = false
 local walkable = 0
+
+local cachedCanvas = nil
 
 
 local map = {}
@@ -50,6 +52,10 @@ function universe:load(newWorld)
     map[y] = row
     mapColors[y] = colorRow
   end
+
+  mapColors[1][1].grass = 1
+  mapColors[2][2].grass = 1
+  mapColors[3][3].grass = 1
 
   self.recalculateGrid(map, true)
 
@@ -150,17 +156,17 @@ end
 -- Marked for optimization
 function universe.gridPositionToPixels(gridPosition, positionFlag, entitySize)
   positionFlag = positionFlag or "left_top"
-  local tilePosition = gridPosition * universe.cellSize
+  local tilePosition = gridPosition * cellSize
 
   if positionFlag == "left_top" then return tilePosition end
 
   if positionFlag == "center" then
     entitySize = entitySize or 10
-    return tilePosition + Vector((universe.cellSize-padding-entitySize)/2, (universe.cellSize-padding-entitySize)/2)
+    return tilePosition + Vector((cellSize-padding-entitySize)/2, (cellSize-padding-entitySize)/2)
   end
 
   if positionFlag == "right_bottom" then
-    return tilePosition + Vector(universe.cellSize,universe.cellSize)
+    return tilePosition + Vector(cellSize,cellSize)
   end
 
   return tilePosition
@@ -171,11 +177,11 @@ function universe.snapPixelToGrid(pixelPosition, positionFlag, entitySize)
 end
 
 function universe.pixelsToGridCoordinates(pixelPosition)
-  return Vector(math.floor(pixelPosition.x/universe.cellSize), math.floor(pixelPosition.y/universe.cellSize))
+  return Vector(math.floor(pixelPosition.x/cellSize), math.floor(pixelPosition.y/cellSize))
 end
 
 function universe.getCellSize()
-  return universe.cellSize
+  return cellSize
 end
 
 function universe.getPadding()
@@ -256,8 +262,9 @@ end
 function universe.recalculateGrid(newMap, stopEmit)
   map = newMap
   grid = Grid(newMap)
+  cachedCanvas = nil
   myFinder = Pathfinder(grid, 'JPS', walkable)
-  myFinder:setMode('ORTHOGONAL')
+  --myFinder:setMode('ORTHOGONAL')
   _lastGridUpdateId = _lastGridUpdateId + 1
 
   if not stopEmit then
@@ -275,28 +282,54 @@ function universe.pathStillValid(path)
   return true
 end
 
-function universe.generateSpriteBatch(l, t, w, h)
-  tilesetBatch:clear()
+function universe.draw(l, t, w, h)
+  if cachedCanvas then
+    return cachedCanvas
+  else
+    tilesetBatch:clear()
+    love.graphics.push()
+    love.graphics.origin()
+    local scissorX, scissorY, scissorW, scissorH = love.graphics.getScissor()
+    love.graphics.setScissor()
+    --love.graphics.replaceTransform(transform)
+    --love.graphics.translate(-600, -600)
+    --love.graphics.setShader()
 
-  for rowNum, row in ipairs(map) do
-    for cellNum, cellValue in ipairs(row) do --luacheck: ignore
-      local drawMargin = universe.cellSize
-      local x1 = (cellNum * universe.cellSize)
-      local x2 = x1 + universe.cellSize
-      local y1 = rowNum * universe.cellSize
-      local y2 = y1 + universe.cellSize
-      if utils.withinBounds(x1, y1, x2, y2, l, t, l+w, t+h, drawMargin*2) then
-        local color = mapColors[rowNum][cellNum]
-        local imageArrayIndex = 3
-        if color.grass == 1 then
-          imageArrayIndex = math.floor(math.random()+0.5)+1
-        end
-        tilesetBatch:addLayer(imageArrayIndex, cellNum*universe.cellSize, rowNum*universe.cellSize, 0, 2, 2)
+    for rowNum, row in ipairs(map) do
+      for cellNum, cellValue in ipairs(row) do --luacheck: ignore
+        -- local drawMargin = cellSize
+        -- local x1 = (cellNum * cellSize)
+        -- local x2 = x1 + cellSize
+        -- local y1 = rowNum * cellSize
+        -- local y2 = y1 + cellSize
+        -- if utils.withinBounds(x1, y1, x2, y2, l, t, l+w, t+h, drawMargin*2) then
+          local color = mapColors[rowNum][cellNum]
+          local imageArrayIndex = 3
+          if color.grass == 1 then
+            imageArrayIndex = math.floor(math.random()+0.5)+1
+          end
+          local randColor = 0.97+color.a*0.03
+          tilesetBatch:setColor(randColor, randColor, randColor, 1)
+          tilesetBatch:addLayer(imageArrayIndex, cellNum*cellSize-cellSize, rowNum*cellSize-cellSize, 0, 2, 2)
+        -- end
       end
     end
-  end
 
-  return tilesetBatch
+
+    local canvas = love.graphics.newCanvas(width*cellSize, height*cellSize, { type = "array" })
+    love.graphics.setCanvas(canvas, 1)
+    local shader = love.graphics.getShader()
+    love.graphics.setShader()
+    love.graphics.clear()
+    love.graphics.draw(tilesetBatch)
+    love.graphics.setCanvas()
+    cachedCanvas = canvas
+    love.graphics.setShader(shader)
+    love.graphics.pop()
+    love.graphics.setScissor(scissorX, scissorY, scissorW, scissorH)
+    return canvas
+    --return tilesetBatch
+  end
 end
 
 function universe.getItemsOnGround(selector)
@@ -311,7 +344,7 @@ function universe.getItemFromGround(itemSelector, gridPosition) --luacheck: igno
 
   for _, item in ipairs(items) do
     local position = universe.pixelsToGridCoordinates(item:get(ECS.c.position).vector)
-    print("Position", inspect(position))
+    --print("Position", inspect(position))
     if universe.isInPosition(gridPosition, position, true) then
       return item
     end

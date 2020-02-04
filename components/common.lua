@@ -232,7 +232,7 @@ local function initializeComponents()
   ECS.c.register("worker", worker)
 
   local bluePrintJob = ECS.Component(function(e, constructionSpeed, materialsConsumed, buildProgress)
-    e.constructionSpeed = constructionSpeed or 1
+    e.constructionSpeed = constructionSpeed or 8
     e.materialsConsumed = materialsConsumed or {}
     e.buildProgress = buildProgress or 0 -- 0/100
     e.customSerialize = function()

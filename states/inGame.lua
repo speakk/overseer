@@ -71,10 +71,10 @@ function inGame:init()
 
     self.world:addSystems(unpack(inGameSystems))
 
-    self.world:emit("registerSpriteBatchGenerator", self.world:getSystem(ECS.Systems.map),
-    self.world:getSystem(ECS.Systems.map).generateSpriteBatch)
-    self.world:emit("registerSpriteBatchGenerator", self.world:getSystem(ECS.Systems.sprite),
-    self.world:getSystem(ECS.Systems.sprite).generateSpriteBatch)
+    self.world:emit("registerDrawFunction", self.world:getSystem(ECS.Systems.map),
+    self.world:getSystem(ECS.Systems.map).customDraw)
+    self.world:emit("registerDrawFunction", self.world:getSystem(ECS.Systems.sprite),
+    self.world:getSystem(ECS.Systems.sprite).customDraw)
     self.world:emit("registerGUIDrawGenerator", self.world:getSystem(ECS.Systems.sprite),
     self.world:getSystem(ECS.Systems.sprite).generateGUIDraw, true)
     self.world:emit("registerGUIDrawGenerator", self.world:getSystem(ECS.Systems.overseer),

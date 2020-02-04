@@ -14,7 +14,7 @@ ECS.c.position, ECS.c.velocity}, {ECS.c.job, 'jobs'})
 
 function SettlerSystem:init()
   self.lastAssigned = 0
-  self.assignWaitTime = 0.5
+  self.assignWaitTime = 3.0
 
   self.jobs.onEntityAdded = function(pool, entity)
     self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
@@ -33,11 +33,11 @@ end
 end
 
 function SettlerSystem:update(dt) --luacheck: ignore
-  -- local time = love.timer.getTime()
-  -- if time - self.lastAssigned > self.assignWaitTime then
-  --   self:assignJobsForSettlers()
-  --   self.lastAssigned = time
-  -- end
+  local time = love.timer.getTime()
+  if time - self.lastAssigned > self.assignWaitTime then
+    self:assignJobsForSettlers(jobManager.getUnreservedJobs(self.jobs))
+    self.lastAssigned = time
+  end
 
   for _, settler in ipairs(self.pool) do
     self:processSettlerUpdate(settler, dt)
@@ -63,14 +63,9 @@ function SettlerSystem:processSettlerUpdate(settler, dt)
       local jobId = settler:get(ECS.c.work).jobId
 
       if not entityManager.get(jobId) then
-        settler:get(ECS.c.work):destroy()
+        settler:remove(ECS.c.work)
         return
       end
-
-      -- if self:processSubJob(settler, jobId, dt) then
-      --   -- Finished
-      --   self:finishWork(settler, jobId)
-      -- end
     end
   end
 end
@@ -100,17 +95,8 @@ function SettlerSystem:gridUpdated()
   end
 end
 
--- function SettlerSystem:processSubJob(settler, jobId, dt)
---   local job = entityManager.get(jobId)
---   local jobType = job:get(ECS.c.job).jobType
---   local jobHandler = jobHandlers[jobType].handle
---   if jobHandler then
---     return jobHandler(self, job, settler, dt, finishWork)
---   end
--- end
-
 function SettlerSystem:initializeTestSettlers()
-  for _ = 1,10,1 do
+  for _ = 1,30,1 do
     local settler = ECS.Entity()
     local worldSize = universe.getSize()
     local position
@@ -137,6 +123,7 @@ end
 
 function SettlerSystem:startJob(settler, job, jobQueue) -- luacheck: ignore
   job:get(ECS.c.job).reserved = settler
+  print("Starting job!", settler, job)
   settler:give(ECS.c.work, job:get(ECS.c.id).id)
   lume.remove(jobQueue, job)
 end
@@ -155,12 +142,6 @@ function SettlerSystem:assignJobsForSettlers(jobQueue)
         break
       end
     end
-    --local availableWorker = lume.match(self.pool,
-    --function(potentialSettler)
-    --  --print("potentialSettler", potentialSettler, inspect(self.pool))
-    --  return not potentialSettler:has(ECS.c.work)
-    --end
-    --)
 
     if not availableWorker then break end
     local nextJob = jobQueue[1]

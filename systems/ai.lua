@@ -10,19 +10,19 @@ local behaviours = {
 
 local attachedBehaviours = {}
 
+local aiTimer = 0
+local aiInterval = 0.5
+
 function attachBehaviour(entity, type, world)
   local id = entity:get(ECS.c.id).id
   attachedBehaviours[id] = attachedBehaviours[id] or {}
 
-  print("type", id, type, entity, entity:get(ECS.c.work), entity:get(ECS.c.work).jobId)
   local job = entityManager.get(entity:get(ECS.c.work).jobId)
-  print("job", job, job:get(ECS.c.job), job:get(ECS.c.job).jobType)
   attachedBehaviours[id][type] = behaviours[type](entity, world, type)
 end
 
 function detachBehaviour(entity, type)
   local id = entity:get(ECS.c.id).id
-  print("Detaching behaviour", id)
   attachedBehaviours[id][type] = nil
 end
 
@@ -48,11 +48,20 @@ function AISystem:treeFinished(entity, jobType)
 end
 
 function AISystem:update(dt)
-  for _, entity in ipairs(self.work) do
-    local id = entity:get(ECS.c.id).id
-    local jobComponent = entityManager.get(entity:get(ECS.c.work).jobId):get(ECS.c.job)
-    local jobType = jobComponent.jobType
-    attachedBehaviours[id][jobType]:run()
+  aiTimer = aiTimer + dt
+  if aiTimer >= aiInterval then
+    --print("AI UPDATE")
+    aiTimer = aiTimer - aiInterval
+
+    for _, entity in ipairs(self.work) do
+      local id = entity:get(ECS.c.id).id
+      local job = entityManager.get(entity:get(ECS.c.work).jobId)
+      if job then
+        local jobComponent = job:get(ECS.c.job)
+        local jobType = jobComponent.jobType
+        attachedBehaviours[id][jobType]:run()
+      end
+    end
   end
 end
 
