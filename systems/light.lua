@@ -28,7 +28,7 @@ function LightSystem:init()
 end
 
 function LightSystem:initializeTestLights()
-  for _=1,50 do
+  for _=1,3 do
     local light = ECS.Entity()
     light:give(ECS.c.position,
       universe.snapPixelToGrid(
@@ -48,31 +48,63 @@ end
 --   return self.pool
 -- end
 
-function calcShadows(self)
-  xs = {1, universeSize.x}
-  ys = {1, universeSize.y}
+function calcShadows(self, lightPos)
+  print("universe size", universeSize.y, universeSize.x)
 
   local shadowMap = {}
-  for y = 1,universeSize.x do
+  for y = 1,universeSize.y do
     local row = {}
-    for x = 1,universeSize.y do row[x] = 1 end
+    for x = 1,universeSize.x do row[x] = 1 end -- 1 = Shadow
     shadowMap[y] = row
   end
 
-  for x in ipairs({1, universeSize.x}) do
+  local maxOccludedLength = 6
+
+  --for round in ipairs({ x = { 1, universeSize.x }, y 
+  for _, x in ipairs({1, universeSize.x}) do
     for y = 1,universeSize.y do
-      for _, light in ipairs(self.pool) do
-        local lightPos = light:get(ECS.c.position).vector
-        bresenham.los(x,y,lightPos.x,lightPos.y, function(x, y)
-          local available = universe.isCellAvailable(Vector(x, y))
-          if available then
-            shadowMap[y][x] = 0
+      --for _, light in ipairs(self.pool) do
+      --  local lightPos = universe.pixelsToGridCoordinates(light:get(ECS.c.position).vector)
+        local occludedLength = 1
+        bresenham.los(lightPos.x,lightPos.y,x,y, function(x, y)
+          local occluded = universe.isPositionOccluded(Vector(x, y))
+          --if not occluded and occludedLength < maxOccludedLength then
+          if not occluded then
+            shadowMap[y][x] = 0 -- add light
             return true
           else
+            --occludedLength = occludedLength + 1
+            --if occludedLength > maxOccludedLength then return true end
+            --print((Vector(x, y) - lightPos).length2)
+            --if (Vector(x, y) - lightPos).length2 > maxOccludedLength then return true end
             return false
           end
         end)
-      end
+      --end
+    end
+  end
+
+  for _, y in ipairs({1, universeSize.y}) do
+    for x = 1,universeSize.x do
+      --for _, light in ipairs(self.pool) do
+        --local lightPos = universe.pixelsToGridCoordinates(light:get(ECS.c.position).vector)
+        local occludedLength = 1
+        bresenham.los(lightPos.x,lightPos.y,x,y, function(x, y)
+          local occluded = universe.isPositionOccluded(Vector(x, y))
+          occludedLength = occludedLength + 1
+          --if occludedLength > 10
+          --local distanceToLight = (Vector(x, y) - lightPos).length2 > maxOccludedLength then return true end
+          --if not occluded and occludedLength < maxOccludedLength then
+          if not occluded then
+            shadowMap[y][x] = 0 -- light
+            return true
+          else
+            --if occludedLength > maxOccludedLength then return true end
+            -- if (Vector(x, y) - lightPos).length2 > maxOccludedLength then return true end
+            return false
+          end
+        end)
+      --end
     end
   end
 
@@ -81,36 +113,49 @@ end
 
 
 function LightSystem:lightsOrMapChanged()
-  love.graphics.setCanvas(lightCanvas)
+  love.graphics.setCanvas( {lightCanvas, stencil = true } )
   love.graphics.clear()
   love.graphics.setColor(unpack(ambientColor))
   love.graphics.rectangle("fill", 0, 0, lightCanvas:getWidth(), lightCanvas:getHeight())
+
   love.graphics.setColor(1,1,1,0)
   love.graphics.setBlendMode("add")
   love.graphics.setShader(radialLightShader)
-  for _, light in ipairs(self.pool) do
+  for i, light in ipairs(self.pool) do
     local position = light:get(ECS.c.position).vector
+
+    print("index", i, position)
+    love.graphics.stencil(function()
+      local shadowMap = calcShadows(self, universe.pixelsToGridCoordinates(position))
+      for y = 1,#shadowMap do
+        for x = 1,#shadowMap[y] do
+          if shadowMap[y][x] == 1 then -- add shadow
+            love.graphics.setColor(1, 0, 1, 1)
+            love.graphics.rectangle('fill', x*cellSize, y*cellSize, cellSize, cellSize)
+          end
+        end
+      end
+    end,
+    "replace", 1, false)
+
+    love.graphics.setStencilTest("less", 1)
+
     local color = light:get(ECS.c.light).color
     radialLightShader:send("color", color)
     love.graphics.draw(lightCircleImage,
-      position.x-lightCircleImageWidth*lightCircleImageScale*0.5,
-      position.y-lightCircleImageHeight*lightCircleImageScale*0.5,
-      0, lightCircleImageScale, lightCircleImageScale)
+    position.x-lightCircleImageWidth*lightCircleImageScale*0.5,
+    position.y-lightCircleImageHeight*lightCircleImageScale*0.5,
+    0, lightCircleImageScale, lightCircleImageScale)
+    love.graphics.setStencilTest()
   end
 
-  local shadowMap = calcShadows(self)
+
 
   local cellSize = universe.getCellSize()
 
-  for y = 1,#shadowMap do
-    for x = 1,#shadowMap[y] do
-      love.graphics.setColor(1, 0, 0, 1)
-      love.graphics.rectangle('fill', x*cellSize, y*cellSize, cellSize, cellSize)
-    end
-  end
-
   love.graphics.setBlendMode("alpha")
   love.graphics.setShader()
+
   love.graphics.setCanvas()
   if blendShader:hasUniform("ambientColor") then blendShader:send("ambientColor", ambientColor) end
   if blendShader:hasUniform("light_canvas") then blendShader:send("light_canvas", lightCanvas) end

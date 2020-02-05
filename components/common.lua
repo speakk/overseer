@@ -149,6 +149,9 @@ local function initializeComponents()
   local onMap = ECS.Component()
   ECS.c.register("onMap", onMap)
 
+  local occluder = ECS.Component()
+  ECS.c.register("occluder", occluder)
+
   -- local fetchJob = ECS.Component(function(e, target, selector, amount)
   --   e.target = target
   --   e.selector = selector or error("Fetch has no selector!")

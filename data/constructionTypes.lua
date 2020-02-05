@@ -6,7 +6,7 @@ local data = {
     subItems = {
       wooden_wall = {
         name = "Wooden wall",
-        components = { { name = "sprite", properties = { "tiles.wall_wood01" } } },
+        components = { { name = "sprite", properties = { "tiles.wall_wood01" } }, { name = "occluder" } },
         requirements = {
           ["raw_materials.wood"] = 2
         },
@@ -15,7 +15,7 @@ local data = {
       },
       iron_wall = {
         name = "Iron wall",
-        components = { { name = "sprite", properties = { "tiles.wall_iron01" } } },
+        components = { { name = "sprite", properties = { "tiles.wall_iron01" } }, { name = "occluder" }  },
         requirements = {
           ["raw_materials.steel"] = 1,
           ["raw_materials.wood"] = 1

@@ -76,7 +76,11 @@ local function generate(gridPosition, itemData, bluePrintItemSelector)
   if itemData.components then
     for _, component in ipairs(itemData.components) do
       if not component.afterConstructed then
-        job:give(ECS.c[component.name], unpack(component.properties))
+        if component.properties then
+          job:give(ECS.c[component.name], unpack(component.properties))
+        else
+          job:give(ECS.c[component.name])
+        end
       end
     end
   end

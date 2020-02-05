@@ -121,7 +121,7 @@ function createTree(settler, world, jobType)
   -- TODO: Check for current path for settler??
   local getPathToTarget = BehaviourTree.Task:new({
     run = function(task, blackboard)
-      print("Has onMap?!", blackboard.currentTarget:has(ECS.c.onMap))
+      --print("Has onMap?!", blackboard.currentTarget:has(ECS.c.onMap))
       -- blackboard.settler:get(ECS.c.position).vector = Vector(0, 0) + blackboard.currentTarget:get(ECS.c.position).vector
       -- task:success()
       -- if true then return end

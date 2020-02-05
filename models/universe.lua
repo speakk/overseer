@@ -24,6 +24,7 @@ local cachedCanvas = nil
 local map = {}
 local entityPosMap = {}
 local entitySelectorMap = {}
+local occluderMap = {}
 local mapColors = {}
 
 local _lastGridUpdateId = 0
@@ -87,17 +88,6 @@ function universe.onCollisionEntityRemoved(pool, entity)
     gridInvalidated = true
 end
 
-function universe.onOnMapEntityAdded(pool, entity)
-  local pixelPosition = entity:get(ECS.c.position).vector
-  local position = universe.pixelsToGridCoordinates(pixelPosition)
-  local posString = position.x .. ":" .. position.y
-  if not entityPosMap[posString] then
-    entityPosMap[posString] = {}
-  end
-
-  table.insert(entityPosMap[posString], entity)
-end
-
 function universe.onOnMapItemAdded(pool, entity)
   local itemComponent = entity:get(ECS.c.item)
   local selector = itemComponent.selector
@@ -118,18 +108,56 @@ function universe.onOnMapItemRemoved(pool, entity)
   end
 end
 
+function universe.getPositionString(entity)
+  local pixelPosition = entity:get(ECS.c.position).vector
+  local position = universe.pixelsToGridCoordinates(pixelPosition)
+  local posString = position.x .. ":" .. position.y
+
+  return posString
+end
+
+function universe.onOnMapEntityAdded(pool, entity)
+  local posString = universe.getPositionString(entity)
+  if not entityPosMap[posString] then
+    entityPosMap[posString] = {}
+  end
+
+  table.insert(entityPosMap[posString], entity)
+end
+
+
 function universe.onOnMapEntityRemoved(pool, entity)
   if not entity:has(ECS.c.position) then return end
-  local positionComponent = entity:get(ECS.c.position)
-  local positionPixels = positionComponent.vector
-  local position = universe.pixelsToGridCoordinates(positionPixels)
-  local posString = position.x .. ":" .. position.y
+  local posString = universe.getPositionString(entity)
 
   if not entityPosMap[posString] then
     error("Trying to remove nonExistent entity from pos: " .. posString)
   end
 
   lume.remove(entityPosMap[posString], entity)
+end
+
+function universe.onOccluderEntityAdded(pool, entity)
+  local posString = universe.getPositionString(entity)
+
+  occluderMap[posString] = 1
+end
+
+function universe.onOccluderEntityRemoved(pool, entity)
+  if not entity:has(ECS.c.position) then return end
+  local posString = universe.getPositionString(entity)
+
+  occluderMap[posString] = 0
+end
+
+function universe.isPositionOccluded(gridPosition)
+  local posString = gridPosition.x .. ":" .. gridPosition.y
+
+  if occluderMap[posString] == 1 then
+    return true
+  end
+
+  return false
 end
 
 function universe.getEntitiesInLocation(gridPosition)

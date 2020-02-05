@@ -5,11 +5,15 @@ local Vector = require('libs.brinevector') --luacheck: ignore
 
 local MapSystem = ECS.System({ECS.c.collision, "collision"},
   {ECS.c.onMap, ECS.c.position, "onMap"},
-  {ECS.c.onMap, ECS.c.position, ECS.c.item, "onMapItem"})
+  {ECS.c.onMap, ECS.c.position, ECS.c.item, "onMapItem"},
+  {ECS.c.onMap, ECS.c.position, ECS.c.occluder, "occluder"}
+  )
 
 function MapSystem:init()
   self.collision.onEntityAdded = universe.onCollisionEntityAdded
   self.collision.onEntityRemoved = universe.onCollisionEntityRemoved
+  self.occluder.onEntityAdded = universe.onOccluderEntityAdded
+  self.occluder.onEntityRemoved = universe.onOccluderEntityRemoved
   self.onMap.onEntityAdded = universe.onOnMapEntityAdded
   self.onMap.onEntityRemoved = universe.onOnMapEntityRemoved
   self.onMapItem.onEntityAdded = universe.onOnMapItemAdded

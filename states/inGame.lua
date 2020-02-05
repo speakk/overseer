@@ -47,7 +47,6 @@ function inGame:init()
     -- if existing then
     --   self.world:emit('loadGame', existingSave)
     -- else
-    --   --self.world:getSystem(ECS.Systems.light):initializeTestLights()
     -- end
     local inGameSystems = {
       ECS.Systems.dayCycle,
@@ -91,6 +90,7 @@ function inGame:init()
     --   self.world:addSystem(ECS.Systems.profiler, "update")
     --   self.world:addSystem(ECS.Systems.profiler, "draw")
     -- end
+    self.world:getSystem(ECS.Systems.light):initializeTestLights()
 
   end
 end
