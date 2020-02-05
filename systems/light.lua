@@ -49,8 +49,6 @@ end
 -- end
 
 function calcShadows(self, lightPos)
-  print("universe size", universeSize.y, universeSize.x)
-
   local shadowMap = {}
   for y = 1,universeSize.y do
     local row = {}
@@ -58,54 +56,19 @@ function calcShadows(self, lightPos)
     shadowMap[y] = row
   end
 
-  local maxOccludedLength = 6
+  local lightRadius = 14 -- radius in tiles
 
-  --for round in ipairs({ x = { 1, universeSize.x }, y 
-  for _, x in ipairs({1, universeSize.x}) do
-    for y = 1,universeSize.y do
-      --for _, light in ipairs(self.pool) do
-      --  local lightPos = universe.pixelsToGridCoordinates(light:get(ECS.c.position).vector)
-        local occludedLength = 1
-        bresenham.los(lightPos.x,lightPos.y,x,y, function(x, y)
-          local occluded = universe.isPositionOccluded(Vector(x, y))
-          --if not occluded and occludedLength < maxOccludedLength then
-          if not occluded then
-            shadowMap[y][x] = 0 -- add light
-            return true
-          else
-            --occludedLength = occludedLength + 1
-            --if occludedLength > maxOccludedLength then return true end
-            --print((Vector(x, y) - lightPos).length2)
-            --if (Vector(x, y) - lightPos).length2 > maxOccludedLength then return true end
-            return false
-          end
-        end)
-      --end
-    end
-  end
+  for node, _ in universe.iterAround(lightPos.x, lightPos.y, lightRadius) do
+    bresenham.los(lightPos.x,lightPos.y, node:getX(), node:getY(), function(x, y)
+      local occluded = universe.isPositionOccluded(Vector(x, y))
 
-  for _, y in ipairs({1, universeSize.y}) do
-    for x = 1,universeSize.x do
-      --for _, light in ipairs(self.pool) do
-        --local lightPos = universe.pixelsToGridCoordinates(light:get(ECS.c.position).vector)
-        local occludedLength = 1
-        bresenham.los(lightPos.x,lightPos.y,x,y, function(x, y)
-          local occluded = universe.isPositionOccluded(Vector(x, y))
-          occludedLength = occludedLength + 1
-          --if occludedLength > 10
-          --local distanceToLight = (Vector(x, y) - lightPos).length2 > maxOccludedLength then return true end
-          --if not occluded and occludedLength < maxOccludedLength then
-          if not occluded then
-            shadowMap[y][x] = 0 -- light
-            return true
-          else
-            --if occludedLength > maxOccludedLength then return true end
-            -- if (Vector(x, y) - lightPos).length2 > maxOccludedLength then return true end
-            return false
-          end
-        end)
-      --end
-    end
+      if not occluded then
+        shadowMap[y][x] = 0 -- add light
+        return true
+      else
+        return false
+      end
+    end)
   end
 
   return shadowMap
@@ -124,7 +87,6 @@ function LightSystem:lightsOrMapChanged()
   for i, light in ipairs(self.pool) do
     local position = light:get(ECS.c.position).vector
 
-    print("index", i, position)
     love.graphics.stencil(function()
       local shadowMap = calcShadows(self, universe.pixelsToGridCoordinates(position))
       for y = 1,#shadowMap do

@@ -287,6 +287,11 @@ function universe.iter(lx, ly, ex, ey)
   return grid:iter(lx, ly, ex, ey)
 end
 
+function universe.iterAround(x, y, radius)
+  local node = grid:getNodeAt(x, y)
+  return grid:around(node, radius)
+end
+
 function universe.recalculateGrid(newMap, stopEmit)
   map = newMap
   grid = Grid(newMap)
