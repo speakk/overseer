@@ -31,22 +31,22 @@ function OverseerSystem:init()
     build = {
       action1 = function(mouseCoordinates, button)
         --actions.action1(mouseCoordinates, button)
-        self:dragAction(mouseCoordinates, button, function(nodes, rect)
-          self:build(nodes)
+        self:dragAction(mouseCoordinates, button, false, function(coords, rect)
+          self:build(coords)
         end,
         { 1, 1, 1, 1 })
       end,
       action2 = function(mouseCoordinates, button)
-        self:dragAction(mouseCoordinates, button, function(nodes, rect)
-          self:destruct(nodes)
+        self:dragAction(mouseCoordinates, button, true, function(coords, rect)
+          self:destruct(coords)
         end,
         { 1, 0, 0, 1 })
       end,
     },
     zones = {
       action1 = function(mouseCoordinates, button)
-        self:dragAction(mouseCoordinates, button, function(nodes, rect)
-          self:zones(nodes, rect)
+        self:dragAction(mouseCoordinates, button, true, function(coords, rect)
+          self:zones(coords, rect)
         end,
         zoneColor)
       end
@@ -116,13 +116,14 @@ function OverseerSystem:enactDrag(dragEvent)
   local gridCoordsStart = universe.pixelsToGridCoordinates(dragEvent.startPoint)
   local gridCoordsEnd = universe.pixelsToGridCoordinates(dragEvent.endPoint)
 
-  local nodes = universe.iter(
+  local coords = universe.getOuterBorderCoordinates(
   math.min(gridCoordsStart.x, gridCoordsEnd.x),
   math.min(gridCoordsStart.y, gridCoordsEnd.y),
   math.max(gridCoordsStart.x, gridCoordsEnd.x),
-  math.max(gridCoordsStart.y, gridCoordsEnd.y))
+  math.max(gridCoordsStart.y, gridCoordsEnd.y),
+  dragEvent.fill)
 
-  dragEvent.action(nodes, {
+  dragEvent.action(coords, {
     x1 = gridCoordsStart.x,
     y1 = gridCoordsStart.y, 
     x2 = gridCoordsEnd.x, 
@@ -136,8 +137,9 @@ function OverseerSystem:enactDrag(dragEvent)
   -- end
 end
 
-function OverseerSystem:startDrag(mouseCoordinates, action) --luacheck: ignore
+function OverseerSystem:startDrag(mouseCoordinates, fill, action) --luacheck: ignore
   drag.action = action
+  drag.fill = fill
   drag.active = true
   drag.startPoint = mouseCoordinates
 end
@@ -161,17 +163,17 @@ function OverseerSystem:mapClicked(mouseCoordinates, button, actionType)
   --self:mapClicked(mouseCoordinates, button, actions.action1, actions.action2)
 end
 
-function OverseerSystem:dragAction(mouseCoordinates, button, callBack, color)
+function OverseerSystem:dragAction(mouseCoordinates, button, fill, callBack, color)
   if settings.mouse_toggle_drag then
     if drag.active then
       self:endDrag(mouseCoordinates)
     else
       drag.color = color
-      self:startDrag(mouseCoordinates, callBack)
+      self:startDrag(mouseCoordinates, fill, callBack)
     end
   else
     drag.color = color
-    self:startDrag(mouseCoordinates, callBack)
+    self:startDrag(mouseCoordinates, fill, callBack)
   end
 end
 
@@ -181,15 +183,15 @@ function OverseerSystem:mouseReleased(mouseCoordinates, button) --luacheck: igno
   end
 end
 
-function OverseerSystem:build(nodes)
+function OverseerSystem:build(coords)
   if not self.dataSelector then return end
   local data = constructionTypes.getBySelector(self.dataSelector)
   if data then
-    self:getWorld():emit("bluePrintsPlaced", nodes, data, self.dataSelector)
+    self:getWorld():emit("bluePrintsPlaced", coords, data, self.dataSelector)
   end
 end
 
-function OverseerSystem:zones(nodes, rect)
+function OverseerSystem:zones(coords, rect)
   local zoneEntity = ECS.Entity()
   zoneEntity:give(ECS.c.id, entityManager.generateId())
   zoneEntity:give(ECS.c.zone)
@@ -199,11 +201,11 @@ function OverseerSystem:zones(nodes, rect)
   self:getWorld():addEntity(zoneEntity)
 end
 
-function OverseerSystem:destruct(nodes)
+function OverseerSystem:destruct(coords)
   local allEntities = {}
-  for node, _ in nodes do
-    local gridPosition = universe.clampToWorldBounds(Vector(node:getX(), node:getY()))
-    local entities = universe.getEntitiesInLocation(gridPosition)
+  for _, position in ipairs(coords) do
+    --local gridPosition = universe.clampToWorldBounds(position)
+    local entities = universe.getEntitiesInLocation(position)
     allEntities = lume.concat(allEntities, entities)
   end
   self:getWorld():emit("cancelConstruction", allEntities)

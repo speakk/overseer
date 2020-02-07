@@ -293,7 +293,24 @@ function universe.gridIterAround(x, y, radius)
   return grid:around(node, radius)
 end
 
-function universe.getOuterBorderCoordinates(x1, y1, x2, y2)
+local function getPosString(x, y)
+  return x .. ":" .. y
+end
+
+local function addIfNotExist(existTable, posTable, x, y)
+  local posString = getPosString(x, y)
+  if not existTable[posString] then
+    table.insert(posTable, Vector(x, y))
+    existTable[posString] = 1
+  end
+end
+
+function universe.getOuterBorderCoordinates(x1, y1, x2, y2, fill)
+  print("fill", fill)
+  if x1 == x2 and y1 == y1 then
+    return { Vector(x1, y1) }
+  end
+
   local topLeftX = x1
   local topLeftY = y1
   local topRightX = x2
@@ -302,6 +319,9 @@ function universe.getOuterBorderCoordinates(x1, y1, x2, y2)
   local bottomLeftY = y2
   local bottomRightX = x1
   local bottomRightY = y2
+
+  -- Quick & dirty way of checking if coordinate already exists before adding
+  local existing = {}
 
   local sequence = { topLeftX, topLeftY, topRightX, topRightY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY, topLeftX, topLeftY }
   --print("sequence", topLeftX, topLeftY, topRightX, topRightY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY)
@@ -313,6 +333,8 @@ function universe.getOuterBorderCoordinates(x1, y1, x2, y2)
     local endX = sequence[i+2]
     local endY = sequence[i+3]
 
+    -- Ensure the coordinates aren't the same as previous one (line width/height 1)
+
     --print(x, y, "around: ", startX, startY, endX, endY)
 
     bresenham.los(startX, startY, endX, endY, function(x, y)
@@ -321,13 +343,22 @@ function universe.getOuterBorderCoordinates(x1, y1, x2, y2)
         return false
       end
       --print("Coordinates,", x, y)
-      table.insert(coordinates, Vector(x, y))
+      addIfNotExist(existing, coordinates, x, y)
+      --table.insert(coordinates, Vector(x, y))
       return true
     end)
   end
 
-  return coordinates
+  if fill then
+    for x = x1+1,x2-1 do
+      for y = y1+1,y2-1 do
+        addIfNotExist(existing, coordinates, x, y)
+        --table.insert(coordinates, Vector(x, y))
+      end
+    end
+  end
 
+  return coordinates
 end
 
 function universe.getCoordinatesAround(x, y, radius)
