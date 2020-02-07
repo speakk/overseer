@@ -293,16 +293,15 @@ function universe.gridIterAround(x, y, radius)
   return grid:around(node, radius)
 end
 
-function universe.getCoordinatesAround(x, y, radius)
-  local halfRadius = radius/2
-  local topLeftX = x - halfRadius
-  local topLeftY = y - halfRadius
-  local topRightX = x + halfRadius
-  local topRightY = y - halfRadius
-  local bottomLeftX = x + halfRadius
-  local bottomLeftY = y + halfRadius
-  local bottomRightX = x - halfRadius
-  local bottomRightY = y + halfRadius
+function universe.getOuterBorderCoordinates(x1, y1, x2, y2)
+  local topLeftX = x1
+  local topLeftY = y1
+  local topRightX = x2
+  local topRightY = y1
+  local bottomLeftX = x2
+  local bottomLeftY = y2
+  local bottomRightX = x1
+  local bottomRightY = y2
 
   local sequence = { topLeftX, topLeftY, topRightX, topRightY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY, topLeftX, topLeftY }
   --print("sequence", topLeftX, topLeftY, topRightX, topRightY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY)
@@ -328,6 +327,17 @@ function universe.getCoordinatesAround(x, y, radius)
   end
 
   return coordinates
+
+end
+
+function universe.getCoordinatesAround(x, y, radius)
+  local halfRadius = radius
+  local topLeftX = x - halfRadius
+  local topLeftY = y - halfRadius
+  local bottomRightX = x + halfRadius
+  local bottomRightY = y + halfRadius
+
+  return universe.getOuterBorderCoordinates(topLeftX, topLeftY, bottomRightX, bottomRightY)
 end
 
 function universe.recalculateGrid(newMap, stopEmit)
