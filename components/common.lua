@@ -344,19 +344,21 @@ local function initializeComponents()
 
   local parent = ECS.Component(function(e, parentId)
     e.parentId = parentId
-    e.customSerialize = function()
-      return { parentId = e.parentId }
-    end
+    e.customSerialize = function() return { parentId = e.parentId } end
   end)
   parent.customDeserialize = function(data)
-    local parentC = parent:__initialize(data.parentId)
-    --entityManager.registerReference(function(references) 
-    --  parentC.parent = references[data.parentId]
-    --end)
-
-    return parentC
+    return parent:__initialize(data.parentId)
   end
   ECS.c.register("parent", parent)
+
+  local reserved = ECS.Component(function(e, reservedById)
+    e.reservedById = reservedById
+    e.customSerialize = function() return { reservedById = e.reservedById } end
+  end)
+  reserved.customDeserialize = function(data)
+    return reserved:__initialize(data.reservedById)
+  end
+  ECS.c.register("reserved", reserved)
 
   local children = ECS.Component(function(e, children)
     e.children = children or {}

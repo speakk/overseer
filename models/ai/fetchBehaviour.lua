@@ -37,7 +37,9 @@ function createTree(settler, world, jobType)
         return
       end
 
-      blackboard.potentialItemsStack = lume.extend({}, itemsOnMap)
+      blackboard.potentialItemsStack = lume.filter(itemsOnMap, function(item)
+        return not item:has(ECS.c.reserved)
+      end)
       task:success()
     end
   })
@@ -176,7 +178,7 @@ function createTree(settler, world, jobType)
   local popTargetFromItemStack = BehaviourTree.Task:new({
     run = function(task, blackboard)
       --print("popTargetFromItemStack")
-      if not blackboard.potentialItemsStack or #blackboard.potentialItemsStack <= 0 then
+      if not blackboard.potentialItemsStack or #blackboard.potentialItemsStack <= 0 or blackboard.potentialItemsStack[#blackboard.potentialItemsStack]:has(ECS.c.reserved) then
         task:fail()
         --print("popTargetFromItemStack fail#1")
         return
@@ -187,6 +189,7 @@ function createTree(settler, world, jobType)
         --print("potentialItem", potentialItem, potentialItem:get(ECS.c.item).selector)
         --print("potentialItem position", universe.pixelsToGridCoordinates(potentialItem:get(ECS.c.position).vector))
         blackboard.currentTarget = potentialItem
+        potentialItem:give(ECS.c.reserved, blackboard.settler:get(ECS.c.id).id)
         --print("popTargetFromItemStack success")
         task:success()
       else
@@ -212,16 +215,19 @@ function createTree(settler, world, jobType)
   local tree = BehaviourTree:new({
     tree = BehaviourTree.Sequence:new({
       nodes = {
+        -- Priority: If has enough item, then return
+        -- else start fetch sequence.
+        -- If fetch sequence returns, then we have item
         BehaviourTree.Priority:new({
           nodes = {
             hasEnoughOfItem,
             BehaviourTree.Sequence:new({
               nodes = {
+                getPotentialItemStack,
                 UntilDecorator:new({
                   node = 
                   BehaviourTree.Sequence:new({
                     nodes = {
-                      getPotentialItemStack,
                       popTargetFromItemStack,
                       BehaviourTree.Sequence:new({
                         nodes = {
@@ -231,7 +237,7 @@ function createTree(settler, world, jobType)
                           BehaviourTree.Priority:new({
                             nodes = {
                               areWeAtTarget,
-                              getPathToTarget, -- TODO: Add a "now there?" leaf after this
+                              getPathToTarget,
                             }
                           }),
                           pickItemAmountUp,
@@ -245,6 +251,8 @@ function createTree(settler, world, jobType)
             })
           }
         }),
+        -- Fetch sequence finished, so now
+        -- bring item to destination
         BehaviourTree.Sequence:new({
           nodes = {
             setDestinationAsCurrentTarget,
