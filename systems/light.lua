@@ -59,13 +59,14 @@ function calcShadows(self, lightPos)
   local lightRadius = 14 -- radius in tiles
 
   for _, coords in ipairs(universe.getCoordinatesAround(lightPos.x, lightPos.y, lightRadius)) do
-    if coords.x <= universeSize.x or
-      coords.x >= universeSize.x or
-      coords.y >= universeSize.y or
-      coords.y <= universeSize.y then
+    bresenham.los(lightPos.x,lightPos.y, coords.x, coords.y, function(x, y)
+      local occluded = universe.isPositionOccluded(Vector(x, y))
 
-      bresenham.los(lightPos.x,lightPos.y, coords.x, coords.y, function(x, y)
-        local occluded = universe.isPositionOccluded(Vector(x, y))
+      if x < universeSize.x and
+        x >= 1 and
+        y >= 1 and
+        y < universeSize.y then
+
 
         if not occluded then
           shadowMap[y][x] = 0 -- add light
@@ -73,8 +74,8 @@ function calcShadows(self, lightPos)
         else
           return false
         end
-      end)
-    end
+      end
+    end)
   end
 
   return shadowMap
