@@ -13,14 +13,14 @@ function ItemSystem:initializeTestItems(mapSize)
     raw_materials = { "wood", "iron", "stone", "steel" }
   }
 
-  for i=1,20,1 do  --luacheck: ignore
+  for i=1,40,1 do  --luacheck: ignore
     local position = Vector(math.random(mapSize.x), math.random(mapSize.y))
     local keys1 = lume.keys(randomTable)
     local key = keys1[math.random(#keys1)]
     local category = randomTable[key]
     local itemName = category[math.random(#category)]
     local selector = key .. "." .. itemName
-    local amount = love.math.random(30)
+    local amount = 100
     local item = itemUtils.createItem(selector, amount)
     item:give(ECS.c.onMap)
     item:give(ECS.c.position, universe.gridPositionToPixels(position))
