@@ -1,4 +1,5 @@
 local Vector = require('libs.brinevector')
+local bresenham = require('libs.bresenham')
 local Pathfinder = require('libs.jumper.pathfinder')
 local Grid = require('libs.jumper.grid')
 local cpml = require('libs.cpml')
@@ -283,13 +284,50 @@ end
 
 -- For documentation:
 --https://htmlpreview.github.io/?https://raw.githubusercontent.com/Yonaba/Jumper/master/docs/modules/grid.html#Grid:iter
-function universe.iter(lx, ly, ex, ey)
+function universe.gridIter(lx, ly, ex, ey)
   return grid:iter(lx, ly, ex, ey)
 end
 
-function universe.iterAround(x, y, radius)
+function universe.gridIterAround(x, y, radius)
   local node = grid:getNodeAt(x, y)
   return grid:around(node, radius)
+end
+
+function universe.getCoordinatesAround(x, y, radius)
+  local halfRadius = radius/2
+  local topLeftX = x - halfRadius
+  local topLeftY = y - halfRadius
+  local topRightX = x + halfRadius
+  local topRightY = y - halfRadius
+  local bottomLeftX = x + halfRadius
+  local bottomLeftY = y + halfRadius
+  local bottomRightX = x - halfRadius
+  local bottomRightY = y + halfRadius
+
+  local sequence = { topLeftX, topLeftY, topRightX, topRightY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY, topLeftX, topLeftY }
+  --print("sequence", topLeftX, topLeftY, topRightX, topRightY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY)
+
+  local coordinates = {}
+  for i = 1,#sequence-2,2 do
+    local startX = sequence[i]
+    local startY = sequence[i+1]
+    local endX = sequence[i+2]
+    local endY = sequence[i+3]
+
+    --print(x, y, "around: ", startX, startY, endX, endY)
+
+    bresenham.los(startX, startY, endX, endY, function(x, y)
+      -- Do not add end until the end of sequence, otherwise we'll have duplicates
+      if i < #sequence-2 and x == endX and y == endY then
+        return false
+      end
+      --print("Coordinates,", x, y)
+      table.insert(coordinates, Vector(x, y))
+      return true
+    end)
+  end
+
+  return coordinates
 end
 
 function universe.recalculateGrid(newMap, stopEmit)

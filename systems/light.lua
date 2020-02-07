@@ -32,7 +32,7 @@ function LightSystem:initializeTestLights()
     local light = ECS.Entity()
     light:give(ECS.c.position,
       universe.snapPixelToGrid(
-        Vector(love.math.random(universeSize.x*cellSize)+32, love.math.random(universeSize.y*cellSize)+32)))
+        Vector(love.math.random((universeSize.x-1)*cellSize)+cellSize, love.math.random((universeSize.y-1)*cellSize)+cellSize)))
     light:give(ECS.c.sprite, "items.torch01")
     --light:give(ECS.c.light,
     --{ love.math.random(), love.math.random(), love.math.random() }, love.math.random(200))
@@ -58,17 +58,23 @@ function calcShadows(self, lightPos)
 
   local lightRadius = 14 -- radius in tiles
 
-  for node, _ in universe.iterAround(lightPos.x, lightPos.y, lightRadius) do
-    bresenham.los(lightPos.x,lightPos.y, node:getX(), node:getY(), function(x, y)
-      local occluded = universe.isPositionOccluded(Vector(x, y))
+  for _, coords in ipairs(universe.getCoordinatesAround(lightPos.x, lightPos.y, lightRadius)) do
+    if coords.x <= universeSize.x or
+      coords.x >= universeSize.x or
+      coords.y >= universeSize.y or
+      coords.y <= universeSize.y then
 
-      if not occluded then
-        shadowMap[y][x] = 0 -- add light
-        return true
-      else
-        return false
-      end
-    end)
+      bresenham.los(lightPos.x,lightPos.y, coords.x, coords.y, function(x, y)
+        local occluded = universe.isPositionOccluded(Vector(x, y))
+
+        if not occluded then
+          shadowMap[y][x] = 0 -- add light
+          return true
+        else
+          return false
+        end
+      end)
+    end
   end
 
   return shadowMap
