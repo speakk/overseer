@@ -10,6 +10,10 @@ local mediaDB = {
       'wall_stone01' },
   },
   {
+    name = "vegetation",
+    items = { 'tree01' },
+  },
+  {
     name = "resources",
     items = { 'wood01', 'iron01', 'steel01', 'stone01' },
   },

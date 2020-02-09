@@ -29,6 +29,21 @@ function ItemSystem:initializeTestItems(mapSize)
   end
 end
 
+function ItemSystem:initializeTestTrees(mapSize)
+  for i=1,200,1 do  --luacheck: ignore
+    local position = Vector(math.random(mapSize.x), math.random(mapSize.y))
+    local selector = "growing.tree"
+    local entity = ECS.Entity()
+    entity:give(ECS.c.sprite, "vegetation.tree01")
+    :give(ECS.c.onMap)
+    :give(ECS.c.collision)
+    :give(ECS.c.occluder)
+    :give(ECS.c.position, universe.gridPositionToPixels(position))
+    self:getWorld():addEntity(entity)
+    --itemUtils.placeItemOnGround(item, position)
+  end
+end
+
 ItemSystem.Inventory = {}
 
 return ItemSystem

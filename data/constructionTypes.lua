@@ -104,6 +104,22 @@ local data = {
             }
           }
         }
+      },
+      tree = {
+        name = "Tree",
+        requirements = {
+          ["seeds.tree"] = 1
+        },
+        components = {
+          {
+            name = "plant",
+            afterConstructed = true
+          },
+          {
+            name = "sprite",
+            properties = { "vegetation.tree01" }
+          }
+        }
       }
     }
   },
