@@ -1,4 +1,5 @@
 local inspect = require('libs.inspect')
+local lume = require('libs.lume')
 local utils = require('utils.utils')
 local universe = require('models.universe')
 local camera = require('models.camera')
@@ -8,13 +9,17 @@ local entityManager = require('models.entityManager')
 
 local SpriteSystem = ECS.System({ECS.c.sprite, ECS.c.position})
 
+local cellSize = universe.getCellSize()
+
 function SpriteSystem:init()
   self.tilesetBatch = love.graphics.newSpriteBatch(media.atlas, 500)
 end
 
 function SpriteSystem:customDraw(l, t, w, h)
   self.tilesetBatch:clear()
-  for _, entity in ipairs(self.pool) do
+  -- TODO: OPTIMIZE THIS SUCKER
+  local zSorted = lume.sort(self.pool, function(a, b) return a:get(ECS.c.position).vector.y < b:get(ECS.c.position).vector.y end)
+  for _, entity in ipairs(zSorted) do
     self:drawEntity(l, t, w, h, entity)
   end
 
@@ -55,8 +60,12 @@ function SpriteSystem:drawEntity(l, t, w, h, entity)
     if transparentComponent then
       self.tilesetBatch:setColor(1, 1, 1, transparentComponent.amount)
     end
-    self.tilesetBatch:add(media.getSpriteQuad(spriteComponent.selector),
-      positionVector.x, positionVector.y, 0, 2, 2)
+
+    local quad = media.getSpriteQuad(spriteComponent.selector)
+    local _, _, w, h = quad:getViewport()
+    local finalY = positionVector.y + (cellSize - h*2)
+    self.tilesetBatch:add(quad,
+      positionVector.x, finalY, 0, 2, 2)
     if transparentComponent then
       self.tilesetBatch:setColor(1, 1, 1, 1)
     end
