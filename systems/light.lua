@@ -50,9 +50,9 @@ end
 
 function calcShadows(self, lightPos)
   local shadowMap = {}
-  for y = 1,universeSize.y do
+  for y = 0,universeSize.y+1 do
     local row = {}
-    for x = 1,universeSize.x do row[x] = 1 end -- 1 = Shadow
+    for x = 0,universeSize.x+1 do row[x] = 1 end -- 1 = Shadow
     shadowMap[y] = row
   end
 
@@ -62,14 +62,14 @@ function calcShadows(self, lightPos)
     bresenham.los(lightPos.x,lightPos.y, coords.x, coords.y, function(x, y)
       local occluded = universe.isPositionOccluded(Vector(x, y))
 
-      if x < universeSize.x and
-        x >= 1 and
-        y >= 1 and
-        y < universeSize.y then
+      if x < universeSize.x + 1 and
+        x >= 0 and
+        y >= 0 and
+        y < universeSize.y + 1 then
 
 
         if not occluded then
-          shadowMap[y][x] = 0 -- add light
+          shadowMap[y-1][x-1] = 0 -- add light
           return true
         else
           return false
