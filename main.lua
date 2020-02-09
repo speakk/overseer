@@ -1,3 +1,8 @@
+local windowWidth = 1000
+local windowHeight = 800
+love.window.setMode(windowWidth, windowHeight, { resizable=true })
+love.graphics.setDefaultFilter('nearest', 'nearest')
+
 local inspect = require('libs.inspect')
 limits = love.graphics.getSystemLimits( )
 print(inspect(limits))
@@ -24,13 +29,6 @@ local gameStates = {
   inGame = require("states.inGame"),
   mainMenu = require("states.mainMenu")
 }
-
-
-
-
-local windowWidth = 1000
-local windowHeight = 800
-love.window.setMode(windowWidth, windowHeight, { resizable=true })
 
 function love.load()
   Gamestate.registerEvents()
