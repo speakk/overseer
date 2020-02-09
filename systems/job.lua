@@ -2,6 +2,8 @@ local inspect = require('libs.inspect') -- luacheck: ignore
 local lume = require('libs.lume')
 local utils = require('utils.utils')
 
+local jobManager = require('models.jobManager')
+
 local entityManager = require('models.entityManager')
 
 local JobSystem = ECS.System({ECS.c.job, 'jobs'})
@@ -21,11 +23,13 @@ function JobSystem:init()
   --TODO: onEntityRemoved
 end
 
-local function printJob(job, level, y, isChild)
+local function printJob(job, level, y)
   if not job or not job:has(ECS.c.job) then return nil end
   local name = tostring(job) .. ": " .. job:get(ECS.c.job).jobType
+  local isChild = job:has(ECS.c.parent)
+  if isChild and level == 1 then return nil end
   if isChild then name = name .. " (child)" end
-  local space = 15
+  local space = 6
   local jobComponent = job:get(ECS.c.job)
   if not jobComponent then return end
 
@@ -64,7 +68,6 @@ local function printJob(job, level, y, isChild)
       end
     end
   end
-
 end
 
 function JobSystem:draw()
@@ -113,72 +116,76 @@ function JobSystem:gridUpdated()
   end
 end
 
-function JobSystem:getUnreservedJobs()
-  local unreservedJobs = {}
-  for _, job in ipairs(self.jobs) do
-    if not job:has(ECS.c.parent) and job:has(ECS.c.job) then -- Only go through tree roots
-      local jobComponent = job:get(ECS.c.job)
-      if not jobComponent.reserved and not jobComponent.finished then
-        local firstSubJob = self:getFirstSubJob(job)
-        if firstSubJob then
-          local subJobComponent = firstSubJob:get(ECS.c.job)
-          --return firstSubJob
-          if not subJobComponent.finished then
-            if not subJobComponent.reserved and subJobComponent.canStart then
-              table.insert(unreservedJobs, firstSubJob)
-            end
-          end
-        end
-      end
-    end
-  end
+-- function JobSystem:getUnreservedJobs()
+--   local unreservedJobs = {}
+--   for _, job in ipairs(self.jobs) do
+--     if not job:has(ECS.c.parent) and job:has(ECS.c.job) then -- Only go through tree roots
+--       local jobComponent = job:get(ECS.c.job)
+--       if not jobComponent.reserved and not jobComponent.finished then
+--         local firstSubJob = self:getFirstSubJob(job)
+--         if firstSubJob then
+--           local subJobComponent = firstSubJob:get(ECS.c.job)
+--           --return firstSubJob
+--           if not subJobComponent.finished then
+--             if not subJobComponent.reserved and subJobComponent.canStart then
+--               table.insert(unreservedJobs, firstSubJob)
+--             end
+--           end
+--         end
+--       end
+--     end
+--   end
+-- 
+--   print("Returning", unreservedJobs)
+--   return unreservedJobs
+-- end
 
-  print("Returning", unreservedJobs)
-  return unreservedJobs
-end
-
-function JobSystem:getFirstSubJob(job)
-  local allChildrenFinished = true
-
-  if job:has(ECS.c.children) then
-    local childrenIds = job:get(ECS.c.children).children
-    for _, childId in ipairs(childrenIds) do
-      local child = entityManager.get(childId)
-      local firstChildJob = self:getFirstSubJob(child)
-      if firstChildJob then
-        local firstChildJobComponent = firstChildJob:get(ECS.c.job)
-        if firstChildJobComponent then
-          if not firstChildJobComponent.finished then
-            allChildrenFinished = false
-            if not firstChildJobComponent.reserved then
-              return firstChildJob
-            end
-          end
-        end
-      end
-    end
-  end
-
-  if allChildrenFinished then
-    local jobComponent = job:get(ECS.c.job)
-    if jobComponent then
-      jobComponent.canStart = true
-    end
-  end
-
-  return job
-end
+-- function JobSystem:getFirstSubJob(job)
+--   local allChildrenFinished = true
+-- 
+--   if job:has(ECS.c.children) then
+--     local childrenIds = job:get(ECS.c.children).children
+--     for _, childId in ipairs(childrenIds) do
+--       local child = entityManager.get(childId)
+--       local firstChildJob = self:getFirstSubJob(child)
+--       if firstChildJob then
+--         local firstChildJobComponent = firstChildJob:get(ECS.c.job)
+--         if firstChildJobComponent then
+--           if not firstChildJobComponent.finished then
+--             allChildrenFinished = false
+--             if not firstChildJobComponent.reserved then
+--               return firstChildJob
+--             end
+--           end
+--         end
+--       end
+--     end
+--   end
+-- 
+--   if allChildrenFinished then
+--     local jobComponent = job:get(ECS.c.job)
+--     if jobComponent then
+--       jobComponent.canStart = true
+--     end
+--   end
+-- 
+--   return job
+-- end
 
 function JobSystem:jobFinished(job) --luacheck: ignore
+  print("Finishing job", job)
   local jobComponent = job:get(ECS.c.job)
-  if job:has(ECS.c.parent) then
-    jobComponent.finished = true
-    jobComponent.reserved = false
-  else
-    job:remove(ECS.c.job)
-  end
+  jobComponent.finished = true
+  jobComponent.reserved = false
+  job:remove(ECS.c.job)
+  -- if job:has(ECS.c.parent) then
+  --   jobComponent.finished = true
+  --   jobComponent.reserved = false
+  -- else
+  --   job:remove(ECS.c.job)
+  -- end
 
-  self:getWorld():emit("jobQueueUpdated", self:getUnreservedJobs())
+  --self:getWorld():emit("jobQueueUpdated", jobManager.getUnreservedJobs(self.jobs))
 end
 
 --function JobSystem:addJob(job)

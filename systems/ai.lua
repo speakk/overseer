@@ -13,15 +13,16 @@ local attachedBehaviours = {}
 local aiTimer = 0
 local aiInterval = 0.5
 
-function attachBehaviour(entity, type, world)
+local function attachBehaviour(entity, type, world)
   local id = entity:get(ECS.c.id).id
   attachedBehaviours[id] = attachedBehaviours[id] or {}
 
-  local job = entityManager.get(entity:get(ECS.c.work).jobId)
+  --local job = entityManager.get(entity:get(ECS.c.work).jobId)
+  --print("Attaching behaviour", id, type)
   attachedBehaviours[id][type] = behaviours[type](entity, world, type)
 end
 
-function detachBehaviour(entity, type)
+local function detachBehaviour(entity, type)
   local id = entity:get(ECS.c.id).id
   attachedBehaviours[id][type] = nil
 end

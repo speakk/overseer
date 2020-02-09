@@ -54,9 +54,9 @@ function BluePrintSystem:generateGUIDraw()
 end
 
 
-local buildProgressSpeedModifier = 20
+local buildProgressSpeedModifier = 5
 function BluePrintSystem:bluePrintProgress(bluePrintComponent, amount)
-  bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + bluePrintComponent.constructionSpeed * buildProgressSpeedModifier
+  bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + amount * bluePrintComponent.constructionSpeed * buildProgressSpeedModifier
 end
 
 return BluePrintSystem

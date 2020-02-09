@@ -13,8 +13,8 @@ local universe = {}
 
 local cellSize = 32
 local padding = 0
-local width = 100
-local height = 100
+local width = 30
+local height = 30
 local tilesetBatch = nil
 local gridInvalidated = false
 local walkable = 0
@@ -261,6 +261,7 @@ function universe.isCellAvailable(gridPosition)
 end
 
 function universe.findPathToClosestEmptyCell(gridPosition)
+  print("WELL DUH findPathToClosestEmptyCell")
   local node = grid:getNodeAt(gridPosition.x, gridPosition.y)
 
   if not universe.isCellAvailable(gridPosition) then
@@ -268,17 +269,13 @@ function universe.findPathToClosestEmptyCell(gridPosition)
     while radius < 10 do
       for nodeAround in grid:around(node, radius) do
         if universe.isCellAvailable(Vector(nodeAround:getX(), nodeAround:getY())) then
-          node = nodeAround
-          break
+          return universe.getPath(gridPosition, Vector(node:getX(), node:getY()))
         end
-        if node then break end
       end
 
       radius = radius +1
     end
   end
-
-  return universe.getPath(gridPosition, Vector(node:getX(), node:getY()))
 end
 
 
@@ -306,8 +303,7 @@ local function addIfNotExist(existTable, posTable, x, y)
 end
 
 function universe.getOuterBorderCoordinates(x1, y1, x2, y2, fill)
-  print("fill", fill)
-  if x1 == x2 and y1 == y1 then
+  if x1 == x2 and y1 == y2 then
     return { Vector(x1, y1) }
   end
 

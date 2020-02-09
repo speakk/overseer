@@ -351,8 +351,9 @@ local function initializeComponents()
   end
   ECS.c.register("parent", parent)
 
-  local reserved = ECS.Component(function(e, reservedById)
+  local reserved = ECS.Component(function(e, reservedById, amount)
     e.reservedById = reservedById
+    e.amount = amount
     e.customSerialize = function() return { reservedById = e.reservedById } end
   end)
   reserved.customDeserialize = function(data)

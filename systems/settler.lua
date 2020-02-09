@@ -17,6 +17,12 @@ function SettlerSystem:init()
   self.assignWaitTime = 3.0
 
   self.jobs.onEntityAdded = function(pool, entity)
+    print("job added", #pool)
+    self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
+  end
+
+  self.jobs.onEntityRemoved = function(pool, entity)
+    print("job removed", #pool)
     self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
   end
 
@@ -34,14 +40,16 @@ end
 
 function SettlerSystem:update(dt) --luacheck: ignore
   local time = love.timer.getTime()
+  --print("SettlerSystem:update", time, self.lastAssigned, self.assignWaitTime)
   if time - self.lastAssigned > self.assignWaitTime then
+    print("TIMER")
     self:assignJobsForSettlers(jobManager.getUnreservedJobs(self.jobs))
     self.lastAssigned = time
   end
 
-  for _, settler in ipairs(self.pool) do
-    self:processSettlerUpdate(settler, dt)
-  end
+  -- for _, settler in ipairs(self.pool) do
+  --   self:processSettlerUpdate(settler, dt)
+  -- end
 end
 
 function SettlerSystem:finishWork(settler, jobId)
@@ -51,49 +59,26 @@ function SettlerSystem:finishWork(settler, jobId)
   if jobHandlers[jobType]["finish"] then
     jobHandlers[jobType].finish(job)
   end
-  self:getWorld():emit("jobFinished", job)
+  --self:getWorld():emit("jobFinished", job)
 end
 
 function SettlerSystem:pathFinished(entity)
 end
 
-function SettlerSystem:processSettlerUpdate(settler, dt)
-  if not settler:has(ECS.c.path) then
-    if settler:has(ECS.c.work) then
-      local jobId = settler:get(ECS.c.work).jobId
+-- function SettlerSystem:processSettlerUpdate(settler, dt)
+--   if not settler:has(ECS.c.path) then
+--     if settler:has(ECS.c.work) then
+--       local jobId = settler:get(ECS.c.work).jobId
+--       print("settler has work, jobId", jobId)
+-- 
+--       if not entityManager.get(jobId) then
+--         settler:remove(ECS.c.work)
+--         return
+--       end
+--     end
+--   end
+-- end
 
-      if not entityManager.get(jobId) then
-        settler:remove(ECS.c.work)
-        return
-      end
-    end
-  end
-end
-
-function SettlerSystem:gridUpdated()
-  for _, settler in ipairs(self.pool) do
-    -- Invalidate paths
-    if settler:has(ECS.c.path) then
-      local path = settler:get(ECS.c.path).path
-      if not universe.pathStillValid(path) then
-        settler:remove(ECS.c.path)
-        settler.searched_for_path = false
-        print("Path was not valid, setting 'searched_for_path' to false")
-      end
-    else
-      -- Make sure current location is valid
-      local position = settler:get(ECS.c.position).vector
-      local gridCoordinates = universe.pixelsToGridCoordinates(position)
-      if not universe.isCellAvailable(gridCoordinates) then
-        local newPath = universe.findPathToClosestEmptyCell(gridCoordinates)
-        if newPath then
-          settler:give(ECS.c.path, newPath)
-        end
-      end
-    end
-
-  end
-end
 
 function SettlerSystem:initializeTestSettlers()
   for _ = 1,30,1 do
@@ -128,12 +113,13 @@ function SettlerSystem:startJob(settler, job, jobQueue) -- luacheck: ignore
   lume.remove(jobQueue, job)
 end
 
-function SettlerSystem:jobQueueUpdated(jobQueue)
-  self:assignJobsForSettlers(jobQueue)
-end
+-- function SettlerSystem:jobQueueUpdated(jobQueue)
+--   self:assignJobsForSettlers(jobQueue)
+-- end
 
 -- TODO: Needs to prioritize stuff
 function SettlerSystem:assignJobsForSettlers(jobQueue)
+  print("assignJobsForSettlers, jobQueue length", #jobQueue)
   while true do
     local availableWorker = nil
     for _, entity in ipairs(self.pool) do

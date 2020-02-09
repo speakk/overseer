@@ -10,13 +10,15 @@ end
 
 function PathSystem:processPathFinding(entity) --luacheck: ignore
   local pathComponent = entity:get(ECS.c.path)
+  --print("pathComponent in processPathFinding", entity, pathComponent)
   local velocityComponent = entity:get(ECS.c.velocity)
+
+  velocityComponent.vector = Vector(0, 0)
 
   if not pathComponent.path or pathComponent.finished then
     return
   end
 
-  velocityComponent.vector = Vector(0, 0)
 
   local position = entity:get(ECS.c.position).vector
 
@@ -48,7 +50,7 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
   velocityComponent.vector = Vector(math.cos(angle), math.sin(angle)).normalized
 
   if universe.isInPosition(universe.pixelsToGridCoordinates(position), nextGridPosition) then
-    print("currentIndex", pathComponent.currentIndex, "length:", #pathComponent.path._nodes)
+    --print("currentIndex", pathComponent.currentIndex, "length:", #pathComponent.path._nodes)
     if pathComponent.currentIndex == #pathComponent.path._nodes then
       self:getWorld():emit("pathFinished", entity)
       print("Finished so removing path")
@@ -56,12 +58,37 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
       return
     end
 
-    print("We are in position for the next path node, advance index")
+    --print("We are in position for the next path node, advance index")
     pathComponent.currentIndex = pathComponent.currentIndex + 1
   end
 
   --velocityComponent.vector = velocityComponent.vector.normalized
   velocityComponent.vector = velocityComponent.vector
+end
+
+function PathSystem:gridUpdated()
+  for _, entity in ipairs(self.pool) do
+    -- Invalidate paths
+    if entity:has(ECS.c.path) then
+      local path = entity:get(ECS.c.path).path
+      if not universe.pathStillValid(path) then
+        entity:remove(ECS.c.path)
+        entity.searched_for_path = false
+        print("Path was not valid, setting 'searched_for_path' to false")
+      end
+    else
+      -- Make sure current location is valid
+      local position = entity:get(ECS.c.position).vector
+      local gridCoordinates = universe.pixelsToGridCoordinates(position)
+      if not universe.isCellAvailable(gridCoordinates) then
+        local newPath = universe.findPathToClosestEmptyCell(gridCoordinates)
+        if newPath then
+          entity:give(ECS.c.path, newPath)
+        end
+      end
+    end
+
+  end
 end
 
 return PathSystem

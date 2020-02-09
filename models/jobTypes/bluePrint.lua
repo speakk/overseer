@@ -34,6 +34,7 @@ local function consumeRequirements(bluePrint)
 end
 
 local function handle(self, job, settler, dt, finishCallback)
+  print("LOLOL STILL HANDLING WLOFLWEFOEW")
   local bluePrintComponent = job:get(ECS.c.bluePrintJob)
   local settlerGridPosition = universe.pixelsToGridCoordinates(settler:get(ECS.c.position).vector)
   local bluePrintGridPosition = universe.pixelsToGridCoordinates(job:get(ECS.c.position).vector)
