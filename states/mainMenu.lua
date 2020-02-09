@@ -7,6 +7,8 @@ local headerFont = love.graphics.newFont("fonts/MavenPro-Medium.ttf", 32)
 local inGame = require("states.inGame")
 local loading = require("states.loading")
 
+local media = require("utils/media")
+
 local mainMenu = {}
 
 local menuWidth = 600
@@ -14,8 +16,25 @@ local menuHeight = 600
 
 local buttonHeight = 30
 
+love.graphics.reset()
+local sprite = love.graphics.newImage("media/tiles/grass01.png")
+local canvasTest = love.graphics.newCanvas(480, 480)
+love.graphics.push('all')
+love.graphics.setStencilTest( )
+love.graphics.setBlendMode('alpha')
+love.graphics.setCanvas({ canvasTest, stencil=false})
+love.graphics.setColor(1,1,1,1)
+love.graphics.rectangle("fill", 0, 0, 48, 48)
+love.graphics.setShader()
+love.graphics.origin()
+love.graphics.draw(sprite)
+love.graphics.setCanvas()
+love.graphics.pop()
+print("DID CNAVAS")
+
 function mainMenu:init()
   self.ui = nuklear.newUI()
+  print("init init")
 end
 
 function mainMenu:update(dt) --luacheck: ignore
@@ -55,7 +74,13 @@ function mainMenu:update(dt) --luacheck: ignore
 end
 
 function mainMenu:draw()
-  self.ui:draw()
+  print("draw rawr")
+  --self.ui:draw()
+  love.graphics.setShader()
+  love.graphics.setColor(1,1,1,1)
+  --love.graphics.rectangle("fill", 0, 0, 512, 512)
+  love.graphics.draw(canvasTest, 200, 100)
+  love.graphics.draw(sprite, 200, 100)
 end
 
 function mainMenu:keypressed(key, scancode, isrepeat)

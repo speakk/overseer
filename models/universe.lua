@@ -424,8 +424,8 @@ function universe.draw(l, t, w, h)
     end
 
 
-    local canvas = love.graphics.newCanvas(width*cellSize, height*cellSize, { type = "array" })
-    love.graphics.setCanvas(canvas, 1)
+    local canvas = love.graphics.newCanvas(width*cellSize, height*cellSize)
+    love.graphics.setCanvas(canvas)
     local shader = love.graphics.getShader()
     love.graphics.setShader()
     love.graphics.clear()

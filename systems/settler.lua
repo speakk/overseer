@@ -35,7 +35,7 @@ self.enabledCallback = function(callbackName) -- luacheck: ignore
 end
 
 
-  self.tilesetBatch = love.graphics.newSpriteBatch(media.sprites, 200)
+  --self.tilesetBatch = love.graphics.newSpriteBatch(media.sprites, 200)
 end
 
 function SettlerSystem:update(dt) --luacheck: ignore

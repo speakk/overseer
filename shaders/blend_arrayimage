@@ -1,5 +1,3 @@
-uniform ArrayImage MainTex;
-
 extern vec2 transform;
 extern vec2 universeSize;
 extern vec4 ambientColor;
@@ -8,7 +6,7 @@ extern Image light_canvas;
 extern vec2 light_canvas_size; 
 extern float additive_component = 1;
 
-void effect(){
+vec4 effect( vec4 color, Image tex, vec2 texture_coords_ignore, vec2 screen_coords ) {
   float pixels = 16;
   //float dx = 10.0 * (1.0 / pixels);
   // These divide the screen into 7 correctly, close...
@@ -25,8 +23,8 @@ void effect(){
       dy * floor(texture_coords.y / dy));
   //FinalColor = texture(Texture, Coord);
 
-  vec4 color = VaryingColor;
-  vec3 uvs = VaryingTexCoord.xyz; // includes the layer index as the z component
+  //vec4 color = VaryingColor;
+  vec2 uvs = VaryingTexCoord.xy; // includes the layer index as the z component
 
   vec2 screen = love_ScreenSize.xy;
   float ratio = screen.x / screen.y;
@@ -42,5 +40,5 @@ void effect(){
   //love_PixelColor = 1 - ((1-ambientColor) * (1-texture_color) * (1-light_color*vec4(1,1,1, texture_color.w)));
   //love_PixelColor = texture_color - (1-(1/ambientColor)+light_color);
   //love_PixelColor = texture_color * light_color;
-  love_PixelColor = texture_color * light_color * color;
+  return texture_color * light_color * color;
 }

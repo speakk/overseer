@@ -9,7 +9,7 @@ local entityManager = require('models.entityManager')
 local SpriteSystem = ECS.System({ECS.c.sprite, ECS.c.position})
 
 function SpriteSystem:init()
-  self.tilesetBatch = love.graphics.newSpriteBatch(media.sprites, 500)
+  self.tilesetBatch = love.graphics.newSpriteBatch(media.atlas, 500)
 end
 
 function SpriteSystem:customDraw(l, t, w, h)
@@ -55,7 +55,7 @@ function SpriteSystem:drawEntity(l, t, w, h, entity)
     if transparentComponent then
       self.tilesetBatch:setColor(1, 1, 1, transparentComponent.amount)
     end
-    self.tilesetBatch:addLayer(media.getSpriteIndex(spriteComponent.selector),
+    self.tilesetBatch:add(media.getSpriteQuad(spriteComponent.selector),
       positionVector.x, positionVector.y, 0, 2, 2)
     if transparentComponent then
       self.tilesetBatch:setColor(1, 1, 1, 1)

@@ -34,21 +34,50 @@ local mediaDB = {
 local flatMediaDB = {}
 local fileList = {}
 
+
+local atlasWidth = 1280
+local atlasHeight = 1280
+local atlasCanvas = love.graphics.newCanvas(atlasWidth, atlasHeight)
 do
-  local index = 1
+  love.graphics.setCanvas(atlasCanvas)
+  love.graphics.clear()
+
+  local currentX = 0
+  local currentY = 0
+  local lastRowHeight = 0
+
   for _, category in ipairs(mediaDB) do
     for _, name in ipairs(category.items) do
-      print("Index now", index)
       local fileName = generateTileName(category.name, name)
+      local sprite = love.graphics.newImage(fileName)
+      local spriteWidth, spriteHeight = sprite:getDimensions()
+
+      love.graphics.draw(sprite, currentX, currentY)
+
+      local quad = love.graphics.newQuad(currentX, currentY, spriteWidth, spriteHeight, atlasCanvas:getDimensions())
+      print("drawing to canvas", currentX, currentY, spriteWidth, spriteHeight, atlasCanvas:getDimensions())
+
       flatMediaDB[category.name .. "." .. name] = {
-        index = index,
-        fileName = fileName
+        quad = quad
       }
 
-      index = index + 1
-      table.insert(fileList, fileName)
+      currentX = currentX + spriteWidth
+      if spriteHeight > lastRowHeight then
+        lastRowHeight = spriteHeight
+      end
+
+      if currentX + spriteWidth > atlasWidth then
+        currentX = 0
+        currentY = currentY + lastRowHeight
+        lastRowHeight = 0
+      end
+
+      -- index = index + 1
+      -- table.insert(fileList, fileName)
     end
   end
+
+  love.graphics.setCanvas()
 end
 
 print("flat", inspect(flatMediaDB))
@@ -58,19 +87,22 @@ print("flat", inspect(flatMediaDB))
 --   table.insert(fileList, flatItem.fileName)
 -- end
 
-print("fileList", inspect(fileList))
-local sprites = love.graphics.newArrayImage(fileList)
-sprites:setFilter("nearest", "nearest")
+-- print("fileList", inspect(fileList))
+-- for _, fileName in ipairs(fileList) do
+--   local sprite = love.graphics.newImage(fileName)
+-- end
+-- local sprites = love.graphics.newArrayImage(fileList)
+-- sprites:setFilter("nearest", "nearest")
 
-local function getSpriteIndex(selector)
+local function getSpriteQuad(selector)
   --print(inspect(flatMediaDB[selector]))
   if not selector then error("getSprite is missing selector") end
 
   if not flatMediaDB[selector] then error("No sprite found with selector: " .. selector) end
-  return flatMediaDB[selector].index
+  return flatMediaDB[selector].quad
 end
 
 return {
-  sprites = sprites,
-  getSpriteIndex = getSpriteIndex
+  atlas = atlasCanvas,
+  getSpriteQuad = getSpriteQuad
 }
