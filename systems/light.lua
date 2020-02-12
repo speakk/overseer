@@ -42,7 +42,7 @@ function LightSystem:initializeTestLights()
     self:getWorld():addEntity(light)
   end
 
-  self:lightsOrMapChanged()
+  --self:lightsOrMapChanged()
 end
 
 -- function LightSystem:getLights()
@@ -59,19 +59,19 @@ function calcShadows(self, lightPos, resolutionMultiplier)
 
   local lightRadius = 14 -- radius in tiles
 
-  for _, coords in ipairs(universe.getCoordinatesAround(lightPos.x, lightPos.y, lightRadius)) do
+  for _, coords in ipairs(universe.getCoordinatesAround(lightPos.x+0.5, lightPos.y+0.5, lightRadius)) do
     bresenham.los(lightPos.x*resolutionMultiplier,lightPos.y*resolutionMultiplier, coords.x*resolutionMultiplier, coords.y*resolutionMultiplier, function(x, y)
       local occluded = universe.isPositionOccluded(Vector(math.floor(x/resolutionMultiplier), math.floor(y/resolutionMultiplier)))
 
-      if x < universeSize.x*resolutionMultiplier and
+      if x < (universeSize.x+1)*resolutionMultiplier and
         x >= 0 and
         y >= 0 and
-        y < universeSize.y*resolutionMultiplier then
+        y < (universeSize.y+1)*resolutionMultiplier then
 
 
         if not occluded then
           if not shadowMap[y-1] then print ("Oh dear", y-1, x-1) end
-          shadowMap[y-1][x-1] = 0 -- add light
+          shadowMap[y][x] = 0 -- add light
           return true
         else
           return false
@@ -83,15 +83,17 @@ function calcShadows(self, lightPos, resolutionMultiplier)
   return shadowMap
 end
 
-
-function LightSystem:lightsOrMapChanged()
+function LightSystem:gridUpdated()
+  print("DRAWING SO WHAT")
   love.graphics.setCanvas( {lightCanvas, stencil = true } )
-  --love.graphics.clear(1,1,1,0)
+  love.graphics.clear(0,0,0,1)
   -- love.graphics.setColor(unpack(ambientColor))
-  -- love.graphics.rectangle("fill", 0, 0, lightCanvas:getWidth(), lightCanvas:getHeight())
+  --love.graphics.setColor(0,0,0,1)
+  --love.graphics.rectangle("fill", 0, 0, lightCanvas:getWidth(), lightCanvas:getHeight())
 
   love.graphics.setColor(1,1,1,1)
-  --love.graphics.setBlendMode("add")
+  --love.graphics.setBlendMode("alpha")
+  love.graphics.setBlendMode("add")
   --love.graphics.setShader(radialLightShader)
 
   local shadowResolutionMultiplier = 1
@@ -128,7 +130,7 @@ function LightSystem:lightsOrMapChanged()
 
   --local cellSize = universe.getCellSize()
 
-  --love.graphics.setBlendMode("alpha")
+  love.graphics.setBlendMode("alpha")
   --love.graphics.setShader()
 
   love.graphics.setCanvas()
@@ -141,7 +143,7 @@ function LightSystem:timeOfDayChanged(timeOfDay)
   -- if self.useShader then
   --   --self.shader:send("dayTime", timeOfDay)
   --   --if blendShader:hasUniform("ambientColor") then blendShader:send("ambientColor", ambientColor) end
-  self:lightsOrMapChanged()
+  --self:lightsOrMapChanged()
   self:mixAmbientAndLights()
   -- end
 end

@@ -376,6 +376,7 @@ function universe.recalculateGrid(newMap, stopEmit)
   _lastGridUpdateId = _lastGridUpdateId + 1
 
   if not stopEmit then
+    print("GRID UPDATED SO FWT")
     world:emit('gridUpdated')
   end
 end
