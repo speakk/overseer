@@ -1,44 +1,20 @@
 extern vec2 transform;
 extern vec2 universeSize;
-extern vec4 ambientColor;
 extern float scale = 1;
 extern Image light_canvas; 
 extern vec2 light_canvas_size; 
-extern float additive_component = 1;
 
-vec4 effect( vec4 color, Image tex, vec2 texture_coords_ignore, vec2 screen_coords ) {
-  float pixels = 16;
-  //float dx = 10.0 * (1.0 / pixels);
-  // These divide the screen into 7 correctly, close...
-  //float dx = 0.32*(1/(universeSize.x/32));
-  //float dy = 0.32*(1/(universeSize.y/32));
-
+vec4 effect( vec4 color, Image tex, vec2 uvs, vec2 screen_coords ) {
   float cellSize = 32*scale;
 
   float dx = 1/cellSize*(1/(universeSize.x/cellSize));
   float dy = 1/cellSize*(1/(universeSize.y/cellSize));
 
-  vec2 texture_coords = ((love_PixelCoord.xy + cellSize/2 + transform * scale) / light_canvas_size) / scale;
-  vec2 final_coords = vec2(dx * floor(texture_coords.x / dx),
-      dy * floor(texture_coords.y / dy));
-  //FinalColor = texture(Texture, Coord);
-
-  //vec4 color = VaryingColor;
-  vec2 uvs = VaryingTexCoord.xy; // includes the layer index as the z component
-
-  vec2 screen = love_ScreenSize.xy;
-  float ratio = screen.x / screen.y;
-
-  //vec2 screen_coords = ((final_coords + transform * scale) / light_canvas_size) / scale;
+  vec2 canvas_texture_coords = ((screen_coords + cellSize/2 + transform * scale) / light_canvas_size) / scale;
+  vec2 final_coords = vec2(dx * floor(canvas_texture_coords.x / dx),
+      dy * floor(canvas_texture_coords.y / dy));
 
   vec4 texture_color = Texel(MainTex, uvs);
   vec4 light_color = Texel(light_canvas, final_coords);
-  //love_PixelColor = (texture_color * light_color) + light_color/additive_component;
-  //love_PixelColor = clamp(texture_color * (light_color + light_color/additive_component), 0.0, 1.0);
-  //love_PixelColor = clamp((texture_color * ambientColor) + ((light_color/additive_component) * texture_color), 0.0, 1.0);
-  //love_PixelColor = clamp((texture_color * ambientColor) + (texture_color * light_color * light_color), 0.0, 1.0);
-  //love_PixelColor = 1 - ((1-ambientColor) * (1-texture_color) * (1-light_color*vec4(1,1,1, texture_color.w)));
-  //love_PixelColor = texture_color - (1-(1/ambientColor)+light_color);
-  //love_PixelColor = texture_color * light_color;
   return texture_color * light_color * color;
 }

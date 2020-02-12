@@ -4,13 +4,13 @@ local daySpeed = 0.5
 local currentTime = 0 -- Timer that runs and progresses world time
 
 local lastEmit = 0
-local emitInterval = 1
+local emitInterval = 0.01
 
 function DayCycleSystem:update(dt) --luacheck: ignore
   currentTime = currentTime + daySpeed * dt
   local time = love.timer.getTime()
   if time - lastEmit > emitInterval then
-    print("Emit?", time)
+    --print("Emit?", time)
     self:getWorld():emit('timeOfDayChanged', self:getTimeOfDay(currentTime))
     lastEmit = time
   end
