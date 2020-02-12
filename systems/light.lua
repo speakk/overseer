@@ -11,7 +11,7 @@ local LightSystem = ECS.System({ECS.c.light})
 local lightCircleImage = love.graphics.newImage("media/misc/light_circle.png")
 local lightCircleImageWidth = lightCircleImage:getWidth()
 local lightCircleImageHeight = lightCircleImage:getHeight()
-local lightCircleImageScale = 2
+local lightCircleImageScale = 1
 
 local universeSize = universe.getSize()
 local cellSize = universe.getCellSize()
