@@ -7,7 +7,7 @@ local camera = require('models.camera')
 local LightSystem = ECS.System({ECS.c.light})
 
 
-local lightGradientImage = love.graphics.newImage("media/misc/light_gradient.png")
+--local lightGradientImage = love.graphics.newImage("media/misc/light_gradient.png")
 local lightCircleImage = love.graphics.newImage("media/misc/light_circle.png")
 local lightCircleImageWidth = lightCircleImage:getWidth()
 local lightCircleImageHeight = lightCircleImage:getHeight()
@@ -15,8 +15,8 @@ local lightCircleImageScale = 2
 
 local universeSize = universe.getSize()
 local cellSize = universe.getCellSize()
-local lightCanvas = love.graphics.newCanvas((universeSize.x+1)*cellSize, (universeSize.y+1)*cellSize)
-local lightAmbientMixCanvas = love.graphics.newCanvas((universeSize.x+1)*cellSize, (universeSize.y+1)*cellSize)
+local lightCanvas = love.graphics.newCanvas(universeSize.x, universeSize.y+1)
+local lightAmbientMixCanvas = love.graphics.newCanvas(universeSize.x+1, universeSize.y+1)
 
 --local radialLightShader = love.graphics.newShader("shaders/radialLight")
 --local blendShader = love.graphics.newShader("shaders/blend_arrayimage")
@@ -100,14 +100,15 @@ function LightSystem:gridUpdated()
 
   for i, light in ipairs(self.pool) do
     local position = light:get(ECS.c.position).vector
+    local gridPosition = universe.pixelsToGridCoordinates(position)
 
     love.graphics.stencil(function()
-      local shadowMap = calcShadows(self, universe.pixelsToGridCoordinates(position), shadowResolutionMultiplier)
+      local shadowMap = calcShadows(self, gridPosition, shadowResolutionMultiplier)
       for y = 1,#shadowMap do
         for x = 1,#shadowMap[y] do
           if shadowMap[y][x] == 1 then -- add shadow
             love.graphics.setColor(1, 0, 1, 1)
-            love.graphics.rectangle('fill', x*cellSize/shadowResolutionMultiplier, y*cellSize/shadowResolutionMultiplier, cellSize/shadowResolutionMultiplier, cellSize/shadowResolutionMultiplier)
+            love.graphics.rectangle('fill', x/shadowResolutionMultiplier, y/shadowResolutionMultiplier, shadowResolutionMultiplier, shadowResolutionMultiplier)
           end
         end
       end
@@ -120,8 +121,8 @@ function LightSystem:gridUpdated()
     --radialLightShader:send("color", color)
     love.graphics.setColor(color)
     love.graphics.draw(lightCircleImage,
-    position.x-lightCircleImageWidth*lightCircleImageScale*0.5,
-    position.y-lightCircleImageHeight*lightCircleImageScale*0.5,
+    gridPosition.x-lightCircleImageWidth*lightCircleImageScale*0.5,
+    gridPosition.y-lightCircleImageHeight*lightCircleImageScale*0.5,
     0, lightCircleImageScale, lightCircleImageScale)
     love.graphics.setStencilTest()
   end
@@ -193,7 +194,7 @@ function LightSystem:renderLights(l, t, w, h, f) --luacheck: ignore
 
   love.graphics.setBlendMode("multiply", "premultiplied")
   --love.graphics.draw(lightCanvas)
-  love.graphics.draw(lightAmbientMixCanvas)
+  love.graphics.draw(lightAmbientMixCanvas, 0, 0, 0, cellSize, cellSize)
   love.graphics.setBlendMode("alpha")
 
   -- local lightScale = 2
