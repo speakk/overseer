@@ -1,6 +1,7 @@
 local Vector = require('libs.brinevector')
 local inspect = require('libs.inspect') --luacheck: ignore
 local lume = require('libs.lume')
+local entityManager = require('models.entityManager')
 
 local universe = require('models.universe')
 local itemUtils = require('utils.itemUtils')
@@ -37,6 +38,8 @@ function ItemSystem:initializeTestTrees(mapSize)
     entity:give(ECS.c.sprite, "vegetation.tree01")
     :give(ECS.c.onMap)
     :give(ECS.c.collision)
+    :give(ECS.c.id, entityManager.generateId())
+    :give(ECS.c.construction, 100)
     :give(ECS.c.occluder)
     :give(ECS.c.selector, selector)
     :give(ECS.c.position, universe.gridPositionToPixels(position))

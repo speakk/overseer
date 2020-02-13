@@ -53,11 +53,20 @@ function MapSystem:cancelConstruction(entities)
     --   entity:get(ECS.c.removeCallBack).callBack()
     -- else
       --entityManager.entityRemoved
-      recursiveDelete(self, entity)
+
+      if entity:has(ECS.c.construction) then
+        entity:give(ECS.c.job, "destruct")
+      else
+        recursiveDelete(self, entity)
+      end
 
       --self:getWorld():removeEntity(entity)
     --end
   end
+end
+
+function MapSystem:immediateDestroy(entity)
+  recursiveDelete(self, entity)
 end
 
 return MapSystem

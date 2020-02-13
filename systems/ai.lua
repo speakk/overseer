@@ -5,7 +5,8 @@ local AISystem = ECS.System({ECS.c.work, "work"})
 
 local behaviours = {
   fetch = require('models.ai.fetchBehaviour').createTree,
-  bluePrint = require('models.ai.bluePrintBehaviour').createTree
+  bluePrint = require('models.ai.bluePrintBehaviour').createTree,
+  destruct = require('models.ai.destructBehaviour').createTree
 }
 
 local attachedBehaviours = {}
@@ -18,7 +19,7 @@ local function attachBehaviour(entity, type, world)
   attachedBehaviours[id] = attachedBehaviours[id] or {}
 
   --local job = entityManager.get(entity:get(ECS.c.work).jobId)
-  --print("Attaching behaviour", id, type)
+  print("Attaching behaviour", id, type)
   attachedBehaviours[id][type] = behaviours[type](entity, world, type)
 end
 
