@@ -4,8 +4,64 @@ local camera = require('models.camera')
 
 local ZoneSystem = ECS.System({ECS.c.zone, ECS.c.rect})
 
+local lastZoneUpdate = love.timer.getTime()
+local zoneUpdateInterval = 2
+
+local zoneHandlers = {
+  deconstruct = {
+    run = function(self, zone, params, dt)
+      local rect = zone:get(ECS.c.rect)
+
+      local coords = universe.getOuterBorderCoordinates(
+      math.min(rect.x1, rect.x2),
+      math.min(rect.y1, rect.y2),
+      math.max(rect.x1, rect.x2),
+      math.max(rect.y1, rect.y2),
+      true)
+
+      local allEntities = {}
+
+      for _, position in ipairs(coords) do
+        local entities = universe.getEntitiesInLocation(position)
+        allEntities = lume.concat(allEntities, entities)
+      end
+
+      if params.selector then
+        allEntities = lume.filter(function(entity)
+          if entity:has(ECS.c.item) then
+            local selector = entity:get(ECS.c.selector).selector
+            return selector == params.selector
+          else
+            return false
+          end
+        end)
+      end
+
+      self:getWorld():emit("cancelConstruction", allEntities)
+    end
+  }
+}
+
 function ZoneSystem:init()
 
+end
+
+function ZoneSystem:update(dt)
+  local currentTime = love.timer.getTime()
+  if zoneUpdateInterval > currentTime - lastZoneUpdate then
+    lastZoneUpdate = love.timer.getTime()
+    self:tickZones(dt)
+  end
+end
+
+function ZoneSystem:tickZones()
+  for _, zone in ipairs(self.pool) do
+    local zoneC = zone:get(ECS.c.zone)
+    local type = zoneC.type
+    local params = zoneC.params
+    assert(zoneHandlers[type], "No such zone handler exists: " .. (type or "nil"))
+    zoneHandlers[type].run(self, zone, params, dt)
+  end
 end
 
 function ZoneSystem:generateGUIDraw()

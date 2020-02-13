@@ -75,6 +75,10 @@ function GUISystem:init()
               }
             }
           }
+        },
+        chopTrees = {
+          name = "Chop trees",
+          selector = "tree"
         }
       }
     },

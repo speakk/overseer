@@ -102,7 +102,7 @@ function SpriteSystem:generateGUIDraw()
         for _, itemId in ipairs(inventory) do
           local item = entityManager.get(itemId)
           local amount = item:get(ECS.c.amount).amount
-          local selector = item:get(ECS.c.item).selector
+          local selector = item:get(ECS.c.selector).selector
           love.graphics.setColor(1, 1, 1, 1)
           love.graphics.print(selector .. ": " .. tostring(amount),
           positionVector.x+invIndex*lineSpace, positionVector.y+invIndex*lineSpace)

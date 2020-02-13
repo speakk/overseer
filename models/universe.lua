@@ -91,7 +91,7 @@ end
 
 function universe.onOnMapItemAdded(pool, entity)
   local itemComponent = entity:get(ECS.c.item)
-  local selector = itemComponent.selector
+  local selector = entity:get(ECS.c.selector).selector
   if not entitySelectorMap[selector] then
     entitySelectorMap[selector] = {}
   end
@@ -101,7 +101,7 @@ end
 
 function universe.onOnMapItemRemoved(pool, entity)
   local itemComponent = entity:get(ECS.c.item)
-  local selector = itemComponent.selector
+  local selector = entity:get(ECS.c.selector).selector
 
   local items = entitySelectorMap[selector]
   if items then
@@ -467,7 +467,7 @@ function universe.getItemFromGround(itemSelector, gridPosition) --luacheck: igno
 end
 
 function universe.takeItemFromGround(originalItem, amount)
-  local selector = originalItem:get(ECS.c.item).selector
+  local selector = originalItem:get(ECS.c.selector).selector
   local item, wasSplit = itemUtils.splitItemStackIfNeeded(originalItem, amount)
 
   if not wasSplit then

@@ -28,7 +28,7 @@ function ItemUtils.splitItemStackIfNeeded(item, amount)
     return item, false
   end
 
-  local selector = item:get(ECS.c.item).selector
+  local selector = item:get(ECS.c.selector).selector
   item:give(ECS.c.amount, diff)
   local itemCopy = ItemUtils.createItem(selector, amount)
   itemCopy:give(ECS.c.amount, amount)
@@ -41,7 +41,8 @@ function ItemUtils.createItem(selector, amount)
   local item = ECS.Entity()
   local itemData = constructionTypes.getBySelector(selector)
   --local color = itemData.color or { 0.5, 0.5, 0.5 }
-  item:give(ECS.c.item, itemData, selector)
+  item:give(ECS.c.item, itemData)
+  :give(ECS.c.selector, selector)
   :give(ECS.c.amount, amount)
   :give(ECS.c.name, "Item: " .. selector)
   :give(ECS.c.id, entityManager.generateId())

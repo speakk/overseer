@@ -1,4 +1,5 @@
 local inspect = require('libs.inspect')
+local bitser = require('libs.bitser')
 local lume = require('libs.lume')
 local Path = require('libs.jumper.core.path')
 local ItemUtils = require('utils.itemUtils')
@@ -44,6 +45,15 @@ local function initializeComponents()
     return name:__initialize(data.name)
   end
   ECS.c.register("name", name)
+
+  local selector = ECS.Component(function(e, selector)
+    e.selector = selector or "-"
+    e.customSerialize = function() return { selector = e.selector } end
+  end)
+  selector.customDeserialize = function(data)
+    return selector:__initialize(data.selector)
+  end
+  ECS.c.register("selector", selector)
 
   local id = ECS.Component(function(e, id)
     e.id = id or error("Id needs id")
@@ -107,20 +117,11 @@ local function initializeComponents()
     e.jobId = jobId or nil
     e.customSerialize = function()
       return { jobId = jobId }
-      -- local serialized = {}
-      -- if not e.jobId then error("Work has no job upon serializing") end
-      -- serialized.jobId = e.job:get(ECS.c.id).id
-      -- return serialized 
     end
   end) -- Settler work
 
   work.customDeserialize = function(data)
     return work:__initialize(data.jobId)
-    --local workC = work:__initialize()
-    -- entityManager.registerReference(function(references) 
-    --   workC.job = references[data.jobId]
-    --   if not workC.job then error("Failed to initialize job for work on deserialize!") end
-    -- end)
   end
 
   ECS.c.register("work", work)
@@ -152,42 +153,10 @@ local function initializeComponents()
   local occluder = ECS.Component()
   ECS.c.register("occluder", occluder)
 
-  -- local fetchJob = ECS.Component(function(e, target, selector, amount)
-  --   e.target = target
-  --   e.selector = selector or error("Fetch has no selector!")
-  --   e.amount = amount
-
-  --   e.customSerialize = function()
-  --     return {
-  --       targetId = e.target:get(ECS.c.id).id,
-  --       selector = e.selector,
-  --       amount = e.amount
-  --     }
-  --   end
-  -- end)
-  -- fetchJob.customDeserialize = function(data)
-  --   local newFetch = fetchJob:__initialize(nil, data.selector, data.amount)
-  --   entityManager.registerReference(function(references) 
-  --     newFetch.target = references[data.targetId]
-  --   end)
-  --   return newFetch
-  -- end
-  -- ECS.c.register("fetchJob", fetchJob)
-
   local fetchJob = ECS.Component(function(e, targetId, selector, amount)
     e.targetId = targetId
-    --e.target = target
     e.selector = selector or error("Fetch has no selector!")
     e.amount = amount
-
-    -- registerReference id, onInvalidate
-    -- entityManager.registerReference(targetId, function()
-    --   e.targetId = nil
-    -- end)
-
-    --entityManager.registerReference(function(references) 
-    --  newFetch.target = references[data.targetId]
-    --end)
 
     e.customSerialize = function()
       return {
@@ -199,9 +168,6 @@ local function initializeComponents()
   end)
   fetchJob.customDeserialize = function(data)
     local newFetch = fetchJob:__initialize(data.targetId, data.selector, data.amount)
-    --entityManager.registerReference(function(references) 
-    --  newFetch.target = references[data.targetId]
-    --end)
     return newFetch
   end
   ECS.c.register("fetchJob", fetchJob)
@@ -272,7 +238,7 @@ local function initializeComponents()
     e.findItem = function(e, selector) -- luacheck: ignore
       local itemId = lume.match(e.inventory, function(itemId)
         local item = entityManager.get(itemId)
-        return item:get(ECS.c.item).selector == selector
+        return item:get(ECS.c.selector).selector == selector
       end)
       return itemId
     end
@@ -293,11 +259,11 @@ local function initializeComponents()
       print("Inserting id into inventory", itemId)
       local item = entityManager.get(itemId)
       local amount = item:get(ECS.c.amount).amount 
-      local selector = item:get(ECS.c.item).selector
+      local selector = item:get(ECS.c.selector).selector
 
       local existingId = lume.match(e.inventory, function(invItemId)
         local invItem = entityManager.get(invItemId)
-        return invItem:get(ECS.c.item).selector == selector
+        return invItem:get(ECS.c.selector).selector == selector
       end)
 
       if existingId then
@@ -330,15 +296,14 @@ local function initializeComponents()
   end
   ECS.c.register("inventory", inventory)
 
-  local item = ECS.Component(function(e, itemData, selector)
+  local item = ECS.Component(function(e, itemData)
     e.itemData = itemData or {}
-    e.selector = selector or error("Item needs data selector!")
     e.customSerialize = function()
-      return { itemData = e.itemData, selector = e.selector }
+      return { itemData = e.itemData }
     end
   end)
   item.customDeserialize = function(data)
-    return item:__initialize(data.itemData, data.selector)
+    return item:__initialize(data.itemData)
   end
   ECS.c.register("item", item)
 
@@ -422,7 +387,17 @@ local function initializeComponents()
 
   ECS.c.register("rect", rect)
 
-  local zone = ECS.Component()
+  local zone = ECS.Component(function(e, type, params)
+    e.type = type
+    e.params = params
+    e.customSerialize = function()
+      return {
+        type = e.type,
+        params = bitser.dumps(e.params)
+      }
+    end
+  end)
+  zone.customDeserialize = function(data) return zone:__initialize(data.type, bitser.loads(data.params)) end
   ECS.c.register("zone", zone)
 
   local color = ECS.Component(function(e, color)
