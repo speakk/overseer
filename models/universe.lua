@@ -443,6 +443,31 @@ function universe.draw(l, t, w, h)
   end
 end
 
+function universe.getEntitiesInCoordinates(coordinateList, selector, componentRequirements)
+  local entities = {}
+  
+  for _, coordinate in ipairs(coordinateList) do
+    local locationEntities = universe.getEntitiesInLocation(coordinate)
+    entities = lume.concat(entities, lume.filter(locationEntities, function(entity)
+      if selector then
+        if not entity:has(ECS.c.selector) or entity:get(ECS.c.selector).selector ~= selector then
+          return false
+        end
+      end
+
+      if componentRequirements then
+        for _, requirement in ipairs(componentRequirements) do
+          if not entity:has(ECS.c[requirement]) then return false end
+        end
+      end
+
+      return true
+    end))
+  end
+
+  return entities
+end
+
 function universe.getItemsOnGround(selector, componentRequirements)
   print("getItemsOnGround!!!", selector, #entityItemSelectorMap[selector])
   if componentRequirements then

@@ -19,25 +19,8 @@ local zoneHandlers = {
       math.max(rect.y1, rect.y2),
       true)
 
-      local allEntities = {}
-
-      for _, position in ipairs(coords) do
-        local entities = universe.getEntitiesInLocation(position)
-        allEntities = lume.concat(allEntities, entities)
-      end
-
-      if params.selector then
-        allEntities = lume.filter(function(entity)
-          if entity:has(ECS.c.item) then
-            local selector = entity:get(ECS.c.selector).selector
-            return selector == params.selector
-          else
-            return false
-          end
-        end)
-      end
-
-      self:getWorld():emit("cancelConstruction", allEntities)
+      local entities = universe.getEntitiesInCoordinates(coords, params.selector, params.componentRequirements)
+      self:getWorld():emit("cancelConstruction", entities)
     end
   }
 }

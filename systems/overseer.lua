@@ -91,8 +91,9 @@ function OverseerSystem:generateGUIDraw() --luacheck: ignore
   end
 end
 
-function OverseerSystem:dataSelectorChanged(selector)
+function OverseerSystem:dataSelectorChanged(selector, params)
   self.dataSelector = selector
+  self.dataSelectorParams = params
   --self:getWorld():emit("dataSelectorChanged", selector)
 end
 
@@ -192,9 +193,10 @@ function OverseerSystem:build(coords)
 end
 
 function OverseerSystem:zones(coords, rect)
+  local params = self.dataSelectorParams
   local zoneEntity = ECS.Entity()
   zoneEntity:give(ECS.c.id, entityManager.generateId())
-  zoneEntity:give(ECS.c.zone)
+  zoneEntity:give(ECS.c.zone, params.type, params)
   zoneEntity:give(ECS.c.color, zoneColor)
   zoneEntity:give(ECS.c.rect, rect.x1, rect.y1, rect.x2, rect.y2)
 

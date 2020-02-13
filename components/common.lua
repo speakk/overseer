@@ -413,17 +413,29 @@ local function initializeComponents()
 
   ECS.c.register("color", color)
 
-  local behaviour = ECS.Component(function(e, type)
-    e.type = type
+  -- local behaviour = ECS.Component(function(e, type)
+  --   e.type = type
+  --   e.customDeserialize = function()
+  --     return { type = e.type }
+  --   end
+  -- end)
+
+  -- behaviour.customDeserialize = function(data)
+  --   return behaviour:__initialize(data.type)
+  -- end
+
+  local construction = ECS.Component(function(e, durability)
+    e.durability = durability
     e.customDeserialize = function()
-      return { type = e.type }
+      return { durability = e.durability }
     end
   end)
 
-  behaviour.customDeserialize = function(data)
-    return behaviour:__initialize(data.type)
+  construction.customDeserialize = function(data)
+    return behaviour:__initialize(data.durability)
   end
 
+  ECS.c.register("construction", construction)
 end
 
 return {

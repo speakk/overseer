@@ -104,6 +104,7 @@ end
 
 local function finish(job)
     job:give(ECS.c.collision)
+    job:give(ECS.c.construction, 100)
     job:remove(ECS.c.transparent)
 
     local itemData = job:get(ECS.c.item).itemData

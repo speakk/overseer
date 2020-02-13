@@ -3,6 +3,7 @@ local lume = require('libs.lume')
 local utils = require('utils.utils')
 
 local jobManager = require('models.jobManager')
+local jobHandlers = require('models.jobTypes.jobTypes')
 
 local entityManager = require('models.entityManager')
 

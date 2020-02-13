@@ -17,8 +17,9 @@ local GUISystem = ECS.System()
 local function buildMenuHierarchy(self, items, key, path)
   if path and string.len(path) > 0 then path = path .. "." .. key else path = key end
   if not items.subItems then
-    local requirements = "Requires: "
+    local requirements = ""
     if items.requirements then
+      requirements = "Requires: "
       for itemKey, value in pairs(items.requirements) do
         requirements = requirements .. constructionTypes.getBySelector(itemKey).name .. ": " .. value
         requirements = requirements .. ", "
@@ -33,7 +34,7 @@ local function buildMenuHierarchy(self, items, key, path)
       if sel.value then
 
         self.dataSelector = path
-        self:getWorld():emit("dataSelectorChanged", path)
+        self:getWorld():emit("dataSelectorChanged", path, items.params)
       end
     end
   elseif type(items) == "table" then
@@ -78,7 +79,10 @@ function GUISystem:init()
         },
         chopTrees = {
           name = "Chop trees",
-          selector = "tree"
+          params = {
+            type = "deconstruct",
+            selector = "growing.tree"
+          }
         }
       }
     },
