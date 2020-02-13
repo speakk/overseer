@@ -152,14 +152,18 @@ function LightSystem:renderLights(l, t, w, h, f) --luacheck: ignore
   local lightWidth = lightGradientImage:getWidth()*lightScale
   local lightHeight = lightGradientImage:getHeight()*lightScale
 
+  local margin = 32
+
   -- Tiny bit of non-pixely glow as well. TODO: Cull based on t,w,h,f
   love.graphics.setBlendMode("add")
   for _, light in ipairs(self.pool) do
     local position = light:get(ECS.c.position).vector
-    local color = light:get(ECS.c.light).color
-    love.graphics.setColor(unpack(color))
-    love.graphics.draw(lightGradientImage, 16+position.x-lightWidth/2, 16+position.y-lightHeight/2,
+    if universe.isPositionWithinArea(position, l-margin, t-margin, w+margin, h+margin) then
+      local color = light:get(ECS.c.light).color
+      love.graphics.setColor(unpack(color))
+      love.graphics.draw(lightGradientImage, 16+position.x-lightWidth/2, 16+position.y-lightHeight/2,
       0, lightScale, lightScale)
+    end
   end
   love.graphics.setBlendMode("alpha")
 end

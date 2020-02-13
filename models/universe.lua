@@ -250,6 +250,10 @@ function universe.isPositionWithinBounds(position)
   return position.x > left_x and position.x < right_x and position.y > left_y and position.y < right_y
 end
 
+function universe.isPositionWithinArea(position, l, t, w, h)
+  return position.x > l and position.x < l+w and position.y > t and position.y < t+h
+end
+
 
 function universe.clampToWorldBounds(gridPosition)
   return Vector(cpml.utils.clamp(gridPosition.x, 1, width), cpml.utils.clamp(gridPosition.y, 1, height))
