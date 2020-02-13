@@ -5,7 +5,7 @@ local Vector = require('libs.brinevector') --luacheck: ignore
 
 local MapSystem = ECS.System({ECS.c.collision, "collision"},
   {ECS.c.onMap, ECS.c.position, "onMap"},
-  {ECS.c.onMap, ECS.c.position, ECS.c.item, ECS.c.selector, "onMapItem"},
+  {ECS.c.onMap, ECS.c.position, ECS.c.selector, "onMapItem"},
   {ECS.c.onMap, ECS.c.position, ECS.c.occluder, "occluder"}
   )
 

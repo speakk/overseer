@@ -29,7 +29,7 @@ function createTree(settler, world, jobType)
   local getPotentialItemStack = BehaviourTree.Task:new({
     run = function(task, blackboard)
       --print("fetch getPotentialItemStack", blackboard.selector)
-      local itemsOnMap = universe.getItemsOnGround(blackboard.selector)
+      local itemsOnMap = universe.getItemsOnGround(blackboard.selector, { "item" })
 
       if not itemsOnMap or #itemsOnMap == 0 then
         --print("NO ITEMSONMAP JESUS CHRIST")
@@ -74,7 +74,7 @@ function createTree(settler, world, jobType)
       --print("fetch pickItemAmountUp")
       local gridPosition = universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector)
       --print("gridPosition", gridPosition)
-      local itemInCurrentLocation = universe.getItemFromGround(blackboard.selector, gridPosition, true)
+      local itemInCurrentLocation = universe.getItemFromGround(blackboard.selector, gridPosition, { "item" })
       --print("itemInCurrentLocation", blackboard.selector, itemInCurrentLocation)
       if not itemInCurrentLocation then
         --print("Failing, not itemInCurrentLocation")

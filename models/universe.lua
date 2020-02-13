@@ -24,7 +24,7 @@ local cachedCanvas = nil
 
 local map = {}
 local entityPosMap = {}
-local entitySelectorMap = {}
+local entityItemSelectorMap = {}
 local occluderMap = {}
 local mapColors = {}
 
@@ -90,20 +90,18 @@ function universe.onCollisionEntityRemoved(pool, entity)
 end
 
 function universe.onOnMapItemAdded(pool, entity)
-  local itemComponent = entity:get(ECS.c.item)
   local selector = entity:get(ECS.c.selector).selector
-  if not entitySelectorMap[selector] then
-    entitySelectorMap[selector] = {}
+  if not entityItemSelectorMap[selector] then
+    entityItemSelectorMap[selector] = {}
   end
 
-  table.insert(entitySelectorMap[selector], entity)
+  table.insert(entityItemSelectorMap[selector], entity)
 end
 
 function universe.onOnMapItemRemoved(pool, entity)
-  local itemComponent = entity:get(ECS.c.item)
   local selector = entity:get(ECS.c.selector).selector
 
-  local items = entitySelectorMap[selector]
+  local items = entityItemSelectorMap[selector]
   if items then
     lume.remove(items, entity)
   end
@@ -445,13 +443,23 @@ function universe.draw(l, t, w, h)
   end
 end
 
-function universe.getItemsOnGround(selector)
-  print("getItemsOnGround!!!", selector, #entitySelectorMap[selector])
-  return entitySelectorMap[selector]
+function universe.getItemsOnGround(selector, componentRequirements)
+  print("getItemsOnGround!!!", selector, #entityItemSelectorMap[selector])
+  if componentRequirements then
+    return lume.filter(entityItemSelectorMap[selector], function(entity)
+      for _, requirement in ipairs(componentRequirements) do
+        if not entity:has(ECS.c[requirement]) then return false end
+      end
+
+      return true
+    end)
+  else
+    return entityItemSelectorMap[selector]
+  end
 end
 
-function universe.getItemFromGround(itemSelector, gridPosition) --luacheck: ignore
-  local items = universe.getItemsOnGround(itemSelector)
+function universe.getItemFromGround(itemSelector, gridPosition, componentRequirements) --luacheck: ignore
+  local items = universe.getItemsOnGround(itemSelector, componentRequirements)
   print("Any items anywhere?", itemSelector, items, #items)
   if not items then return nil end
 
@@ -471,7 +479,7 @@ function universe.takeItemFromGround(originalItem, amount)
   local item, wasSplit = itemUtils.splitItemStackIfNeeded(originalItem, amount)
 
   if not wasSplit then
-    lume.remove(entitySelectorMap[selector], originalItem)
+    lume.remove(entityItemSelectorMap[selector], originalItem)
     originalItem:remove(ECS.c.position)
     originalItem:remove(ECS.c.onMap)
   end
