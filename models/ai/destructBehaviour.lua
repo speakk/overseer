@@ -64,7 +64,7 @@ local progressDestruct = {
       local time = love.timer.getTime()
       local delta = time - blackboard.lastBuildTick
       print("delta", time, constructionSkill * delta)
-      blackboard.world:emit('destructProgress', blackboard.construction, constructionSkill * delta)
+      blackboard.world:emit('destructProgress', blackboard.constructionComponent, constructionSkill * delta)
       blackboard.lastBuildTick = time
       task:running()
       return

@@ -43,6 +43,22 @@ function recursiveDelete(self, entity)
       recursiveDelete(self, child)
     end
   end
+
+  if entity:has(ECS.c.inventory) then
+    local inventory = entity:get(ECS.c.inventory)
+    --local currentGridPosition = universe.pixelsToGridCoordinates(entity:get(ECS.c.position).vector)
+
+    for _, itemId in ipairs(inventory.inventory) do
+      print("itemId", itemId)
+      local item = entityManager.get(itemId)
+      print("item", item)
+      item:give(ECS.c.onMap)
+      -- TODO: If no space then randomize nearby position
+      --local itemPosition = currentGridPosition
+      item:give(ECS.c.position, entity:get(ECS.c.position).vector.copy)
+    end
+  end
+
   self:getWorld():removeEntity(entity)
 end
 
@@ -67,6 +83,12 @@ end
 
 function MapSystem:immediateDestroy(entity)
   recursiveDelete(self, entity)
+end
+
+local destructSpeedModifier = 5
+function MapSystem:destructProgress(constructionComponent, amount)
+  constructionComponent.durability = constructionComponent.durability - amount * destructSpeedModifier
+  print("durability now", constructionComponent.durability)
 end
 
 return MapSystem
