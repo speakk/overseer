@@ -17,6 +17,7 @@ function MoveSystem:update(dt)
     end
 
     position.vector = position.vector + velocity * dt
+    self:getWorld():emit("entityMoved", entity, position.vector, velocity)
   end
 end
 

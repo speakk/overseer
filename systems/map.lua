@@ -64,12 +64,6 @@ end
 
 function MapSystem:cancelConstruction(entities)
   for _, entity in ipairs(entities) do
-    -- TODO: Deal with proper removal of already constructed entities
-    -- if entity:has(ECS.c.removeCallBack) then
-    --   entity:get(ECS.c.removeCallBack).callBack()
-    -- else
-      --entityManager.entityRemoved
-
       if entity:has(ECS.c.construction) then
         if not entity:has(ECS.c.job) or not entity:get(ECS.c.job).type == "destruct" then
           entity:give(ECS.c.job, "destruct")
@@ -77,9 +71,6 @@ function MapSystem:cancelConstruction(entities)
       else
         recursiveDelete(self, entity)
       end
-
-      --self:getWorld():removeEntity(entity)
-    --end
   end
 end
 

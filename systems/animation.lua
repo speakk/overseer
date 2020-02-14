@@ -42,4 +42,18 @@ function AnimationSystem:update(dt)
   end
 end
 
+function AnimationSystem:entityMoved(entity, position, positionDelta)
+  if entity:has(ECS.c.animation) then
+    local animation = entity:get(ECS.c.animation)
+
+    if math.abs(positionDelta.x) > 0 or math.abs(positionDelta.y) > 0 then
+        animation.activeAnimations = { 'walk' }
+      else
+        animation.activeAnimations = { }
+        -- TODO: Make the idle animation
+        -- animation.activeAnimations = { 'idle' }
+      end
+    end
+end
+
 return AnimationSystem
