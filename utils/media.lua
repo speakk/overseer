@@ -19,7 +19,7 @@ local mediaDB = {
   },
   {
     name = "characters",
-    items = { 'settler' }
+    items = { 'settler1_01', 'settler1_02', 'settler1_03' }
   },
   {
     name = "items",

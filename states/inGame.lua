@@ -50,6 +50,7 @@ function inGame:init()
     -- end
     local inGameSystems = {
       ECS.Systems.dayCycle,
+      ECS.Systems.animation,
       ECS.Systems.path,
       ECS.Systems.light,
       ECS.Systems.playerInput,

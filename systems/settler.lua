@@ -94,7 +94,7 @@ function SettlerSystem:initializeTestSettlers()
 
     settler:give(ECS.c.position, universe.gridPositionToPixels(position))
     --:give(ECS.c.draw, {1,1,0})
-    :give(ECS.c.sprite, 'characters.settler')
+    :give(ECS.c.sprite, 'characters.settler1_01')
     :give(ECS.c.id, entityManager.generateId())
     :give(ECS.c.settler)
     :give(ECS.c.speed, 300)
@@ -102,6 +102,24 @@ function SettlerSystem:initializeTestSettlers()
     :give(ECS.c.inventory)
     :give(ECS.c.worker)
     :give(ECS.c.velocity)
+    :give(ECS.c.animation, {
+      walk = {
+        targetComponent = 'sprite',
+        targetProperty = 'selector',
+        interpolate = false,
+        repeatAnimation = true,
+        values = {
+          "characters.settler1_02", "characters.settler1_03"
+        },
+        currentValueIndex = 1,
+        frameLength = 0.1, -- in ms
+        lastFrameUpdate = love.timer.getTime(),
+        finished = false
+      }
+    },
+    {
+      'walk'
+    })
     self:getWorld():addEntity(settler)
   end
 end

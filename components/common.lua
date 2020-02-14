@@ -436,6 +436,39 @@ local function initializeComponents()
   end
 
   ECS.c.register("construction", construction)
+
+  local animation = ECS.Component(function(e, props, activeAnimations)
+    -- activeAnimations: {
+    -- 'walk'
+    -- }
+    --
+    -- Props: {
+    -- walk = {
+    --  targetComponent: 'sprite'
+    --  targetProperty: 'selector',
+    --  interpolate: false,
+    --  repeatAnimation: true,
+    --  values = { "settler1_02", "settler1_03" }
+    --  currentValueIndex = 0,
+    --  frameLength = 10 -- in ms
+    --  lastFrameUpdate = nil -- time
+    --  finished = false
+    --  }
+    e.props = props
+    e.activeAnimations = activeAnimations
+    e.customDeserialize = function()
+      return {
+        props = bitser.dumps(e.props),
+        activeAnimations = bitser.dumps(e.activeAnimations)
+      }
+    end
+  end)
+
+  animation.customDeserialize = function(data)
+    return animation:__initialize(bitser.loads(data.props), bitser.loads(data.activeAnimations))
+  end
+
+  ECS.c.register("animation", animation)
 end
 
 return {

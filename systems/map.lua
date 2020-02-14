@@ -71,7 +71,9 @@ function MapSystem:cancelConstruction(entities)
       --entityManager.entityRemoved
 
       if entity:has(ECS.c.construction) then
-        entity:give(ECS.c.job, "destruct")
+        if not entity:has(ECS.c.job) or not entity:get(ECS.c.job).type == "destruct" then
+          entity:give(ECS.c.job, "destruct")
+        end
       else
         recursiveDelete(self, entity)
       end
