@@ -42,6 +42,7 @@ function AnimationSystem:update(dt)
   end
 end
 
+-- TODO: Figure out a better way to do this
 function AnimationSystem:entityMoved(entity, position, positionDelta)
   if entity:has(ECS.c.animation) then
     local animation = entity:get(ECS.c.animation)
