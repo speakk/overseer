@@ -11,7 +11,7 @@ local mediaDB = {
   },
   {
     name = "vegetation",
-    items = { 'tree01' },
+    items = { 'tree01', 'bush01', 'grass01', 'grass02', 'grass03', },
   },
   {
     name = "resources",

@@ -4,7 +4,7 @@ local inspect = require('libs.inspect')
 local AISystem = ECS.System({ECS.c.work, "work"})
 
 local behaviours = {
-  idle = require('models.ai.idleBehaviour').createTree,
+  --idle = require('models.ai.idleBehaviour').createTree,
   fetch = require('models.ai.fetchBehaviour').createTree,
   bluePrint = require('models.ai.bluePrintBehaviour').createTree,
   destruct = require('models.ai.destructBehaviour').createTree
@@ -51,7 +51,6 @@ function AISystem:treeFinished(entity, jobType)
 end
 
 function AISystem:update(dt)
-  prof.push('aiSystem')
   aiTimer = aiTimer + dt
   if aiTimer >= aiInterval then
     --print("AI UPDATE")
@@ -67,7 +66,6 @@ function AISystem:update(dt)
       end
     end
   end
-  prof.pop('aiSystem')
 end
 
 return AISystem

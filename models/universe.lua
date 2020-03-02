@@ -7,6 +7,7 @@ local lume = require('libs.lume')
 local inspect = require('libs.inspect') --luacheck: ignore
 local utils = require('utils.utils')
 local itemUtils = require('utils.itemUtils')
+local media = require('utils.media')
 local world = nil
 
 local universe = {}
@@ -35,9 +36,22 @@ local _gridUpdateInterval = 2
 local grid
 local myFinder
 
+local randomWalkX = {}
+local randomWalkY = {}
+for i=1,width do
+  table.insert(randomWalkX, i)
+end
+for i=1,height do
+  table.insert(randomWalkY, i)
+end
+
+randomWalkX = lume.shuffle(randomWalkX)
+randomWalkY = lume.shuffle(randomWalkY)
+
 function universe:load(newWorld)
   world = newWorld
   local grassNoiseScale = 0.05
+  local foliageNoiseScale = 0.05
 
   for y = 1,height,1 do
     local row = {}
@@ -48,7 +62,8 @@ function universe:load(newWorld)
         a = love.math.noise(x + love.math.random(), y + love.math.random()),
         b = love.math.noise(x + love.math.random(), y + love.math.random()),
         c = love.math.noise(x + love.math.random(), y + love.math.random()),
-        grass = cpml.utils.round(love.math.noise(x * grassNoiseScale, y * grassNoiseScale)-0.3)
+        grass = cpml.utils.round(love.math.noise(x * grassNoiseScale, y * grassNoiseScale)-0.3),
+        foliage = cpml.utils.round(love.math.noise(x+1 * foliageNoiseScale, y+1 * foliageNoiseScale)-0.44)
       }
     end
     map[y] = row
@@ -61,16 +76,16 @@ function universe:load(newWorld)
 
   self.recalculateGrid(map, true)
 
-  local generateTileName = function(name) return 'media/tiles/' .. name .. '.png' end
-  local tiles = {
-    generateTileName('grass01'),
-    generateTileName('grass02'),
-    generateTileName('dirt01')
-  }
-  local image = love.graphics.newArrayImage(tiles)
-  image:setFilter("nearest", "linear") -- this "linear filter" removes some artifacts if we were to scale the tiles
+  -- local generateTileName = function(name) return 'media/tiles/' .. name .. '.png' end
+  -- local tiles = {
+  --   generateTileName('grass01'),
+  --   generateTileName('grass02'),
+  --   generateTileName('dirt01')
+  -- }
+  -- local image = love.graphics.newArrayImage(tiles)
+  -- image:setFilter("nearest", "linear") -- this "linear filter" removes some artifacts if we were to scale the tiles
 
-  tilesetBatch = love.graphics.newSpriteBatch(image, 500)
+  tilesetBatch = love.graphics.newSpriteBatch(media.atlas, 500)
 end
 
 function universe.getSize()
@@ -406,8 +421,14 @@ function universe.draw(l, t, w, h)
     --love.graphics.translate(-600, -600)
     --love.graphics.setShader()
 
-    for rowNum, row in ipairs(map) do
-      for cellNum, cellValue in ipairs(row) do --luacheck: ignore
+    for randomY = 1,height do
+      local rowNum = randomWalkY[randomY]
+      local row = map[rowNum]
+    --for rowNum, row in ipairs(map) do
+      for randomX = 1,width do
+        local cellNum = randomWalkX[randomX]
+        local cellValue = row[cellNum]
+      --for cellNum, cellValue in ipairs(row) do --luacheck: ignore
         -- local drawMargin = cellSize
         -- local x1 = (cellNum * cellSize)
         -- local x2 = x1 + cellSize
@@ -416,26 +437,34 @@ function universe.draw(l, t, w, h)
         -- if utils.withinBounds(x1, y1, x2, y2, l, t, l+w, t+h, drawMargin*2) then
           local color = mapColors[rowNum][cellNum]
           local imageArrayIndex = 3
+          local spriteSelector = "tiles.dirt01"
           if color.grass == 1 then
             imageArrayIndex = math.floor(math.random()+0.5)+1
+            spriteSelector = "tiles." .. lume.randomchoice({"grass01", "grass02"})
           end
-          local randColor = 0.97+color.a*0.03
+          local randColor = 0.94+color.a*0.06
           tilesetBatch:setColor(randColor, randColor, randColor, 1)
-          tilesetBatch:addLayer(imageArrayIndex, cellNum*cellSize-cellSize, rowNum*cellSize-cellSize, 0, 2, 2)
+          local quad = media.getSpriteQuad(spriteSelector)
+          local _, _, quadW, quadH = quad:getViewport()
+          local offsetX = (cellSize - quadW)
+          local offsetY = (cellSize - quadH)
+          print(offsetX, offsetY)
+          tilesetBatch:add(quad, cellNum*cellSize-cellSize + offsetX, rowNum*cellSize-cellSize + offsetY, 0, 2, 2)
+          if color.foliage == 1 then
+            local grassSelector = "vegetation." .. lume.randomchoice({"grass01", "grass02", "grass03"})
+            tilesetBatch:add(media.getSpriteQuad(grassSelector), cellNum*cellSize-cellSize, rowNum*cellSize-cellSize, 0, 2, 2)
+          end
+
         -- end
       end
     end
 
-
     local canvas = love.graphics.newCanvas(width*cellSize, height*cellSize)
     love.graphics.setCanvas(canvas)
-    local shader = love.graphics.getShader()
-    love.graphics.setShader()
     love.graphics.clear()
     love.graphics.draw(tilesetBatch)
     love.graphics.setCanvas()
     cachedCanvas = canvas
-    love.graphics.setShader(shader)
     love.graphics.pop()
     love.graphics.setScissor(scissorX, scissorY, scissorW, scissorH)
     return canvas
