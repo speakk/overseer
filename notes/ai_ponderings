@@ -1,0 +1,18 @@
+An actor can be in multiple states:
+Does the actor have a work component? Should the work component exist at all?
+The actor should have a queue of... actions? What is an action?
+Or just a queue of jobs, and anything outside of that is decided JIT?
+
+
+Perhaps always running a BT that does deciding for all actors separately?
+Choices of the BT:
+  - Should we idle?
+  - Do the current job?
+  - Pick a new job?
+  - Shoot / defend
+  - Greet people
+  - Take breaks
+  - Sleep
+
+
+How should greeting work? Is there an event when two actors get close to each other?
