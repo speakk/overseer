@@ -1,4 +1,6 @@
 local channelMain, channelThread = ...
+local Grid = require('libs.jumper.grid')
+local Pathfinder = require('libs.jumper.pathfinder')
 
 require 'love.math'
 
@@ -11,17 +13,15 @@ while true do
   print("Demanding...")
   local pathFindObject = channelMain:demand()
   print("Got object, ", pathFindObject)
-  local newObject = {
-    isDone = true,
-    result = love.math.random()
-  }
 
   local toNodesToCheck = {}
 
-  local grid = universe.getGrid()
-  local finder = universe.getFinder()
+  grid = Grid(pathFindObject.map)
+  finder = Pathfinder(grid, 'JPS', 0)
 
   local toNode = grid:getNodeAt(pathFindObject.toX, pathFindObject.toY)
+  print("TO", pathFindObject.toX, pathFindObject.toY)
+  --print("NODE", toNode:getX(), toNode:getY())
 
   if pathFindObject.searchNeighbours then
     toNodesToCheck = grid:getNeighbours(toNode)
@@ -33,7 +33,7 @@ while true do
   for _, node in ipairs(toNodesToCheck) do
     path = finder:getPath(pathFindObject.fromX, pathFindObject.fromY, node:getX(), node:getY())
     if path then
-      local path = lume.map(e.path._nodes, function(node) return { x = node._x, y = node._y } end)
+      path = lume.map(path._nodes, function(node) return { x = node._x, y = node._y } end)
       break
     end
   end

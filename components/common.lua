@@ -127,6 +127,7 @@ local function initializeComponents()
   ECS.c.register("work", work)
 
   local path = ECS.Component(function(e, path, currentIndex, fromX, fromY, toX, toY)
+    print("path component", fromX, fromY, toX, toY)
     e.path = path
     e.fromX = fromX
     e.fromY = fromY

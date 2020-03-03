@@ -34,9 +34,11 @@ local function getNextAvailableThreadObject()
   return threadObject
 end
 
-local function getPathThread(fromX, fromY, toX, toY, searchNeighbours)
+local function getPathThread(map, fromX, fromY, toX, toY, searchNeighbours)
+  print("getPathThread", map, fromX, fromY, toX, toY)
   local threadObject = getNextAvailableThreadObject()
   threadObject.channelMain:push({
+    map = map,
     fromX = fromX,
     fromY = fromY,
     toX = toX,
