@@ -417,45 +417,32 @@ function universe.draw(l, t, w, h)
     love.graphics.origin()
     local scissorX, scissorY, scissorW, scissorH = love.graphics.getScissor()
     love.graphics.setScissor()
-    --love.graphics.replaceTransform(transform)
-    --love.graphics.translate(-600, -600)
-    --love.graphics.setShader()
 
     for randomY = 1,height do
       local rowNum = randomWalkY[randomY]
       local row = map[rowNum]
-    --for rowNum, row in ipairs(map) do
       for randomX = 1,width do
         local cellNum = randomWalkX[randomX]
         local cellValue = row[cellNum]
-      --for cellNum, cellValue in ipairs(row) do --luacheck: ignore
-        -- local drawMargin = cellSize
-        -- local x1 = (cellNum * cellSize)
-        -- local x2 = x1 + cellSize
-        -- local y1 = rowNum * cellSize
-        -- local y2 = y1 + cellSize
-        -- if utils.withinBounds(x1, y1, x2, y2, l, t, l+w, t+h, drawMargin*2) then
-          local color = mapColors[rowNum][cellNum]
-          local imageArrayIndex = 3
-          local spriteSelector = "tiles.dirt01"
-          if color.grass == 1 then
-            imageArrayIndex = math.floor(math.random()+0.5)+1
-            spriteSelector = "tiles." .. lume.randomchoice({"grass01", "grass02"})
-          end
-          local randColor = 0.94+color.a*0.06
-          tilesetBatch:setColor(randColor, randColor, randColor, 1)
-          local quad = media.getSpriteQuad(spriteSelector)
-          local _, _, quadW, quadH = quad:getViewport()
-          local offsetX = (cellSize - quadW)
-          local offsetY = (cellSize - quadH)
-          print(offsetX, offsetY)
-          tilesetBatch:add(quad, cellNum*cellSize-cellSize + offsetX, rowNum*cellSize-cellSize + offsetY, 0, 2, 2)
-          if color.foliage == 1 then
-            local grassSelector = "vegetation." .. lume.randomchoice({"grass01", "grass02", "grass03"})
-            tilesetBatch:add(media.getSpriteQuad(grassSelector), cellNum*cellSize-cellSize, rowNum*cellSize-cellSize, 0, 2, 2)
-          end
-
-        -- end
+        local color = mapColors[rowNum][cellNum]
+        local imageArrayIndex = 3
+        local spriteSelector = "tiles.dirt01"
+        if color.grass == 1 then
+          imageArrayIndex = math.floor(math.random()+0.5)+1
+          spriteSelector = "tiles." .. lume.randomchoice({"grass01", "grass02"})
+        end
+        local randColor = 0.94+color.a*0.06
+        tilesetBatch:setColor(randColor, randColor, randColor, 1)
+        local quad = media.getSpriteQuad(spriteSelector)
+        local _, _, quadW, quadH = quad:getViewport()
+        local offsetX = (cellSize - quadW)
+        local offsetY = (cellSize - quadH)
+        print(offsetX, offsetY)
+        tilesetBatch:add(quad, cellNum*cellSize-cellSize + offsetX, rowNum*cellSize-cellSize + offsetY, 0, 2, 2)
+        if color.foliage == 1 then
+          local grassSelector = "vegetation." .. lume.randomchoice({"grass01", "grass02", "grass03"})
+          tilesetBatch:add(media.getSpriteQuad(grassSelector), cellNum*cellSize-cellSize, rowNum*cellSize-cellSize, 0, 2, 2)
+        end
       end
     end
 
