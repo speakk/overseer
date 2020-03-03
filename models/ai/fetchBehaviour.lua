@@ -159,23 +159,26 @@ function createTree(settler, world, jobType)
         return
       end
 
-      local path = universe.getPath(
-      universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector),
-      universe.pixelsToGridCoordinates(blackboard.currentTarget:get(ECS.c.position).vector)
-      )
+      -- local path = universe.getPath(
+      -- universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector),
+      -- universe.pixelsToGridCoordinates(blackboard.currentTarget:get(ECS.c.position).vector)
+      -- )
 
 
-      if not path then
-        --print("No path, failing")
-        task:fail()
-        return
-      end
+      -- if not path then
+      --   --print("No path, failing")
+      --   task:fail()
+      --   return
+      -- end
 
       --print("giving path to settler")
       --print("from:", universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector))
       --print("to:", universe.pixelsToGridCoordinates(blackboard.currentTarget:get(ECS.c.position).vector))
       --blackboard.currentPath = path
-      blackboard.settler:give(ECS.c.path, path)
+      local from = universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector)
+      local to = universe.pixelsToGridCoordinates(blackboard.currentTarget:get(ECS.c.position).vector)
+      blackboard.settler:give(ECS.c.path, nil, nil, from.x, from.y, to.x, to.y)
+      --blackboard.settler:give(ECS.c.path, path)
       --print("Fetch getPathToTarget, settler", blackboard.settler, "pathComp", blackboard.settler:get(ECS.c.path))
       task:running()
       --task:success()

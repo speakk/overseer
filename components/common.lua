@@ -126,8 +126,12 @@ local function initializeComponents()
 
   ECS.c.register("work", work)
 
-  local path = ECS.Component(function(e, path, currentIndex)
-    e.path = path or error("No path for Path component!")
+  local path = ECS.Component(function(e, path, currentIndex, fromX, fromY, toX, toY)
+    e.path = path
+    e.fromX = fromX
+    e.fromY = fromY
+    e.toX = toX
+    e.toY = toY
     e.currentIndex = currentIndex or 1
     e.customSerialize = function()
       return {
@@ -138,7 +142,6 @@ local function initializeComponents()
   end)
   path.customDeserialize = function(data)
     local gridPath = Path()
-    --gridPath._nodes = data.pathNodes
     for _, node in ipairs(data.pathNodes) do
       gridPath:addNode(Node(node.x, node.y))
     end

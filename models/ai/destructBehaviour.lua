@@ -35,20 +35,23 @@ local getPathToTarget = {
       end
     end
 
-    local path = universe.getPath(
-    universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector),
-    blackboard.targetGridPosition
-    )
+    -- local path = universe.getPath(
+    -- universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector),
+    -- blackboard.targetGridPosition
+    -- )
 
-    print("To coords", blackboard.targetGridPosition)
+    -- print("To coords", blackboard.targetGridPosition)
 
-    if not path then
-      --print("No path, failing")
-      task:fail()
-      return
-    end
+    -- if not path then
+    --   --print("No path, failing")
+    --   task:fail()
+    --   return
+    -- end
 
-    blackboard.settler:give(ECS.c.path, path)
+    local from = universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector)
+    local to = blackboard.targetGridPosition
+    blackboard.settler:give(ECS.c.path, nil, nil, from.x, from.y, to.x, to.y)
+    --blackboard.settler:give(ECS.c.path, path)
     task:running()
   end
 }

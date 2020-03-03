@@ -1,5 +1,7 @@
 local Vector = require('libs.brinevector')
+local Path = require('libs.jumper.core.path')
 local universe = require('models.universe')
+local pathFinder = require('models.pathFinder')
 local PathSystem = ECS.System({ECS.c.path, ECS.c.position})
 
 function PathSystem:update(dt)
@@ -14,6 +16,20 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
   local velocityComponent = entity:get(ECS.c.velocity)
 
   velocityComponent.vector = Vector(0, 0)
+
+  if not pathComponent.path then
+    if not pathComponent.pathThread then
+      pathComponent.pathThread = pathFinder.getPathThread(pathComponent.fromX, pathComponent.fromY, pathComponent.toX, pathComponent.toY)
+    end
+
+    local pathNodes = pathComponent.pathThread.channelThread:pop()
+    if pathNodes and type(pathNodes) ~= "string" then
+      local gridPath = Path()
+      for _, node in ipairs(pathNodes) do
+        gridPath:addNode(Node(node.x, node.y))
+    end
+    end
+  end
 
   if not pathComponent.path or pathComponent.finished then
     return

@@ -7,7 +7,7 @@ local lume = require('libs.lume')
 local inspect = require('libs.inspect') --luacheck: ignore
 local utils = require('utils.utils')
 local itemUtils = require('utils.itemUtils')
-local media = require('utils.media')
+local pathThreadPool = require('models.pathThreadPool')
 local world = nil
 
 local universe = {}
@@ -19,8 +19,6 @@ local height = 100
 local tilesetBatch = nil
 local gridInvalidated = false
 local walkable = 0
-
-local cachedCanvas = nil
 
 
 local map = {}
@@ -36,17 +34,6 @@ local _gridUpdateInterval = 2
 local grid
 local myFinder
 
-local randomWalkX = {}
-local randomWalkY = {}
-for i=1,width do
-  table.insert(randomWalkX, i)
-end
-for i=1,height do
-  table.insert(randomWalkY, i)
-end
-
-randomWalkX = lume.shuffle(randomWalkX)
-randomWalkY = lume.shuffle(randomWalkY)
 
 function universe:load(newWorld)
   world = newWorld
@@ -75,6 +62,7 @@ function universe:load(newWorld)
   mapColors[3][3].grass = 1
 
   self.recalculateGrid(map, true)
+  pathThreadPool.initializePool(grid, myFinder)
 
   -- local generateTileName = function(name) return 'media/tiles/' .. name .. '.png' end
   -- local tiles = {
@@ -85,7 +73,6 @@ function universe:load(newWorld)
   -- local image = love.graphics.newArrayImage(tiles)
   -- image:setFilter("nearest", "linear") -- this "linear filter" removes some artifacts if we were to scale the tiles
 
-  tilesetBatch = love.graphics.newSpriteBatch(media.atlas, 500)
 end
 
 function universe.getSize()
@@ -230,17 +217,24 @@ function universe.getPadding()
   return padding
 end
 
-function universe.getPath(from, to)
-  local toNode = grid:getNodeAt(to.x, to.y)
+function universe.getPath(from, to, searchNeighbours)
+  local pathThread = pathThreadPool.getPathThread(from.x, from.y, to.x, to.y)
+  return pathThread
 
-  local toNodesToCheck = grid:getNeighbours(toNode)
-  table.insert(toNodesToCheck, toNode)
-  for _, node in ipairs(toNodesToCheck) do
-    local path = myFinder:getPath(from.x, from.y, node:getX(), node:getY())
-    if path then return path end
-  end
+  --local toNodesToCheck = {}
 
-  return nil
+  --if searchNeighbours then
+  --  toNodesToCheck = grid:getNeighbours(toNode)
+  --end
+
+  --table.insert(toNodesToCheck, toNode)
+
+  --for _, node in ipairs(toNodesToCheck) do
+  --  local path = myFinder:getPath(from.x, from.y, node:getX(), node:getY())
+  --  if path then return path end
+  --end
+
+  --return nil
 end
 
 function universe.isInPosition(position, comparePosition, acceptNeighbours)
@@ -387,6 +381,7 @@ end
 function universe.recalculateGrid(newMap, stopEmit)
   map = newMap
   grid = Grid(newMap)
+  print("Setting grid", grid, universe)
   cachedCanvas = nil
   myFinder = Pathfinder(grid, 'JPS', walkable)
   --myFinder:setMode('ORTHOGONAL')
@@ -408,56 +403,6 @@ function universe.pathStillValid(path)
   return true
 end
 
-function universe.draw(l, t, w, h)
-  if cachedCanvas then
-    return cachedCanvas
-  else
-    tilesetBatch:clear()
-    love.graphics.push()
-    love.graphics.origin()
-    local scissorX, scissorY, scissorW, scissorH = love.graphics.getScissor()
-    love.graphics.setScissor()
-
-    for randomY = 1,height do
-      local rowNum = randomWalkY[randomY]
-      local row = map[rowNum]
-      for randomX = 1,width do
-        local cellNum = randomWalkX[randomX]
-        local cellValue = row[cellNum]
-        local color = mapColors[rowNum][cellNum]
-        local imageArrayIndex = 3
-        local spriteSelector = "tiles.dirt01"
-        if color.grass == 1 then
-          imageArrayIndex = math.floor(math.random()+0.5)+1
-          spriteSelector = "tiles." .. lume.randomchoice({"grass01", "grass02"})
-        end
-        local randColor = 0.94+color.a*0.06
-        tilesetBatch:setColor(randColor, randColor, randColor, 1)
-        local quad = media.getSpriteQuad(spriteSelector)
-        local _, _, quadW, quadH = quad:getViewport()
-        local offsetX = (cellSize - quadW)
-        local offsetY = (cellSize - quadH)
-        print(offsetX, offsetY)
-        tilesetBatch:add(quad, cellNum*cellSize-cellSize + offsetX, rowNum*cellSize-cellSize + offsetY, 0, 2, 2)
-        if color.foliage == 1 then
-          local grassSelector = "vegetation." .. lume.randomchoice({"grass01", "grass02", "grass03"})
-          tilesetBatch:add(media.getSpriteQuad(grassSelector), cellNum*cellSize-cellSize, rowNum*cellSize-cellSize, 0, 2, 2)
-        end
-      end
-    end
-
-    local canvas = love.graphics.newCanvas(width*cellSize, height*cellSize)
-    love.graphics.setCanvas(canvas)
-    love.graphics.clear()
-    love.graphics.draw(tilesetBatch)
-    love.graphics.setCanvas()
-    cachedCanvas = canvas
-    love.graphics.pop()
-    love.graphics.setScissor(scissorX, scissorY, scissorW, scissorH)
-    return canvas
-    --return tilesetBatch
-  end
-end
 
 function universe.getEntitiesInCoordinates(coordinateList, selector, componentRequirements)
   local entities = {}
@@ -528,5 +473,21 @@ function universe.takeItemFromGround(originalItem, amount)
   return item
 end
 
+function universe.getGrid()
+  print("Getting grid", grid, universe)
+  return grid
+end
+
+function universe.getFinder()
+  return myFinder
+end
+
+function universe.getMap()
+  return map
+end
+
+function universe.getMapColors()
+  return mapColors
+end
 
 return universe
