@@ -8,10 +8,6 @@ local Vector = require('libs.brinevector')
 local entityManager = require('models.entityManager')
 
 local function initializeComponents()
-  local position = ECS.Component(function(e, vector)
-    e.vector = vector or Vector(0, 0)
-    e.customSerialize = function() return { x = e.vector.x, y = e.vector.y } end
-  end)
   -- function position:serialize() return { x = e.vector.x, y = e.vector.y } end
   -- function position:deserialize(data) self.vector = Vector(data.x, data.y) end
   position.customDeserialize = function(data)

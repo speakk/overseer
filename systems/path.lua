@@ -1,6 +1,7 @@
 local Vector = require('libs.brinevector')
 local Path = require('libs.jumper.core.path')
 local Node = require('libs.jumper.core.node')
+local inspect = require('libs.inspect')
 local universe = require('models.universe')
 local pathFinder = require('models.pathFinder')
 local PathSystem = ECS.System({ECS.c.path, ECS.c.position})
@@ -42,6 +43,7 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
 
   local position = entity:get(ECS.c.position).vector
 
+  if not pathComponent.path._nodes then print("Didn't have _nodes!", inspect(pathComponent.path)) end
   local node = pathComponent.path._nodes[pathComponent.currentIndex]
 
   local validNode = true
@@ -86,10 +88,11 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
   velocityComponent.vector = velocityComponent.vector
 end
 
+-- TODO: THREADING FUCKS THIS UP
 function PathSystem:gridUpdated()
   for _, entity in ipairs(self.pool) do
     -- Invalidate paths
-    if entity:has(ECS.c.path) then
+    if entity:has(ECS.c.path) and entity:get(ECS.c.path).path then
       local path = entity:get(ECS.c.path).path
       if not universe.pathStillValid(path) then
         entity:remove(ECS.c.path)
@@ -98,14 +101,15 @@ function PathSystem:gridUpdated()
       end
     else
       -- Make sure current location is valid
-      local position = entity:get(ECS.c.position).vector
-      local gridCoordinates = universe.pixelsToGridCoordinates(position)
-      if not universe.isCellAvailable(gridCoordinates) then
-        local newPath = universe.findPathToClosestEmptyCell(gridCoordinates)
-        if newPath then
-          entity:give(ECS.c.path, newPath)
-        end
-      end
+      -- TODO: Uncomment this, please!
+      -- local position = entity:get(ECS.c.position).vector
+      -- local gridCoordinates = universe.pixelsToGridCoordinates(position)
+      -- if not universe.isCellAvailable(gridCoordinates) then
+      --   local newPath = universe.findPathToClosestEmptyCell(gridCoordinates)
+      --   if newPath then
+      --     entity:give(ECS.c.path, newPath)
+      --   end
+      -- end
     end
 
   end

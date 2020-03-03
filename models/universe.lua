@@ -271,6 +271,7 @@ function universe.isCellAvailable(gridPosition)
   return grid:isWalkableAt(gridPosition.x, gridPosition.y, walkable)
 end
 
+-- TODO: THREADING FUCKS THIS UP
 function universe.findPathToClosestEmptyCell(gridPosition)
   print("WELL DUH findPathToClosestEmptyCell")
   local node = grid:getNodeAt(gridPosition.x, gridPosition.y)
