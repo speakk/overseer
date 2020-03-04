@@ -9,10 +9,7 @@ local lume = require('libs.lume')
 
 
 while true do
-
-  print("Demanding...")
   local pathFindObject = channelMain:demand()
-  print("Got object, ", pathFindObject)
 
   local toNodesToCheck = {}
 
@@ -20,8 +17,6 @@ while true do
   finder = Pathfinder(grid, 'JPS', 0)
 
   local toNode = grid:getNodeAt(pathFindObject.toX, pathFindObject.toY)
-  print("TO", pathFindObject.toX, pathFindObject.toY)
-  --print("NODE", toNode:getX(), toNode:getY())
 
   if pathFindObject.searchNeighbours then
     toNodesToCheck = grid:getNeighbours(toNode)

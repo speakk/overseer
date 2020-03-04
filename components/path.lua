@@ -4,13 +4,14 @@ local Node = require('libs.jumper.core.node')
 
 -- TODO: Add the fromX stuff
 local path = ECS.Component(function(component, path, currentIndex, fromX, fromY, toX, toY)
-  print("path component", fromX, fromY, toX, toY)
   component.path = path
   component.fromX = fromX
   component.fromY = fromY
   component.toX = toX
   component.toY = toY
   component.currentIndex = currentIndex or 1
+  component.componentAdded = love.timer.getTime()
+  component.randomDelay = love.math.random()*2
 end)
 function path:serialize()
   return {

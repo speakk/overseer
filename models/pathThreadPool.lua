@@ -21,7 +21,6 @@ local function initializePool(grid, finder)
       channelMain = channelMain,
       channelThread = channelThread
     })
-    print(channelMain, channelThread)
     thread:start(channelMain, channelThread)
   end
 end
@@ -35,7 +34,6 @@ local function getNextAvailableThreadObject()
 end
 
 local function getPathThread(map, fromX, fromY, toX, toY, searchNeighbours)
-  print("getPathThread", map, fromX, fromY, toX, toY)
   local threadObject = getNextAvailableThreadObject()
   threadObject.channelMain:push({
     map = map,

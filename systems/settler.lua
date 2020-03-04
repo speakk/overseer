@@ -17,12 +17,10 @@ function SettlerSystem:init()
   self.assignWaitTime = 3.0
 
   self.jobs.onEntityAdded = function(pool, entity)
-    print("job added", #pool)
     self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
   end
 
   self.jobs.onEntityRemoved = function(pool, entity)
-    print("job removed", #pool)
     self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
   end
 
@@ -81,7 +79,7 @@ end
 
 
 function SettlerSystem:initializeTestSettlers()
-  for _ = 1,30,1 do
+  for _ = 1,300,1 do
     local settler = ECS.Entity()
     local worldSize = universe.getSize()
     local position
@@ -109,10 +107,10 @@ function SettlerSystem:initializeTestSettlers()
         interpolate = false,
         repeatAnimation = true,
         values = {
-          "characters.settler1_02", "characters.settler1_03"
+          "characters.settler1_01", "characters.settler1_02", "characters.settler1_03"
         },
         currentValueIndex = 1,
-        frameLength = 0.1, -- in ms
+        frameLength = 0.2, -- in ms
         lastFrameUpdate = love.timer.getTime(),
         finished = false
       }
@@ -126,7 +124,6 @@ end
 
 function SettlerSystem:startJob(settler, job, jobQueue) -- luacheck: ignore
   job:get(ECS.c.job).reserved = settler
-  print("Starting job!", settler, job)
   settler:give(ECS.c.work, job:get(ECS.c.id).id)
   lume.remove(jobQueue, job)
 end
@@ -137,7 +134,6 @@ end
 
 -- TODO: Needs to prioritize stuff
 function SettlerSystem:assignJobsForSettlers(jobQueue)
-  print("assignJobsForSettlers, jobQueue length", #jobQueue)
   while true do
     local availableWorker = nil
     for _, entity in ipairs(self.pool) do

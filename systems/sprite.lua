@@ -64,8 +64,15 @@ function SpriteSystem:drawEntity(l, t, w, h, entity)
     local quad = media.getSpriteQuad(spriteComponent.selector)
     local _, _, w, h = quad:getViewport()
     local finalY = positionVector.y + (cellSize - h*2)
+    local scaleX = 2
+    if entity:has(ECS.c.animation) then
+      if entity:get(ECS.c.animation).flipped then
+        scaleX = -2
+      end
+    end
+    local finalX = positionVector.x - (w / 2 * scaleX)
     self.tilesetBatch:add(quad,
-      positionVector.x, finalY, 0, 2, 2)
+      finalX, finalY, 0, scaleX, 2)
     if transparentComponent then
       self.tilesetBatch:setColor(1, 1, 1, 1)
     end

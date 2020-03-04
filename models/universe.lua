@@ -431,7 +431,6 @@ function universe.getEntitiesInCoordinates(coordinateList, selector, componentRe
 end
 
 function universe.getItemsOnGround(selector, componentRequirements)
-  print("getItemsOnGround!!!", selector, #entityItemSelectorMap[selector])
   if componentRequirements then
     return lume.filter(entityItemSelectorMap[selector], function(entity)
       for _, requirement in ipairs(componentRequirements) do

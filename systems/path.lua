@@ -20,13 +20,14 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
   velocityComponent.vector = Vector(0, 0)
 
   if not pathComponent.path then
-    if not pathComponent.pathThread then
+    if not pathComponent.pathThread and love.timer.getTime() - pathComponent.componentAdded > pathComponent.randomDelay then
       pathComponent.pathThread = pathFinder.getPathThread(universe.getMap(), pathComponent.fromX, pathComponent.fromY, pathComponent.toX, pathComponent.toY)
-      print("Got thread", pathComponent.pathThread)
+      --print("Got thread", pathComponent.pathThread)
     end
 
+    if not pathComponent.pathThread then return end
+
     local pathNodes = pathComponent.pathThread.channelThread:pop()
-    if pathNodes then print("pathNodes", pathNodes) end
     if pathNodes and type(pathNodes) ~= "string" then
       local gridPath = Path()
       for _, node in ipairs(pathNodes) do
@@ -75,7 +76,6 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
     --print("currentIndex", pathComponent.currentIndex, "length:", #pathComponent.path._nodes)
     if pathComponent.currentIndex == #pathComponent.path._nodes then
       self:getWorld():emit("pathFinished", entity)
-      print("Finished so removing path")
       pathComponent.finished = true 
       return
     end

@@ -19,8 +19,6 @@ local function attachBehaviour(entity, type, world)
   local id = entity:get(ECS.c.id).id
   attachedBehaviours[id] = attachedBehaviours[id] or {}
 
-  --local job = entityManager.get(entity:get(ECS.c.work).jobId)
-  print("Attaching behaviour", id, type)
   attachedBehaviours[id][type] = behaviours[type](entity, world, type)
 end
 
@@ -31,7 +29,9 @@ end
 
 function AISystem:init()
   self.work.onEntityAdded = function(pool, entity)
-    local jobComponent = entityManager.get(entity:get(ECS.c.work).jobId):get(ECS.c.job)
+    local job = entityManager.get(entity:get(ECS.c.work).jobId)
+    if not job then return end
+    local jobComponent = job:get(ECS.c.job)
     local jobType = jobComponent.jobType
     --inspect(job:customSerialize())
     attachBehaviour(entity, jobType, self:getWorld())

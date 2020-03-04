@@ -56,8 +56,6 @@ end
 local function onEntityAdded(entity)
   local id = entity:get(ECS.c.id).id
   if not id then error "No ID for entity on removal" end
-  print("Adding entity", id, entity)
-  print("entities table", entities)
   entities[id] = entity
 end
 
