@@ -16,3 +16,22 @@ Choices of the BT:
 
 
 How should greeting work? Is there an event when two actors get close to each other?
+
+
+
+Behaviour stack or queue:
+Would be easy enough to halt a previous action, add something like "greet" to it, then resume previous action again
+How about queueing stuff? Maybe just allow pushing to the end or the front of the stack?
+Do we stick "idle" behavior on ONLY when the stack is empty?
+
+What is idle behaviour anyway?
+
+What is a day for a settler? They wake up, they eat, they socialize, they do work. They "idle" when they have no other needs to be met.
+But idling could be a need too? What is idling? Just walking around?
+
+How do we save the stack? The trees can't get saved, so what can? Do trees know how to serialize themselves? A serialize function for BT's?
+Or do we have the beginning conditions such that the BT gets recreated automatically upon game load?
+Actually yeah I think so, so far BT's get created with parameters:
+  attachedBehaviours[id][type] = behaviours[type](entity, world, type)
+
+Yeah, quite sure BT's don't need to be saved, so that's a YAY!

@@ -240,6 +240,7 @@ function createTree(actor, world, jobType)
     fetch = fetch,
     targetAmount = targetAmount,
     job = job,
+    target = target,
     destination = destination,
     world = world,
     jobType = jobType

@@ -21,7 +21,8 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
 
   if not pathComponent.path then
     if not pathComponent.pathThread and love.timer.getTime() - pathComponent.componentAdded > pathComponent.randomDelay then
-      pathComponent.pathThread = pathFinder.getPathThread(universe.getMap(), pathComponent.fromX, pathComponent.fromY, pathComponent.toX, pathComponent.toY)
+      local entityPosition = universe.pixelsToGridCoordinates(entity:get(ECS.c.position).vector)
+      pathComponent.pathThread = pathFinder.getPathThread(universe.getMap(), entityPosition.x, entityPosition.y, pathComponent.toX, pathComponent.toY)
       --print("Got thread", pathComponent.pathThread)
     end
 

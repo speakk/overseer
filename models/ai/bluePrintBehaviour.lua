@@ -12,7 +12,7 @@ local isBluePrintReadyToBuild = {
   run = function(task, blackboard)
     --print("isBluePrintReadyToBuild")
     local bluePrint = blackboard.target
-    if bluePrint:get(ECS.c.target).finished then return false end
+    if bluePrint:get(ECS.c.job).finished then return false end
 
     local bluePrintComponent = bluePrint:get(ECS.c.bluePrintJob)
     local requirements = bluePrint:get(ECS.c.item).itemData.requirements
@@ -59,7 +59,7 @@ local isBluePrintFinished = {
       print("Blue print finished!", blackboard.bluePrintComponent, "actorid", blackboard.actor)
       blackboard.world:emit("treeFinished", blackboard.actor, blackboard.jobType)
       blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor:get(ECS.c.work).jobId)
-      blackboard.world:emit("targetFinished", blackboard.target)
+      blackboard.world:emit("jobFinished", blackboard.target)
       print("path component in bp", blackboard.actor, blackboard.actor:get(ECS.c.path))
       blackboard.actor:remove(ECS.c.path)
       task:success()
@@ -74,7 +74,7 @@ local progressBuilding = {
     blackboard.lastBuildTick = love.timer.getTime()
   end,
   run = function(task, blackboard)
-    local constructionSkill = blackboard.actor:get(ECS.c.actor).skills.construction
+    local constructionSkill = blackboard.actor:get(ECS.c.settler).skills.construction
     if blackboard.bluePrintComponent.buildProgress < 100 then
       print("Progress building!")
       local time = love.timer.getTime()

@@ -15,8 +15,12 @@ return function()
         end
       end
 
+      if not blackboard.target then
+        task:fail()
+        return
+      end
+
       local from = universe.pixelsToGridCoordinates(blackboard.actor:get(ECS.c.position).vector)
-      print("target", blackboard.target.__components)
       local to = universe.pixelsToGridCoordinates(blackboard.target:get(ECS.c.position).vector)
       blackboard.actor:give(ECS.c.path, nil, nil, from.x, from.y, to.x, to.y)
       task:running()
