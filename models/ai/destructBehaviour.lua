@@ -4,11 +4,12 @@ local lume = require('libs.lume')
 local universe = require('models.universe')
 local entityManager = require('models.entityManager')
 local UntilDecorator = require('models.ai.decorators.until')
+local GotoAction = require('models.ai.sharedActions.goto')
 
 local areWeAtTarget = {
   run = function(task, blackboard)
     print("destruct areWeAtTarget")
-    local gridPosition = universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector)
+    local gridPosition = universe.pixelsToGridCoordinates(blackboard.actor:get(ECS.c.position).vector)
 
     if universe.isInPosition(gridPosition, blackboard.targetGridPosition, true) then
       print("areWeAtTarget true")
@@ -20,48 +21,12 @@ local areWeAtTarget = {
   end
 }
 
-local getPathToTarget = {
-  run = function(task, blackboard)
-    print("destruct getPathToTarget")
-    if blackboard.settler:has(ECS.c.path) then
-      if blackboard.settler:get(ECS.c.path).finished then
-        print("destruct Path finished, success")
-        blackboard.settler:remove(ECS.c.path)
-        task:success()
-        return
-      else
-        task:running()
-        return
-      end
-    end
-
-    -- local path = universe.getPath(
-    -- universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector),
-    -- blackboard.targetGridPosition
-    -- )
-
-    -- print("To coords", blackboard.targetGridPosition)
-
-    -- if not path then
-    --   --print("No path, failing")
-    --   task:fail()
-    --   return
-    -- end
-
-    local from = universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector)
-    local to = blackboard.targetGridPosition
-    blackboard.settler:give(ECS.c.path, nil, nil, from.x, from.y, to.x, to.y)
-    --blackboard.settler:give(ECS.c.path, path)
-    task:running()
-  end
-}
-
 local progressDestruct = {
   start = function(task, blackboard)
     blackboard.lastBuildTick = love.timer.getTime()
   end,
   run = function(task, blackboard)
-    local constructionSkill = blackboard.settler:get(ECS.c.settler).skills.construction
+    local constructionSkill = blackboard.actor:get(ECS.c.actor).skills.construction
     if blackboard.constructionComponent.durability > 0 then
       print("Progress destruct!")
       local time = love.timer.getTime()
@@ -72,12 +37,12 @@ local progressDestruct = {
       task:running()
       return
     else
-      print("Destruct finished!", blackboard.constructionComponent, "settlerid", blackboard.settler)
-      blackboard.world:emit("treeFinished", blackboard.settler, blackboard.jobType)
-      --blackboard.world:emit("finishWork", blackboard.settler, blackboard.settler:get(ECS.c.work).jobId)
+      print("Destruct finished!", blackboard.constructionComponent, "actorid", blackboard.actor)
+      blackboard.world:emit("treeFinished", blackboard.actor, blackboard.jobType)
+      --blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor:get(ECS.c.work).jobId)
       --blackboard.world:emit("jobFinished", blackboard.job)
-      print("path component in bp", blackboard.settler, blackboard.settler:get(ECS.c.path))
-      blackboard.settler:remove(ECS.c.path)
+      print("path component in bp", blackboard.actor, blackboard.actor:get(ECS.c.path))
+      blackboard.actor:remove(ECS.c.path)
 
       blackboard.world:emit("immediateDestroy", blackboard.target)
 
@@ -86,13 +51,14 @@ local progressDestruct = {
   end
 }
 
-function createTree(settler, world, jobType)
+function createTree(actor, world, jobType)
   local areWeAtTarget = BehaviourTree.Task:new(areWeAtTarget)
 
   local getPathToTarget = BehaviourTree.Task:new(getPathToTarget)
   local progressDestruct = BehaviourTree.Task:new(progressDestruct)
+  local gotoAction = GotoAction()
 
-  local target = entityManager.get(settler:get(ECS.c.work).jobId)
+  local target = entityManager.get(actor:get(ECS.c.work).jobId)
   local constructionComponent = target:get(ECS.c.construction)
   local targetGridPosition = universe.pixelsToGridCoordinates(target:get(ECS.c.position).vector)
   local tree = BehaviourTree:new({
@@ -103,7 +69,7 @@ function createTree(settler, world, jobType)
             BehaviourTree.Priority:new({
               nodes = {
                 areWeAtTarget,
-                getPathToTarget,
+                "goto",
               }
             }),
             progressDestruct
@@ -116,7 +82,7 @@ function createTree(settler, world, jobType)
 
   tree:setObject({
     target = target,
-    settler = settler,
+    actor = actor,
     inventory = inventory,
     constructionComponent = constructionComponent,
     targetGridPosition = targetGridPosition,

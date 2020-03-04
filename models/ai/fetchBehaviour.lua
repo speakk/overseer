@@ -5,9 +5,10 @@ local Vector = require('libs.brinevector')
 local universe = require('models.universe')
 local entityManager = require('models.entityManager')
 local UntilDecorator = require('models.ai.decorators.until')
+local GotoAction = require('models.ai.sharedActions.goto')
 
 
-function createTree(settler, world, jobType)
+function createTree(actor, world, jobType)
   -- LEAF NODES
   --
   local hasEnoughOfItem = BehaviourTree.Task:new({
@@ -59,11 +60,11 @@ function createTree(settler, world, jobType)
         return
       end
 
-      local targetInventory = blackboard.currentTarget:get(ECS.c.inventory)
+      local targetInventory = blackboard.target:get(ECS.c.inventory)
       targetInventory:insertItem(invItem:get(ECS.c.id).id)
       --print("Fetch finished!")
-      blackboard.world:emit("treeFinished", blackboard.settler, blackboard.jobType)
-      blackboard.world:emit("finishWork", blackboard.settler, blackboard.settler:get(ECS.c.work).jobId)
+      blackboard.world:emit("treeFinished", blackboard.actor, blackboard.jobType)
+      blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor:get(ECS.c.work).jobId)
       blackboard.world:emit("jobFinished", blackboard.job)
       task:success()
     end
@@ -72,7 +73,7 @@ function createTree(settler, world, jobType)
   local pickItemAmountUp = BehaviourTree.Task:new({
     run = function(task, blackboard)
       --print("fetch pickItemAmountUp")
-      local gridPosition = universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector)
+      local gridPosition = universe.pixelsToGridCoordinates(blackboard.actor:get(ECS.c.position).vector)
       --print("gridPosition", gridPosition)
       local itemInCurrentLocation = universe.getItemFromGround(blackboard.selector, gridPosition, { "item" })
       --print("itemInCurrentLocation", blackboard.selector, itemInCurrentLocation)
@@ -99,12 +100,12 @@ function createTree(settler, world, jobType)
   local areWeAtTarget = BehaviourTree.Task:new({
     run = function(task, blackboard)
       --print("fetch areWeAtTarget")
-      local gridPosition = universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector)
-      if not blackboard.currentTarget or not blackboard.currentTarget:has(ECS.c.position) then
+      local gridPosition = universe.pixelsToGridCoordinates(blackboard.actor:get(ECS.c.position).vector)
+      if not blackboard.target or not blackboard.target:has(ECS.c.position) then
         task:fail()
         return
       end
-      local targetPosition = universe.pixelsToGridCoordinates(blackboard.currentTarget:get(ECS.c.position).vector)
+      local targetPosition = universe.pixelsToGridCoordinates(blackboard.target:get(ECS.c.position).vector)
 
       if universe.isInPosition(gridPosition, targetPosition, true) then
         --print("areWeAtTarget true")
@@ -119,69 +120,8 @@ function createTree(settler, world, jobType)
   local clearCurrentTarget = BehaviourTree.Task:new({
     run = function(task, blackboard)
       --print("fetch clearCurrentTarget")
-      blackboard.currentTarget = nil
+      blackboard.target = nil
       task:success()
-    end
-  })
-
-  -- TODO: Check for current path for settler??
-  local getPathToTarget = BehaviourTree.Task:new({
-    run = function(task, blackboard)
-      --print("fetch getPathToTarget")
-      --print("Has onMap?!", blackboard.currentTarget:has(ECS.c.onMap))
-      -- blackboard.settler:get(ECS.c.position).vector = Vector(0, 0) + blackboard.currentTarget:get(ECS.c.position).vector
-      -- task:success()
-      -- if true then return end
-
-      --print("getPathToTarget")
-      if not blackboard.currentTarget or not blackboard.currentTarget:has(ECS.c.onMap) then
-        --print("getPathToTarget fail#1")
-        task:fail()
-        return
-      end
-
-      if blackboard.settler:has(ECS.c.path) then
-        if blackboard.settler:get(ECS.c.path).finished then
-          --print("Path finished, success")
-          blackboard.settler:remove(ECS.c.path)
-          task:success()
-          return
-        else
-          task:running()
-          return
-        end
-      end
-
-      --print(blackboard.currentTarget)
-
-      if not blackboard.currentTarget or not blackboard.currentTarget:has(ECS.c.position) then
-        task:fail()
-        return
-      end
-
-      -- local path = universe.getPath(
-      -- universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector),
-      -- universe.pixelsToGridCoordinates(blackboard.currentTarget:get(ECS.c.position).vector)
-      -- )
-
-
-      -- if not path then
-      --   --print("No path, failing")
-      --   task:fail()
-      --   return
-      -- end
-
-      --print("giving path to settler")
-      --print("from:", universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector))
-      --print("to:", universe.pixelsToGridCoordinates(blackboard.currentTarget:get(ECS.c.position).vector))
-      --blackboard.currentPath = path
-      local from = universe.pixelsToGridCoordinates(blackboard.settler:get(ECS.c.position).vector)
-      local to = universe.pixelsToGridCoordinates(blackboard.currentTarget:get(ECS.c.position).vector)
-      blackboard.settler:give(ECS.c.path, nil, nil, from.x, from.y, to.x, to.y)
-      --blackboard.settler:give(ECS.c.path, path)
-      --print("Fetch getPathToTarget, settler", blackboard.settler, "pathComp", blackboard.settler:get(ECS.c.path))
-      task:running()
-      --task:success()
     end
   })
 
@@ -208,11 +148,11 @@ function createTree(settler, world, jobType)
           end
         else
           --print("Giving reservedComponent", blackboard.targetAmount)
-          potentialItem:give(ECS.c.reserved, blackboard.settler:get(ECS.c.id).id, blackboard.targetAmount)
+          potentialItem:give(ECS.c.reserved, blackboard.actor:get(ECS.c.id).id, blackboard.targetAmount)
         end
         --print("potentialItem", potentialItem, potentialItem:get(ECS.c.item).selector)
         --print("potentialItem position", universe.pixelsToGridCoordinates(potentialItem:get(ECS.c.position).vector))
-        blackboard.currentTarget = potentialItem
+        blackboard.target = potentialItem
         --print("popTargetFromItemStack success")
         task:success()
       else
@@ -225,12 +165,13 @@ function createTree(settler, world, jobType)
   local setDestinationAsCurrentTarget = BehaviourTree.Task:new({
     run = function(task, blackboard)
       --print("fetch setDestinationAsCurrentTarget")
-      blackboard.currentTarget = blackboard.destination
+      blackboard.target = blackboard.destination
       task:success()
     end
   })
-  local inventory = settler:get(ECS.c.inventory)
-  local job = entityManager.get(settler:get(ECS.c.work).jobId)
+  local gotoAction = GotoAction()
+  local inventory = actor:get(ECS.c.inventory)
+  local job = entityManager.get(actor:get(ECS.c.work).jobId)
   local fetch = job:get(ECS.c.fetchJob)
   local targetAmount = fetch.amount
   local selector = fetch.selector
@@ -260,7 +201,7 @@ function createTree(settler, world, jobType)
                           BehaviourTree.Priority:new({
                             nodes = {
                               areWeAtTarget,
-                              getPathToTarget,
+                              gotoAction
                             }
                           }),
                           pickItemAmountUp,
@@ -282,7 +223,7 @@ function createTree(settler, world, jobType)
             BehaviourTree.Priority:new({
               nodes = {
                 areWeAtTarget,
-                getPathToTarget,
+                gotoAction
               }
             }),
             insertItemIntoDestination
@@ -293,7 +234,7 @@ function createTree(settler, world, jobType)
   })
 
   tree:setObject({
-    settler = settler,
+    actor = actor,
     inventory = inventory,
     selector = selector,
     fetch = fetch,

@@ -5,6 +5,8 @@ local inGame = {}
 
 function inGame:init()
 
+  -- Initialize BT shared actions
+
   local asd = true
   local nasd = true
 

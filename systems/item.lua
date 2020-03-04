@@ -45,6 +45,26 @@ function ItemSystem:initializeTestTrees(mapSize)
     :give(ECS.c.selector, selector)
     :give(ECS.c.inventory, { rawWood:get(ECS.c.id).id })
     :give(ECS.c.position, universe.gridPositionToPixels(position))
+    if entity:get(ECS.c.sprite).selector == 'vegetation.tree01' then
+      entity:give(ECS.c.animation, {
+        idle = {
+          targetComponent = 'sprite',
+          targetProperty = 'selector',
+          interpolate = false,
+          repeatAnimation = true,
+          values = {
+            "vegetation.tree01", "vegetation.tree01b"
+          },
+          currentValueIndex = love.math.random(1,2),
+          frameLength = 0.4, -- in ms
+          lastFrameUpdate = love.timer.getTime(),
+          finished = false
+        }
+      },
+      {
+        'idle'
+      })
+    end
     self:getWorld():addEntity(entity)
     --itemUtils.placeItemOnGround(item, position)
   end
