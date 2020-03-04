@@ -1,5 +1,15 @@
-return ECS.Component(function(e, vector)
-  e.vector = vector or Vector(0, 0)
-  e.customSerialize = function() return { x = e.vector.x, y = e.vector.y } end
+local Vector = require('libs.brinevector')
+
+local position = ECS.Component(function(component, vector)
+  component.vector = vector or Vector(0, 0)
 end)
 
+function position:serialize()
+  return { x = self.vector.x, y = self.vector.y }
+end
+
+function position:deserialize(data)
+  self.vector = Vector(data.x, data.y)
+end
+
+return position

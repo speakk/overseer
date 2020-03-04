@@ -20,7 +20,7 @@ ECS.Systems = Concord.systems
 ECS.World = Concord.world
 ECS.Entity = Concord.entity
 
-require('components.common').initializeComponents()
+Concord.loadComponents("components")
 Concord.loadSystems("systems")
 
 local Gamestate = require("libs.hump.gamestate")
