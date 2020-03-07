@@ -61,6 +61,7 @@ local isBluePrintFinished = {
       blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor:get(ECS.c.work).jobId)
       blackboard.world:emit("jobFinished", blackboard.target)
       print("path component in bp", blackboard.actor, blackboard.actor:get(ECS.c.path))
+      blackboard.target:remove(ECS.c.bluePrintJob)
       blackboard.actor:remove(ECS.c.path)
       task:success()
     else

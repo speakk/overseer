@@ -79,7 +79,7 @@ end
 
 
 function SettlerSystem:initializeTestSettlers()
-  for _ = 1,300,1 do
+  for _ = 1,20,1 do
     local settler = ECS.Entity()
     local worldSize = universe.getSize()
     local position

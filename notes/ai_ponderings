@@ -29,9 +29,16 @@ What is idle behaviour anyway?
 What is a day for a settler? They wake up, they eat, they socialize, they do work. They "idle" when they have no other needs to be met.
 But idling could be a need too? What is idling? Just walking around?
 
+---
 How do we save the stack? The trees can't get saved, so what can? Do trees know how to serialize themselves? A serialize function for BT's?
 Or do we have the beginning conditions such that the BT gets recreated automatically upon game load?
 Actually yeah I think so, so far BT's get created with parameters:
   attachedBehaviours[id][type] = behaviours[type](entity, world, type)
 
 Yeah, quite sure BT's don't need to be saved, so that's a YAY!
+Conclusion: Just save the stack table
+---
+
+The job manager:
+Jobs are not behaviours. Greeting someone is not job. How to handle job queues? If we assign a queued job for a settler, is it a behaviour with the target being the job?
+So... unassigned jobs would be in the job manager. Does a settler request a job when they have a vacancy for one? Or does the job manager periodically assign jobs? If the settler requests jobs, how do we prioritize jobs? Prioritizing who does what sounds like it's easier to do if the job manager assigns jobs. Do we prioritize jobs based on events, or periodically? What events? "settlerSomethingChanged", nah... I guess a settler could request a job if they need one, and in addition the job manager could assign jobs based on events... But WHAT events??
