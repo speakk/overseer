@@ -14,13 +14,25 @@ local function onJobAdded(self, pool, job)
   --   table.insert(self.jobs, job)
   --   job:getWorld():emit("jobQueueUpdated", self:getUnreservedJobs())
   -- end
+  jobManager.updateJobs(pool)
+end
+
+local function onJobRemoved(self, pool, job)
+  -- if not job:has(ECS.c.parent) then
+  --   table.insert(self.jobs, job)
+  --   job:getWorld():emit("jobQueueUpdated", self:getUnreservedJobs())
+  -- end
+  jobManager.updateJobs(pool)
 end
 
 function JobSystem:init()
   -- self.jobs = {}
-  -- self.pool.onEntityAdded = function(pool, job)
-  --   onJobAdded(self, pool, job)
-  -- end
+  self.jobs.onEntityAdded = function(pool, job)
+    onJobAdded(self, pool, job)
+  end
+  self.jobs.onEntityRemoved = function(pool, job)
+    onJobRemoved(self, pool, job)
+  end
   --TODO: onEntityRemoved
 end
 
@@ -176,6 +188,10 @@ end
 function JobSystem:jobFinished(job) --luacheck: ignore
   print("Finishing job", job)
   local jobComponent = job:get(ECS.c.job)
+  if not jobComponent then
+    print("jobFinished but NO jobComponent, something went WRONG")
+    return
+  end
   jobComponent.finished = true
   jobComponent.reserved = false
   job:remove(ECS.c.job)

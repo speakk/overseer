@@ -56,6 +56,7 @@ end
 local buildProgressSpeedModifier = 5
 function BluePrintSystem:bluePrintProgress(bluePrintComponent, amount)
   bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + amount * bluePrintComponent.constructionSpeed * buildProgressSpeedModifier
+  print("buildProgress now", bluePrintComponent.buildProgress)
 end
 
 return BluePrintSystem

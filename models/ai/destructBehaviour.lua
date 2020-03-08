@@ -5,21 +5,7 @@ local universe = require('models.universe')
 local entityManager = require('models.entityManager')
 local UntilDecorator = require('models.ai.decorators.until')
 local GotoAction = require('models.ai.sharedActions.goto')
-
-local areWeAtTarget = {
-  run = function(task, blackboard)
-    print("destruct areWeAtTarget")
-    local gridPosition = universe.pixelsToGridCoordinates(blackboard.actor:get(ECS.c.position).vector)
-
-    if universe.isInPosition(gridPosition, blackboard.targetGridPosition, true) then
-      print("areWeAtTarget true")
-      task:success()
-    else
-      --print("areWeAtTarget false")
-      task:fail()
-    end
-  end
-}
+local AtTarget = require('models.ai.sharedActions.atTarget')
 
 local progressDestruct = {
   start = function(task, blackboard)
@@ -39,6 +25,7 @@ local progressDestruct = {
     else
       print("Destruct finished!", blackboard.constructionComponent, "actorid", blackboard.actor)
       blackboard.world:emit("treeFinished", blackboard.actor, blackboard.jobType)
+      blackboard.finished = true
       --blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor:get(ECS.c.work).jobId)
       --blackboard.world:emit("jobFinished", blackboard.job)
       print("path component in bp", blackboard.actor, blackboard.actor:get(ECS.c.path))
@@ -52,11 +39,10 @@ local progressDestruct = {
 }
 
 function createTree(actor, world, jobType)
-  local areWeAtTarget = BehaviourTree.Task:new(areWeAtTarget)
-
   local getPathToTarget = BehaviourTree.Task:new(getPathToTarget)
   local progressDestruct = BehaviourTree.Task:new(progressDestruct)
   local gotoAction = GotoAction()
+  local atTarget = AtTarget()
 
   local target = entityManager.get(actor:get(ECS.c.work).jobId)
   local constructionComponent = target:get(ECS.c.construction)
@@ -68,7 +54,7 @@ function createTree(actor, world, jobType)
           nodes = {
             BehaviourTree.Priority:new({
               nodes = {
-                areWeAtTarget,
+                atTarget,
                 "goto",
               }
             }),

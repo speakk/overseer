@@ -4,6 +4,7 @@ local universe = require('models.universe')
 return function()
   return BehaviourTree.Task:new({
     run = function(task, blackboard)
+      print("Goto")
       if blackboard.actor:has(ECS.c.path) then
         if blackboard.actor:get(ECS.c.path).finished then
           blackboard.actor:remove(ECS.c.path)

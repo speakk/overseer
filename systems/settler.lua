@@ -16,13 +16,13 @@ function SettlerSystem:init()
   self.lastAssigned = 0
   self.assignWaitTime = 3.0
 
-  self.jobs.onEntityAdded = function(pool, entity)
-    self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
-  end
+  -- self.jobs.onEntityAdded = function(pool, entity)
+  --   self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
+  -- end
 
-  self.jobs.onEntityRemoved = function(pool, entity)
-    self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
-  end
+  -- self.jobs.onEntityRemoved = function(pool, entity)
+  --   self:assignJobsForSettlers(jobManager.getUnreservedJobs(pool))
+  -- end
 
   self.disabledCallback = function(callbackName) -- luacheck: ignore
     self.isEnabled = false
@@ -36,23 +36,27 @@ end
   --self.tilesetBatch = love.graphics.newSpriteBatch(media.sprites, 200)
 end
 
-function SettlerSystem:update(dt) --luacheck: ignore
-  local time = love.timer.getTime()
-  --print("SettlerSystem:update", time, self.lastAssigned, self.assignWaitTime)
-  if time - self.lastAssigned > self.assignWaitTime then
-    print("TIMER")
-    self:assignJobsForSettlers(jobManager.getUnreservedJobs(self.jobs))
-    self.lastAssigned = time
-  end
-
-  -- for _, settler in ipairs(self.pool) do
-  --   self:processSettlerUpdate(settler, dt)
-  -- end
-end
+-- function SettlerSystem:update(dt) --luacheck: ignore
+--   local time = love.timer.getTime()
+--   --print("SettlerSystem:update", time, self.lastAssigned, self.assignWaitTime)
+--   if time - self.lastAssigned > self.assignWaitTime then
+--     print("TIMER")
+--     self:assignJobsForSettlers(jobManager.getUnreservedJobs(self.jobs))
+--     self.lastAssigned = time
+--   end
+-- 
+--   -- for _, settler in ipairs(self.pool) do
+--   --   self:processSettlerUpdate(settler, dt)
+--   -- end
+-- end
 
 function SettlerSystem:finishWork(settler, jobId)
   local job = entityManager.get(jobId)
   settler:remove(ECS.c.work)
+  if not job:has(ECS.c.job) then
+    print("WTF NO JOB FOR JOB")
+    return
+  end
   local jobType = job:get(ECS.c.job).jobType
   if jobHandlers[jobType]["finish"] then
     jobHandlers[jobType].finish(job)
@@ -95,6 +99,7 @@ function SettlerSystem:initializeTestSettlers()
     :give(ECS.c.sprite, 'characters.settler1_01')
     :give(ECS.c.id, entityManager.generateId())
     :give(ECS.c.settler)
+    :give(ECS.c.ai, 'settler')
     :give(ECS.c.speed, 300)
     :give(ECS.c.name, "Settler")
     :give(ECS.c.inventory)

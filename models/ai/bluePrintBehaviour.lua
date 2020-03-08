@@ -5,12 +5,13 @@ local universe = require('models.universe')
 local entityManager = require('models.entityManager')
 local UntilDecorator = require('models.ai.decorators.until')
 local GotoAction = require('models.ai.sharedActions.goto')
+local AtTarget = require('models.ai.sharedActions.atTarget')
 
 -- LEAF NODES
 
 local isBluePrintReadyToBuild = {
   run = function(task, blackboard)
-    --print("isBluePrintReadyToBuild")
+    print("isBluePrintReadyToBuild")
     local bluePrint = blackboard.target
     if bluePrint:get(ECS.c.job).finished then return false end
 
@@ -36,30 +37,15 @@ local isBluePrintReadyToBuild = {
   end
 }
 
-local areWeAtTarget = {
-  run = function(task, blackboard)
-    --print("bluePrint areWeAtTarget")
-    local gridPosition = universe.pixelsToGridCoordinates(blackboard.actor:get(ECS.c.position).vector)
-    local targetPosition = universe.pixelsToGridCoordinates(blackboard.target:get(ECS.c.position).vector)
-
-    if universe.isInPosition(gridPosition, targetPosition, true) then
-      --print("areWeAtTarget true")
-      task:success()
-    else
-      --print("areWeAtTarget false")
-      task:fail()
-    end
-  end
-}
-
 local isBluePrintFinished = {
   run = function(task, blackboard)
-    --print("isBluePrintFinished")
+    print("isBluePrintFinished")
     if blackboard.bluePrintComponent.buildProgress >= 100 then
       print("Blue print finished!", blackboard.bluePrintComponent, "actorid", blackboard.actor)
       blackboard.world:emit("treeFinished", blackboard.actor, blackboard.jobType)
       blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor:get(ECS.c.work).jobId)
       blackboard.world:emit("jobFinished", blackboard.target)
+      blackboard.finished = true
       print("path component in bp", blackboard.actor, blackboard.actor:get(ECS.c.path))
       blackboard.target:remove(ECS.c.bluePrintJob)
       blackboard.actor:remove(ECS.c.path)
@@ -73,14 +59,17 @@ local isBluePrintFinished = {
 local progressBuilding = {
   start = function(task, blackboard)
     blackboard.lastBuildTick = love.timer.getTime()
+    print("TEST TEST TEST")
   end,
   run = function(task, blackboard)
+    print("rpgoress buidlign")
     local constructionSkill = blackboard.actor:get(ECS.c.settler).skills.construction
     if blackboard.bluePrintComponent.buildProgress < 100 then
       print("Progress building!")
       local time = love.timer.getTime()
       local delta = time - blackboard.lastBuildTick
-      print("delta", time, constructionSkill * delta)
+
+      print("delta", time, blackboard.lastBuildTick, delta)
       blackboard.world:emit('bluePrintProgress', blackboard.bluePrintComponent, constructionSkill * delta)
       blackboard.lastBuildTick = time
       task:running()
@@ -92,39 +81,26 @@ local progressBuilding = {
 }
 
 function createTree(actor, world, jobType)
+  print("Creating blueprint tree", jobType)
   local isBluePrintReadyToBuild = BehaviourTree.Task:new(isBluePrintReadyToBuild)
-  local areWeAtTarget = BehaviourTree.Task:new(areWeAtTarget)
 
   local isBluePrintFinished = BehaviourTree.Task:new(isBluePrintFinished)
   local progressBuilding = BehaviourTree.Task:new(progressBuilding)
   local gotoAction = GotoAction()
+  local atTarget = AtTarget()
 
   local target = entityManager.get(actor:get(ECS.c.work).jobId)
+  print("TARGET IS", target)
   local bluePrintComponent = target:get(ECS.c.bluePrintJob)
   local bluePrintGridPosition = universe.pixelsToGridCoordinates(target:get(ECS.c.position).vector)
   local tree = BehaviourTree:new({
     tree = BehaviourTree.Priority:new({
       nodes = {
-        BehaviourTree.Sequence:new({
-          nodes = {
-            BehaviourTree.Priority:new({
-              nodes = {
-                areWeAtTarget,
-              }
-            }),
-            -- isBluePrintReadyToBuild, -- Commented this out for now... Why would this task be running if it's not ready?
-            BehaviourTree.Priority:new({
-              nodes = {
-                isBluePrintFinished,
-                progressBuilding,
-                gotoAction
-              }
-            })
-          }
-        }),
+        isBluePrintFinished,
+        progressBuilding,
+        gotoAction
       }
     })
-
   })
 
   tree:setObject({

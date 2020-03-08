@@ -1,5 +1,7 @@
 local entityManager = require('models.entityManager')
 
+local jobs = {}
+
 local function getFirstSubJob(job)
   local allChildrenFinished = true
 
@@ -51,14 +53,14 @@ end
 --   end
 -- end
 
-local function getUnreservedJobs(jobs)
+local function getUnreservedJobs()
   --print("Checking out jobs", #jobs)
   local unreservedJobs = {}
   for _, job in ipairs(jobs) do
     if not job:has(ECS.c.parent) then -- Only go through tree roots
       --print("Root node")
       local jobComponent = job:get(ECS.c.job)
-      if not jobComponent.reserved and not jobComponent.finished then
+      if jobComponent and not jobComponent.reserved and not jobComponent.finished then
         --print("Root node was not reserved nor finished")
         local firstSubJob = getFirstSubJob(job)
         --print("firstSubJob", firstSubJob)
@@ -81,6 +83,11 @@ local function getUnreservedJobs(jobs)
   return unreservedJobs
 end
 
+local function updateJobs(jobPool)
+  jobs = jobPool
+end
+
 return {
-  getUnreservedJobs = getUnreservedJobs
+  getUnreservedJobs = getUnreservedJobs,
+  updateJobs = updateJobs
 }
