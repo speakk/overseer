@@ -39,7 +39,6 @@ local progressDestruct = {
 }
 
 function createTree(actor, world, jobType)
-  local getPathToTarget = BehaviourTree.Task:new(getPathToTarget)
   local progressDestruct = BehaviourTree.Task:new(progressDestruct)
   local gotoAction = GotoAction()
   local atTarget = AtTarget()

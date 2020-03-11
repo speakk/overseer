@@ -3,65 +3,6 @@ local universe = require('models.universe')
 local itemUtils = require('utils.itemUtils')
 local entityManager = require('models.entityManager')
 
-local function isBluePrintReadyToBuild(bluePrint)
-  if bluePrint:get(ECS.c.job).finished then return false end
-
-  local bluePrintComponent = bluePrint:get(ECS.c.bluePrintJob)
-  local requirements = bluePrint:get(ECS.c.item).itemData.requirements
-
-  for selector, amount in pairs(requirements) do --luacheck: ignore
-    local itemId = bluePrint:get(ECS.c.inventory):findItem(selector)
-    local item = entityManager.get(itemId)
-    --local itemInv = itemUtils.getInventoryItemBySelector(bluePrint:get(ECS.c.inventory).inventory, selector)
-    -- print("Blueprint pos", universe.pixelsToGridCoordinates(bluePrint:get(ECS.c.position).vector))
-    -- local itemInPosition = itemUtils.getItemFromGround(selector, universe.pixelsToGridCoordinates(bluePrint:get(ECS.c.position).vector))
-    if not item or item:get(ECS.c.amount).amount < amount then
-      --print("Didn't have no!", selector)
-      return false
-    end
-  end
-
-  return true
-end
-
-local function consumeRequirements(bluePrint)
-  -- For now below is commented, items will just stay in bluePrint inventory
-  -- local requirements = bluePrint:get(ECS.c.item).itemData.requirements
-  -- for selector, amount in pairs(requirements) do --luacheck: ignore
-  --   local itemInPosition = itemUtils.getItemFromGround(selector, universe.pixelsToGridCoordinates(bluePrint:get(ECS.c.position).vector))
-  --   itemUtils.takeItemFromGround(itemInPosition, amount)
-  -- end
-end
-
-local function handle(self, job, settler, dt, finishCallback)
-  print("LOLOL STILL HANDLING WLOFLWEFOEW")
-  local bluePrintComponent = job:get(ECS.c.bluePrintJob)
-  local settlerGridPosition = universe.pixelsToGridCoordinates(settler:get(ECS.c.position).vector)
-  local bluePrintGridPosition = universe.pixelsToGridCoordinates(job:get(ECS.c.position).vector)
-  if universe.isInPosition(settlerGridPosition, bluePrintGridPosition, true) then
-    if isBluePrintReadyToBuild(job) then
-      local constructionSkill = settler:get(ECS.c.settler).skills.construction
-      bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + (constructionSkill * bluePrintComponent.constructionSpeed) * dt
-      if bluePrintComponent.buildProgress >= 100 then
-        consumeRequirements(job)
-        return true
-      end
-    end
-  else
-    settler.searched_for_path = false
-    if not settler.searched_for_path then -- RIGHT ON THIS IF: Is global cache valid? If not then re-get path
-      local path = universe.getPath(settlerGridPosition, bluePrintGridPosition)
-      settler.searched_for_path = true
-      if path then
-        -- path.finishedCallBack = function()
-        --   settler.searched_for_path = false
-        -- end
-        settler:give(ECS.c.path, path)
-      end
-    end
-  end
-end
-
 local function generate(gridPosition, itemData, bluePrintItemSelector)
   local job = ECS.Entity()
   job:give(ECS.c.job, "bluePrint")
@@ -119,7 +60,6 @@ local function finish(job)
 end
 
 return {
-  handle = handle,
   generate = generate,
   finish = finish
 }

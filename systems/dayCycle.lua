@@ -48,12 +48,12 @@ function DayCycleSystem:generateGUIDraw()
   love.graphics.setColor(1,1,1,1)
   love.graphics.draw(cycleCanvas, w-120, h-settings.actions_bar_height-50)
 
-  love.graphics.print("H: " .. tostring(hour), w-80, h-settings.actions_bar_height-70)
+  love.graphics.print("H: " .. tostring(hour), w-85, h-settings.actions_bar_height-70)
 end
 
 -- Range: 0-1, 1 being midnight/morning, 0.5 middle of day
 function DayCycleSystem:getTimeOfDay(currentTime) --luacheck: ignore
-  print(currentTime % 1)
+  --print(currentTime % 1)
   return currentTime * 0.1 % 1
 end
 
