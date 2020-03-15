@@ -92,15 +92,14 @@ local data = {
         components = {
           {
             name = "plant",
-            afterConstructed = true
-          },
-          {
-            name = "animation",
-            frames = {
-              "potato_phase_1",
-              "potato_phase_2",
-              "potato_phase_3",
-              "potato_phase_4",
+            afterConstructed = true,
+            properties = {
+              {
+                "farming.potato_phase_1",
+                "farming.potato_phase_2",
+                "farming.potato_phase_3",
+                "farming.potato_phase_4",
+              }
             }
           }
         }
@@ -151,7 +150,7 @@ local data = {
     subItems = {
       potato_seed = {
         name = "Potato seed",
-        components = { { name = "sprite", properties = { "seeds.potato01" } } }
+        components = { { name = "sprite", properties = { "seeds.seeds_potato" } } }
       }
     }
   }

@@ -73,7 +73,7 @@ function GUISystem:init()
               name = "Potato",
               params = {
                 type = "construct",
-                selector = "growing.tree"
+                selector = "growing.potato"
               }
             }
           }

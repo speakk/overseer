@@ -15,7 +15,6 @@ local Concord = require("libs.concord")
 ECS = {}
 -- ECS.Component = Concord.component
 ECS.Component = function (path, ...)
-  print("Path", path, ...)
   local name = string.match(path, '%.([^%.]*)$')
 
   return Concord.component(name, ...)

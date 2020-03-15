@@ -11,7 +11,8 @@ local ItemSystem = ECS.System({ pool = {"item"}})
 function ItemSystem:initializeTestItems(mapSize)
   local randomTable = {
     --walls = { "wooden_wall", "iron_wall" },
-    raw_materials = { "wood", "iron", "stone", "steel" }
+    raw_materials = { "wood", "iron", "stone", "steel" },
+    seeds = { "potato_seed" }
   }
 
   for i=1,40,1 do  --luacheck: ignore

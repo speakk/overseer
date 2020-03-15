@@ -63,7 +63,7 @@ do
       love.graphics.draw(sprite, currentX, currentY)
 
       local quad = love.graphics.newQuad(currentX, currentY, spriteWidth, spriteHeight, atlasCanvas:getDimensions())
-      print("drawing to canvas", currentX, currentY, spriteWidth, spriteHeight, atlasCanvas:getDimensions())
+      --print("drawing to canvas", currentX, currentY, spriteWidth, spriteHeight, atlasCanvas:getDimensions())
 
       flatMediaDB[category.name .. "." .. name] = {
         quad = quad
@@ -88,7 +88,7 @@ do
   love.graphics.setCanvas()
 end
 
-print("flat", inspect(flatMediaDB))
+--print("flat", inspect(flatMediaDB))
 
 
 -- for _, flatItem in ipairs(flatMediaDB) do
