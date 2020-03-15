@@ -12,7 +12,7 @@ function BluePrintSystem:bluePrintsPlaced(coords, constructionType, selector)
   print("bluePrintsPlaced")
     for _, position in ipairs(coords) do
       --local gridPosition = universe.clampToWorldBounds(Vector(node:getX(), node:getY()))
-      if universe.isCellAvailable(position) then
+      if universe.isPositionWalkable(position) then
         local job, children = BluePrint.generate(position, constructionType, selector)
         if children then
           for _, child in ipairs(children) do

@@ -2,25 +2,46 @@ local Vector = require('libs.brinevector')
 local universe = require('models.universe')
 local camera = require('models.camera')
 
+local constructionTypes = require('data.constructionTypes')
+
 local ZoneSystem = ECS.System({ pool = { "zone", "rect" } })
 
 local lastZoneUpdate = love.timer.getTime()
 local zoneUpdateInterval = 2
 
+local function getZoneCoorinates(rect)
+  return universe.getOuterBorderCoordinates(
+  math.min(rect.x1, rect.x2),
+  math.min(rect.y1, rect.y2),
+  math.max(rect.x1, rect.x2),
+  math.max(rect.y1, rect.y2),
+  true)
+end
+
 local zoneHandlers = {
   deconstruct = {
     run = function(self, zone, params, dt)
+      print("Running zoneHandlers deconstruct")
       local rect = zone.rect
-
-      local coords = universe.getOuterBorderCoordinates(
-      math.min(rect.x1, rect.x2),
-      math.min(rect.y1, rect.y2),
-      math.max(rect.x1, rect.x2),
-      math.max(rect.y1, rect.y2),
-      true)
+      local coords = getZoneCoorinates(rect)
 
       local entities = universe.getEntitiesInCoordinates(coords, params.selector, params.componentRequirements)
       self:getWorld():emit("cancelConstruction", entities)
+    end
+  },
+  construct = {
+    run = function(self, zone, params, dt)
+      local rect = zone.rect
+      local coords = getZoneCoorinates(rect)
+
+      local constructSelector = params.selector
+
+      for _, coordinate in ipairs(coords) do
+        if not universe.isPositionOccupied(coordinate) then
+          local data = constructionTypes.getBySelector(constructSelector)
+          self:getWorld():emit("bluePrintsPlaced", {coordinate}, data, constructSelector)
+        end
+      end
     end
   }
 }
@@ -31,7 +52,7 @@ end
 
 function ZoneSystem:update(dt)
   local currentTime = love.timer.getTime()
-  if zoneUpdateInterval > currentTime - lastZoneUpdate then
+  if currentTime - lastZoneUpdate > zoneUpdateInterval then
     lastZoneUpdate = love.timer.getTime()
     self:tickZones(dt)
   end

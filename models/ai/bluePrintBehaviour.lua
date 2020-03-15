@@ -6,7 +6,6 @@ local entityManager = require('models.entityManager')
 local UntilDecorator = require('models.ai.decorators.until')
 local GotoAction = require('models.ai.sharedActions.goto')
 local AtTarget = require('models.ai.sharedActions.atTarget')
-local GetTreeDt = require('models.ai.sharedActions.getTreeDt')
 
 -- LEAF NODES
 
@@ -14,7 +13,9 @@ local isBluePrintReadyToBuild = {
   run = function(task, blackboard)
     print("isBluePrintReadyToBuild")
     local bluePrint = blackboard.target
-    if bluePrint.job.finished then return false end
+    if bluePrint.job.finished then
+      return task:fail()
+    end
 
     local bluePrintComponent = bluePrint.bluePrintJob
     local requirements = bluePrint.item.itemData.requirements
@@ -28,13 +29,12 @@ local isBluePrintReadyToBuild = {
       if not item or item.amount.amount < amount then
         --print("Didn't have no!", selector)
         --print("Failing isBluePrintReadyToBuild")
-        task:fail()
-        return
+        return task:fail()
       end
     end
 
     --print("Success isBluePrintReadyToBuild")
-    task:success()
+    return task:success()
   end
 }
 
@@ -43,9 +43,9 @@ local isBluePrintFinished = {
     print("isBluePrintFinished")
     if blackboard.bluePrintComponent.buildProgress >= 100 then
       print("Blue print finished!", blackboard.bluePrintComponent, "actorid", blackboard.actor)
-      blackboard.world:emit("treeFinished", blackboard.actor, blackboard.jobType)
-      blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor.work.jobId)
-      blackboard.world:emit("jobFinished", blackboard.target)
+      -- blackboard.world:emit("treeFinished", blackboard.actor, blackboard.jobType)
+      -- blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor.work.jobId)
+      -- blackboard.world:emit("jobFinished", blackboard.target)
       blackboard.finished = true
       print("path component in bp", blackboard.actor, blackboard.actor.path)
       blackboard.target:remove("bluePrintJob")
@@ -64,10 +64,9 @@ local progressBuilding = {
     if blackboard.bluePrintComponent.buildProgress < 100 then
       print("Progress building!")
       blackboard.world:emit('bluePrintProgress', blackboard.bluePrintComponent, constructionSkill * blackboard.treeDt)
-      task:running()
-      return
+      return task:running()
     else
-      task:success()
+      return task:success()
     end
   end
 }
@@ -80,7 +79,6 @@ function createTree(actor, world, jobType)
   local progressBuilding = BehaviourTree.Task:new(progressBuilding)
   local gotoAction = GotoAction()
   local atTarget = AtTarget()
-  local getTreeDt = GetTreeDt()
 
   local target = entityManager.get(actor.work.jobId)
   print("TARGET IS", target)
@@ -89,7 +87,6 @@ function createTree(actor, world, jobType)
   local tree = BehaviourTree:new({
     tree = BehaviourTree.Priority:new({
       nodes = {
-        getTreeDt,
         isBluePrintFinished,
         progressBuilding,
         gotoAction

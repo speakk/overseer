@@ -12,7 +12,7 @@ local progressDestruct = {
     blackboard.lastBuildTick = love.timer.getTime()
   end,
   run = function(task, blackboard)
-    local constructionSkill = blackboard.actor.actor.skills.construction
+    local constructionSkill = blackboard.actor.settler.skills.construction
     if blackboard.constructionComponent.durability > 0 then
       print("Progress destruct!")
       local time = love.timer.getTime()
@@ -24,14 +24,9 @@ local progressDestruct = {
       return
     else
       print("Destruct finished!", blackboard.constructionComponent, "actorid", blackboard.actor)
-      blackboard.world:emit("treeFinished", blackboard.actor, blackboard.jobType)
       blackboard.finished = true
-      --blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor.work.jobId)
-      --blackboard.world:emit("jobFinished", blackboard.job)
       print("path component in bp", blackboard.actor, blackboard.actor.path)
       blackboard.actor:remove("path")
-
-      blackboard.world:emit("immediateDestroy", blackboard.target)
 
       task:success()
     end
@@ -54,7 +49,7 @@ function createTree(actor, world, jobType)
             BehaviourTree.Priority:new({
               nodes = {
                 atTarget,
-                "goto",
+                gotoAction
               }
             }),
             progressDestruct

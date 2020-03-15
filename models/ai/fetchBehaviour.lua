@@ -56,18 +56,17 @@ function createTree(actor, world, jobType)
 
       if not invItem then
         --print("Something went wrong, do not have item upon arriving at destination")
-        task:fail()
-        return
+        return task:fail()
       end
 
       local targetInventory = blackboard.target.inventory
       targetInventory:insertItem(invItem.id.id)
       print("Fetch finished!", blackboard.job, blackboard.job.id.id)
-      blackboard.world:emit("treeFinished", blackboard.actor, blackboard.jobType)
-      blackboard.world:emit("finishWork", blackboard.actor, blackboard.job.id.id)
-      blackboard.world:emit("jobFinished", blackboard.job)
+      -- blackboard.world:emit("treeFinished", blackboard.actor, blackboard.jobType)
+      -- blackboard.world:emit("finishWork", blackboard.actor, blackboard.job.id.id)
+      -- blackboard.world:emit("jobFinished", blackboard.job)
       blackboard.finished = true
-      task:success()
+      return task:success()
     end
   })
 

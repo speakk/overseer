@@ -71,8 +71,9 @@ function GUISystem:init()
           subItems = {
             potato = {
               name = "Potato",
-              requirements = {
-                ["seeds.potato_seed"] = 1
+              params = {
+                type = "construct",
+                selector = "growing.tree"
               }
             }
           }

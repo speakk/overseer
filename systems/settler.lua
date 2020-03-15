@@ -57,8 +57,9 @@ function SettlerSystem:finishWork(settler, jobId)
     return
   end
   local jobType = job.job.jobType
+  print("jobType", jobType)
   if jobHandlers[jobType]["finish"] then
-    jobHandlers[jobType].finish(job)
+    jobHandlers[jobType].finish(job, self:getWorld())
   end
   --self:getWorld():emit("jobFinished", job)
 end
@@ -88,7 +89,7 @@ function SettlerSystem:initializeTestSettlers()
     local position
     while true do
       position = universe.clampToWorldBounds(Vector(math.random(worldSize.x), math.random(worldSize.y)))
-      if universe.isCellAvailable(position) then
+      if universe.isPositionWalkable(position) then
         break
       end
     end

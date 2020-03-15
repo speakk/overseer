@@ -109,16 +109,18 @@ function universe.onOnMapItemRemoved(pool, entity)
   end
 end
 
-function universe.getPositionString(entity)
+function universe.getPositionStringFromEntity(entity)
   local pixelPosition = entity.position.vector
   local position = universe.pixelsToGridCoordinates(pixelPosition)
-  local posString = position.x .. ":" .. position.y
+  return universe.getGridPositionString(position)
+end
 
-  return posString
+function universe.getGridPositionString(gridPosition)
+  return gridPosition.x .. ":" .. gridPosition.y
 end
 
 function universe.onOnMapEntityAdded(pool, entity)
-  local posString = universe.getPositionString(entity)
+  local posString = universe.getPositionStringFromEntity(entity)
   if not entityPosMap[posString] then
     entityPosMap[posString] = {}
   end
@@ -129,7 +131,7 @@ end
 
 function universe.onOnMapEntityRemoved(pool, entity)
   if not entity.position then return end
-  local posString = universe.getPositionString(entity)
+  local posString = universe.getPositionStringFromEntity(entity)
 
   if not entityPosMap[posString] then
     error("Trying to remove nonExistent entity from pos: " .. posString)
@@ -139,14 +141,14 @@ function universe.onOnMapEntityRemoved(pool, entity)
 end
 
 function universe.onOccluderEntityAdded(pool, entity)
-  local posString = universe.getPositionString(entity)
+  local posString = universe.getPositionStringFromEntity(entity)
 
   occluderMap[posString] = 1
 end
 
 function universe.onOccluderEntityRemoved(pool, entity)
   if not entity.position then return end
-  local posString = universe.getPositionString(entity)
+  local posString = universe.getPositionStringFromEntity(entity)
 
   occluderMap[posString] = 0
 end
@@ -267,8 +269,12 @@ function universe.clampToWorldBounds(gridPosition)
 end
 
 
-function universe.isCellAvailable(gridPosition)
+function universe.isPositionWalkable(gridPosition)
   return grid:isWalkableAt(gridPosition.x, gridPosition.y, walkable)
+end
+
+function universe.isPositionOccupied(gridPosition)
+  return entityPosMap[universe.getGridPositionString(gridPosition)]
 end
 
 -- TODO: THREADING FUCKS THIS UP
@@ -276,11 +282,11 @@ function universe.findPathToClosestEmptyCell(gridPosition)
   print("WELL DUH findPathToClosestEmptyCell")
   local node = grid:getNodeAt(gridPosition.x, gridPosition.y)
 
-  if not universe.isCellAvailable(gridPosition) then
+  if not universe.isPositionWalkable(gridPosition) then
     local radius = 1
     while radius < 10 do
       for nodeAround in grid:around(node, radius) do
-        if universe.isCellAvailable(Vector(nodeAround:getX(), nodeAround:getY())) then
+        if universe.isPositionWalkable(Vector(nodeAround:getX(), nodeAround:getY())) then
           return universe.getPath(gridPosition, Vector(node:getX(), node:getY()))
         end
       end
@@ -419,7 +425,7 @@ function universe.getEntitiesInCoordinates(coordinateList, selector, componentRe
 
       if componentRequirements then
         for _, requirement in ipairs(componentRequirements) do
-          if not entity["requirement"] then return false end
+          if not entity[requirement] then return false end
         end
       end
 
@@ -432,9 +438,13 @@ end
 
 function universe.getItemsOnGround(selector, componentRequirements)
   if componentRequirements then
+    if not entityItemSelectorMap[selector] then
+      return
+    end
+
     return lume.filter(entityItemSelectorMap[selector], function(entity)
       for _, requirement in ipairs(componentRequirements) do
-        if not entity["requirement"] then return false end
+        if not entity[requirement] then return false end
       end
 
       return true

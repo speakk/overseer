@@ -9,6 +9,7 @@ local jobManager = require('models.jobManager')
 local UntilDecorator = require('models.ai.decorators.until')
 local GotoAction = require('models.ai.sharedActions.goto')
 local AtTarget = require('models.ai.sharedActions.atTarget')
+local GetTreeDt = require('models.ai.sharedActions.getTreeDt')
 
 local behaviours = {
   --idle = require('models.ai.idleBehaviour').createTree,
@@ -47,6 +48,12 @@ local doWork = {
   start = function(task, blackboard)
     print("Blackboard id", blackboard, blackboard.currentWork)
     local job = entityManager.get(blackboard.actor.work.jobId)
+    print("Job", job, blackboard.actor.work.jobId)
+    if not job then
+      print("Starting job failed! No job")
+      --task:fail()
+      return
+    end
     local jobType = job.job.jobType
     blackboard.currentWork = behaviours[jobType](blackboard.actor, blackboard.world, jobType)
     print("So uh... starting?", blackboard.currentWork)
@@ -57,19 +64,28 @@ local doWork = {
     --local jobType = job.job.jobType
     --print("Running work!", jobType)
     -- TODO: Properly hceck if the work the succeeded and handle somehow
+    if not blackboard.currentWork then
+      return task:fail()
+    end
+    blackboard.currentWork.object.treeDt = blackboard.treeDt
     blackboard.currentWork:run()
-    print("started?", blackboard.currentWork.object.finished)
+    --print("finished?", blackboard.currentWork.object.finished)
     if not blackboard.currentWork.object.finished then
       print("Work: running")
       return task:running()
     else
       print("Work: success")
+      local job = entityManager.get(blackboard.actor.work.jobId)
+      local jobType = job.job.jobType
+      --blackboard.world:emit("treeFinished", blackboard.actor, jobType)
+      blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor.work.jobId)
+      blackboard.world:emit("jobFinished", job)
       return task:success()
     end
   end,
 
   finish = function(task, blackboard)
-    --blackboard.currentWork = nil
+    blackboard.currentWork = nil
   end
 }
 
@@ -111,26 +127,32 @@ function createTree(actor, world, jobType)
   local idle = BehaviourTree.Task:new(idle)
   local idleTarget = ECS.Entity()
 
+  local getTreeDt = GetTreeDt()
+
   --local target = entityManager.get(actor.work.jobId)
   local tree = BehaviourTree:new({
-    tree = BehaviourTree.Priority:new({
+    tree = BehaviourTree.Sequence:new({
       nodes = {
-        BehaviourTree.Sequence:new({
+        getTreeDt,
+        BehaviourTree.Priority:new({
           nodes = {
-            haveWork,
-            doWork
+            BehaviourTree.Sequence:new({
+              nodes = {
+                haveWork,
+                doWork
+              }
+            }),
+            checkJobs,
+            BehaviourTree.Sequence:new({
+              nodes = {
+                idle,
+                gotoAction
+              }
+            }),
           }
-        }),
-        checkJobs,
-        BehaviourTree.Sequence:new({
-          nodes = {
-            idle,
-            gotoAction
-          }
-        }),
+        })
       }
     })
-
   })
 
   tree:setObject({
