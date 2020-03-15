@@ -9,7 +9,7 @@ local debugFont = love.graphics.newFont(12)
 
 local ui
 
-local SerializationSystem = ECS.System({ECS.c.id, 'ids'})
+local SerializationSystem = ECS.System({ ids = { "id" } })
 
 local function onIdAdded(pool, entity) --luacheck: ignore
   local id = entity.id.id
@@ -81,7 +81,7 @@ local function deserializeEntities(entityShells)
   for id, entityShell in pairs(entityShells) do
     local entity = ECS.Entity()
     for componentName, componentData in pairs(entityShell.components) do
-      local baseComponent = ECS.c[componentName]
+      local baseComponent = componentName
       if baseComponent["customDeserialize"] then
         local component = baseComponent.customDeserialize(componentData)
         entity:givePopulated(component)

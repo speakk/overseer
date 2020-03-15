@@ -1,2 +1,2 @@
-local occluder = ECS.Component()
+local occluder = ECS.Component(...)
 return occluder

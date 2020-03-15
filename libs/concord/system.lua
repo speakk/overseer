@@ -49,6 +49,7 @@ System.mt = {
 local validateFilters = function (baseFilters)
    local filters = {}
 
+   if not baseFilters then return end
    for name, componentsList in pairs(baseFilters) do
       if type(name) ~= 'string' then
          error("invalid name for filter (string key expected, got "..type(name)..")", 3)
@@ -80,7 +81,7 @@ end
 -- @treturn System A new SystemClass
 function System.new(filters)
    local systemClass = setmetatable({
-      __filter = validateFilters(filters),
+      __filter = validateFilters(filters) or {},
 
       __name          = nil,
       __isSystemClass = true,

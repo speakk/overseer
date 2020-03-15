@@ -1,4 +1,4 @@
-local bluePrintJob = ECS.Component(function(component, constructionSpeed, materialsConsumed, buildProgress)
+local bluePrintJob = ECS.Component(..., function(component, constructionSpeed, materialsConsumed, buildProgress)
   component.constructionSpeed = constructionSpeed or 8
   component.materialsConsumed = materialsConsumed or {}
   component.buildProgress = buildProgress or 0 -- 0/100

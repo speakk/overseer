@@ -1,4 +1,4 @@
-local light = ECS.Component(function(component, color, power)
+local light = ECS.Component(..., function(component, color, power)
   component.color = color or { 1, 1, 1 }
   component.power = power or 64
 end)

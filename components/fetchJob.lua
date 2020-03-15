@@ -1,4 +1,4 @@
-local fetchJob = ECS.Component(function(component, targetId, selector, amount)
+local fetchJob = ECS.Component(..., function(component, targetId, selector, amount)
   component.targetId = targetId
   component.selector = selector or error("Fetch has no selector!")
   component.amount = amount

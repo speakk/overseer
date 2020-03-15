@@ -29,9 +29,9 @@ function ItemUtils.splitItemStackIfNeeded(item, amount)
   end
 
   local selector = item.selector.selector
-  item:give(ECS.c.amount, diff)
+  item:give("amount", diff)
   local itemCopy = ItemUtils.createItem(selector, amount)
-  itemCopy:give(ECS.c.amount, amount)
+  itemCopy:give("amount", amount)
   return itemCopy, true
 end
 
@@ -41,14 +41,14 @@ function ItemUtils.createItem(selector, amount)
   local item = ECS.Entity()
   local itemData = constructionTypes.getBySelector(selector)
   --local color = itemData.color or { 0.5, 0.5, 0.5 }
-  item:give(ECS.c.item, itemData)
-  :give(ECS.c.selector, selector)
-  :give(ECS.c.amount, amount)
-  :give(ECS.c.name, "Item: " .. selector)
-  :give(ECS.c.id, entityManager.generateId())
+  item:give("item", itemData)
+  :give("selector", selector)
+  :give("amount", amount)
+  :give("name", "Item: " .. selector)
+  :give("id", entityManager.generateId())
 
   for _, component in ipairs(itemData.components) do
-    item:give(ECS.c[component.name], unpack(component.properties))
+    item:give(component.name, unpack(component.properties))
   end
 
   print("Adding to world", item.id.id)
@@ -64,7 +64,7 @@ end
 --     itemsOnGround[selector] = {}
 --   end
 -- 
---   item:give(ECS.c.position, universe.gridPositionToPixels(gridPosition))
+--   item:give("position", universe.gridPositionToPixels(gridPosition))
 --   table.insert(itemsOnGround[selector], item)
 -- end
 

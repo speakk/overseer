@@ -4,7 +4,7 @@ local bresenham = require('libs.bresenham')
 local universe = require('models.universe')
 local camera = require('models.camera')
 
-local LightSystem = ECS.System({ECS.c.light})
+local LightSystem = ECS.System({ pool = { "light" }})
 
 local lightGradientImage = love.graphics.newImage("media/misc/light_gradient.png")
 local lightCircleImage = love.graphics.newImage("media/misc/light_circle.png")
@@ -26,11 +26,11 @@ end
 function LightSystem:initializeTestLights()
   for _=1,3 do
     local light = ECS.Entity()
-    light:give(ECS.c.position,
+    light:give("position",
       universe.snapPixelToGrid(
         Vector(love.math.random((universeSize.x-1)*cellSize)+cellSize, love.math.random((universeSize.y-1)*cellSize)+cellSize)))
-    light:give(ECS.c.sprite, "items.torch01")
-    light:give(ECS.c.light,
+    light:give("sprite", "items.torch01")
+    light:give("light",
       { math.ceil(love.math.random()-0.5), math.ceil(love.math.random()-0.5), math.ceil(love.math.random()-0.5)}, 8)
     self:getWorld():addEntity(light)
   end

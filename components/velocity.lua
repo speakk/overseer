@@ -1,6 +1,6 @@
 local Vector = require('libs.brinevector')
 
-local velocity = ECS.Component(function(component, vector)
+local velocity = ECS.Component(..., function(component, vector)
   component.vector = vector or Vector(0, 0)
 end)
 

@@ -1,4 +1,4 @@
-local DayCycleSystem = ECS.System({})
+local DayCycleSystem = ECS.System()
 
 local daySpeed = 0.5
 local currentTime = 0 -- Timer that runs and progresses world time

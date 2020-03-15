@@ -1,4 +1,4 @@
-local amount = ECS.Component(function(component, amount)
+local amount = ECS.Component(..., function(component, amount)
   component.amount = amount or 0
 end)
 function amount:serialize() return { amount = self.amount } end

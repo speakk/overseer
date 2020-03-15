@@ -1,6 +1,6 @@
 local Vector = require('libs.brinevector')
 -- Create a System class as lovetoys.System subclass.
-local MoveSystem = ECS.System({ECS.c.position, ECS.c.velocity})
+local MoveSystem = ECS.System({ pool = { "position", "velocity" } })
 
 function MoveSystem:resetVelocities()
   for _, entity in ipairs(self.pool) do

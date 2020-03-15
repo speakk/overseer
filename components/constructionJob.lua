@@ -1,2 +1,2 @@
-local constructionJob = ECS.Component()
+local constructionJob = ECS.Component(...)
 return constructionJob

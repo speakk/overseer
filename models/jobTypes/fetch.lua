@@ -5,13 +5,13 @@ local FetchBehaviour = require('models.ai.fetchBehaviour')
 
 local function generate(targetId, itemData, selector)
   local subJob = ECS.Entity()
-  :give(ECS.c.id, entityManager.generateId())
-  subJob:give(ECS.c.job, "fetch")
-  subJob:give(ECS.c.name, "FetchJob")
-  subJob:give(ECS.c.item, itemData)
-  subJob:give(ECS.c.selector, selector)
-  --subJob:give(ECS.c.fetchJob, target, selector, itemData.requirements[selector])
-  subJob:give(ECS.c.fetchJob, targetId, selector, itemData.requirements[selector])
+  :give("id", entityManager.generateId())
+  subJob:give("job", "fetch")
+  subJob:give("name", "FetchJob")
+  subJob:give("item", itemData)
+  subJob:give("selector", selector)
+  --subJob:give("fetchJob", target, selector, itemData.requirements[selector])
+  subJob:give("fetchJob", targetId, selector, itemData.requirements[selector])
 
   return subJob
 end
@@ -78,7 +78,7 @@ end
 --       settler.searched_for_path = true
 -- 
 --       if path then
---         settler:give(ECS.c.path, path)
+--         settler:give("path", path)
 --       else
 --         job.job.isInaccessible = true
 --       end
@@ -102,7 +102,7 @@ end
 --         if itemAmount >= amount then
 --           print("DUUDIT")
 --           settler.searched_for_path = false
---           settler:remove(ECS.c.path) -- TODO: Maybe not needed
+--           settler:remove("path") -- TODO: Maybe not needed
 --           local inventory = settler.inventory
 --           inventory:insertItem(item.id.id)
 --           --table.insert(inventory, item)
@@ -129,7 +129,7 @@ end
 --           universe.pixelsToGridCoordinates(itemOnMap.position.vector))
 --           if path then
 --             print("Had path for item, giving path to settler")
---             settler:give(ECS.c.path, path)
+--             settler:give("path", path)
 --           else
 --             job.job.isInaccessible = true
 --           end

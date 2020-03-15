@@ -9,8 +9,7 @@ local entityManager = require('models.entityManager')
 
 local settlerSpeed = 200
 
-local SettlerSystem = ECS.System({ECS.c.settler, ECS.c.worker,
-ECS.c.position, ECS.c.velocity}, {ECS.c.job, 'jobs'})
+local SettlerSystem = ECS.System({ pool = { "settler", "worker", "position", "velocity" } })
 
 function SettlerSystem:init()
   self.lastAssigned = 0
@@ -52,7 +51,7 @@ end
 
 function SettlerSystem:finishWork(settler, jobId)
   local job = entityManager.get(jobId)
-  settler:remove(ECS.c.work)
+  settler:remove("work")
   if not job.job then
     print("WTF NO JOB FOR JOB")
     return
@@ -74,7 +73,7 @@ end
 --       print("settler has work, jobId", jobId)
 -- 
 --       if not entityManager.get(jobId) then
---         settler:remove(ECS.c.work)
+--         settler:remove("work")
 --         return
 --       end
 --     end
@@ -94,18 +93,18 @@ function SettlerSystem:initializeTestSettlers()
       end
     end
 
-    settler:give(ECS.c.position, universe.gridPositionToPixels(position))
-    --:give(ECS.c.draw, {1,1,0})
-    :give(ECS.c.sprite, 'characters.settler1_01')
-    :give(ECS.c.id, entityManager.generateId())
-    :give(ECS.c.settler)
-    :give(ECS.c.ai, 'settler')
-    :give(ECS.c.speed, 300)
-    :give(ECS.c.name, "Settler")
-    :give(ECS.c.inventory)
-    :give(ECS.c.worker)
-    :give(ECS.c.velocity)
-    :give(ECS.c.animation, {
+    settler:give("position", universe.gridPositionToPixels(position))
+    --:give("draw", {1,1,0})
+    :give("sprite", 'characters.settler1_01')
+    :give("id", entityManager.generateId())
+    :give("settler")
+    :give("ai", 'settler')
+    :give("speed", 300)
+    :give("name", "Settler")
+    :give("inventory")
+    :give("worker")
+    :give("velocity")
+    :give("animation", {
       walk = {
         targetComponent = 'sprite',
         targetProperty = 'selector',
@@ -129,7 +128,7 @@ end
 
 function SettlerSystem:startJob(settler, job, jobQueue) -- luacheck: ignore
   job.job.reserved = settler
-  settler:give(ECS.c.work, job.id.id)
+  settler:give("work", job.id.id)
   lume.remove(jobQueue, job)
 end
 
@@ -163,7 +162,7 @@ function SettlerSystem:cancelConstruction(entities)
       if settler.work then
         local settlerJob = settler.work.job
         if job == settlerJob then
-          settler:remove(ECS.c.work)
+          settler:remove("work")
           break
         end
       end

@@ -1,2 +1,2 @@
-local onMap = ECS.Component()
+local onMap = ECS.Component(...)
 return onMap

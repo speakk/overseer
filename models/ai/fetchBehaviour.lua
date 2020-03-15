@@ -129,7 +129,7 @@ function createTree(actor, world, jobType)
           end
         else
           --print("Giving reservedComponent", blackboard.targetAmount)
-          potentialItem:give(ECS.c.reserved, blackboard.actor.id.id, blackboard.targetAmount)
+          potentialItem:give("reserved", blackboard.actor.id.id, blackboard.targetAmount)
         end
         --print("potentialItem", potentialItem, potentialItem.item.selector)
         --print("potentialItem position", universe.pixelsToGridCoordinates(potentialItem.position.vector))

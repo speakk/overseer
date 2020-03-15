@@ -3,7 +3,7 @@ local Vector = require('libs.brinevector')
 local entityManager = require('models.entityManager')
 
 local universe = require('models.universe')
-local BluePrintSystem = ECS.System({ECS.c.bluePrintJob, ECS.c.job})
+local BluePrintSystem = ECS.System({pool = {"bluePrintJob", "job"}})
 
 local BluePrint = require('models.jobTypes.bluePrint')
 

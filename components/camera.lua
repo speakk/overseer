@@ -1,2 +1,2 @@
-local camera = ECS.Component()
+local camera = ECS.Component(...)
 return camera

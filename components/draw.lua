@@ -1,5 +1,5 @@
 local Vector = require 'libs.brinevector'
-local draw = ECS.Component(function(component, color, size)
+local draw = ECS.Component(..., function(component, color, size)
   component.color = color or { 1, 0, 0 }
   component.size = size or Vector(32, 32)
 end)

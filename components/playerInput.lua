@@ -1,4 +1,4 @@
-local playerInput = ECS.Component()
+local playerInput = ECS.Component(...)
 return playerInput
 
 

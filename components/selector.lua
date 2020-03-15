@@ -1,4 +1,4 @@
-local selector = ECS.Component(function(component, selector)
+local selector = ECS.Component(..., function(component, selector)
   component.selector = selector or "-"
 end)
 function selector:serialize() return { selector = self.selector } end

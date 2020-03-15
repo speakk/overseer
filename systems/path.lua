@@ -4,7 +4,7 @@ local Node = require('libs.jumper.core.node')
 local inspect = require('libs.inspect')
 local universe = require('models.universe')
 local pathFinder = require('models.pathFinder')
-local PathSystem = ECS.System({ECS.c.path, ECS.c.position})
+local PathSystem = ECS.System({ pool = { "path", "position" } })
 
 function PathSystem:update(dt)
   for i, entity in ipairs(self.pool) do
@@ -64,7 +64,7 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
   -- -- TODO: Proper handling of invalid path
   -- if not validNode then
   --   print("Something went wrong, no valid node next")
-  --   --entity:remove(ECS.c.path)
+  --   --entity:remove("path")
   --   pathComponent.finished = true 
   --   return
   -- end
@@ -96,7 +96,7 @@ function PathSystem:gridUpdated()
     if entity.path and entity.path.path then
       local path = entity.path.path
       if not universe.pathStillValid(path) then
-        entity:remove(ECS.c.path)
+        entity:remove("path")
         entity.searched_for_path = false
         print("Path was not valid, setting 'searched_for_path' to false")
       end
@@ -108,7 +108,7 @@ function PathSystem:gridUpdated()
       -- if not universe.isCellAvailable(gridCoordinates) then
       --   local newPath = universe.findPathToClosestEmptyCell(gridCoordinates)
       --   if newPath then
-      --     entity:give(ECS.c.path, newPath)
+      --     entity:give("path", newPath)
       --   end
       -- end
     end

@@ -1,4 +1,4 @@
-local rect = ECS.Component(function(component, x1, y1, x2, y2)
+local rect = ECS.Component(..., function(component, x1, y1, x2, y2)
   component.x1 = x1
   component.y1 = y1
   component.x2 = x2

@@ -1,4 +1,4 @@
-local parent = ECS.Component(function(component, parentId)
+local parent = ECS.Component(..., function(component, parentId)
   component.parentId = parentId
 end)
 function parent:serialize() return { parentId = self.parentId } end

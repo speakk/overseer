@@ -1,5 +1,5 @@
 local bitser = require 'libs.bitser'
-local zone = ECS.Component(function(component, type, params)
+local zone = ECS.Component(..., function(component, type, params)
   component.type = type
   component.params = params
 end)

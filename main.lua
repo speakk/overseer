@@ -13,15 +13,23 @@ local PROFILER = false
 local Concord = require("libs.concord")
 
 ECS = {}
-ECS.Component = Concord.component
+-- ECS.Component = Concord.component
+ECS.Component = function (path, ...)
+  print("Path", path, ...)
+  local name = string.match(path, '%.([^%.]*)$')
+
+  return Concord.component(name, ...)
+end
 ECS.c = Concord.components
 ECS.System = Concord.system
-ECS.Systems = Concord.systems
 ECS.World = Concord.world
 ECS.Entity = Concord.entity
 
-Concord.loadComponents("components")
-Concord.loadSystems("systems")
+Concord.utils.loadNamespace("components")
+ECS.Systems = Concord.utils.loadNamespace("systems", {})
+
+--Concord.loadComponents("components")
+--Concord.loadSystems("systems")
 
 local Gamestate = require("libs.hump.gamestate")
 

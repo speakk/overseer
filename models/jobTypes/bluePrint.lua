@@ -56,7 +56,7 @@ local function handle(self, job, settler, dt, finishCallback)
         -- path.finishedCallBack = function()
         --   settler.searched_for_path = false
         -- end
-        settler:give(ECS.c.path, path)
+        settler:give("path", path)
       end
     end
   end
@@ -64,23 +64,23 @@ end
 
 local function generate(gridPosition, itemData, bluePrintItemSelector)
   local job = ECS.Entity()
-  job:give(ECS.c.job, "bluePrint")
-  job:give(ECS.c.name, "BluePrintJob")
-  :give(ECS.c.id, entityManager.generateId())
-  :give(ECS.c.onMap)
-  :give(ECS.c.bluePrintJob, itemData.constructionSpeed or 1)
-  :give(ECS.c.inventory) -- Item consumed so far
-  :give(ECS.c.item, itemData, bluePrintItemSelector)
-  :give(ECS.c.position, universe.gridPositionToPixels(gridPosition))
-  :give(ECS.c.transparent)
+  job:give("job", "bluePrint")
+  job:give("name", "BluePrintJob")
+  :give("id", entityManager.generateId())
+  :give("onMap")
+  :give("bluePrintJob", itemData.constructionSpeed or 1)
+  :give("inventory") -- Item consumed so far
+  :give("item", itemData, bluePrintItemSelector)
+  :give("position", universe.gridPositionToPixels(gridPosition))
+  :give("transparent")
 
   if itemData.components then
     for _, component in ipairs(itemData.components) do
       if not component.afterConstructed then
         if component.properties then
-          job:give(ECS.c[component.name], unpack(component.properties))
+          job:give(component.name, unpack(component.properties))
         else
-          job:give(ECS.c[component.name])
+          job:give(component.name)
         end
       end
     end
@@ -89,11 +89,11 @@ local function generate(gridPosition, itemData, bluePrintItemSelector)
   local children = {}
 
   if itemData.requirements then
-    job:give(ECS.c.children, {})
+    job:give("children", {})
     local childrenIds = job.children.children
     for selector, amount in pairs(itemData.requirements) do
       local subJob = Fetch.generate(job.id.id, itemData, selector)
-      subJob:give(ECS.c.parent, job.id.id)
+      subJob:give("parent", job.id.id)
       table.insert(children, subJob)
       table.insert(childrenIds, subJob.id.id)
     end
@@ -103,16 +103,16 @@ local function generate(gridPosition, itemData, bluePrintItemSelector)
 end
 
 local function finish(job)
-    job:give(ECS.c.collision)
-    job:give(ECS.c.construction, 100)
-    job:remove(ECS.c.transparent)
+    job:give("collision")
+    job:give("construction", 100)
+    job:remove("transparent")
 
     local itemData = job.item.itemData
 
     if itemData.components then
       for _, component in ipairs(itemData.components) do
         if component.afterConstructed then
-          job:give(ECS.c[component.name], unpack(component.properties))
+          job:give(component.name, unpack(component.properties))
         end
       end
     end

@@ -3,7 +3,7 @@ local Path = require('libs.jumper.core.path')
 local Node = require('libs.jumper.core.node')
 
 -- TODO: Add the fromX stuff
-local path = ECS.Component(function(component, path, currentIndex, fromX, fromY, toX, toY)
+local path = ECS.Component(..., function(component, path, currentIndex, fromX, fromY, toX, toY)
   component.path = path
   component.fromX = fromX
   component.fromY = fromY

@@ -3,11 +3,13 @@ local entityManager = require('models.entityManager')
 local inspect = require('libs.inspect') --luacheck: ignore
 local Vector = require('libs.brinevector') --luacheck: ignore
 
-local MapSystem = ECS.System({ECS.c.collision, "collision"},
-  {ECS.c.onMap, ECS.c.position, "onMap"},
-  {ECS.c.onMap, ECS.c.position, ECS.c.selector, "onMapItem"},
-  {ECS.c.onMap, ECS.c.position, ECS.c.occluder, "occluder"}
-  )
+local MapSystem = ECS.System({
+  collision = { "collision" },
+  onMap = { "onMap", "position" },
+  onMapItem = {"onMap", "position", "selector" },
+  occluder = {"onMap", "position", "occluder" }
+}
+)
 
 function MapSystem:init()
   self.collision.onEntityAdded = universe.onCollisionEntityAdded
@@ -52,10 +54,10 @@ function recursiveDelete(self, entity)
       print("itemId", itemId)
       local item = entityManager.get(itemId)
       print("item", item)
-      item:give(ECS.c.onMap)
+      item:give("onMap")
       -- TODO: If no space then randomize nearby position
       --local itemPosition = currentGridPosition
-      item:give(ECS.c.position, entity.position.vector.copy)
+      item:give("position", entity.position.vector.copy)
     end
   end
 
@@ -66,7 +68,7 @@ function MapSystem:cancelConstruction(entities)
   for _, entity in ipairs(entities) do
       if entity.construction then
         if not entity.job or not entity.job.type == "destruct" then
-          entity:give(ECS.c.job, "destruct")
+          entity:give("job", "destruct")
         end
       else
         recursiveDelete(self, entity)

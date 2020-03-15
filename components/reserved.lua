@@ -1,4 +1,4 @@
-local reserved = ECS.Component(function(component, reservedById, amount)
+local reserved = ECS.Component(..., function(component, reservedById, amount)
   component.reservedById = reservedById
   component.amount = amount
 end)

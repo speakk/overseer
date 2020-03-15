@@ -1,4 +1,4 @@
-local work = ECS.Component(function(component, jobId)
+local work = ECS.Component(..., function(component, jobId)
   component.jobId = jobId or nil
 end) -- Settler work
 

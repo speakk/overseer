@@ -6,7 +6,7 @@ local entityManager = require('models.entityManager')
 local universe = require('models.universe')
 local itemUtils = require('utils.itemUtils')
 
-local ItemSystem = ECS.System({ECS.c.item})
+local ItemSystem = ECS.System({ pool = {"item"}})
 
 function ItemSystem:initializeTestItems(mapSize)
   local randomTable = {
@@ -23,8 +23,8 @@ function ItemSystem:initializeTestItems(mapSize)
     local selector = key .. "." .. itemName
     local amount = 100
     local item = itemUtils.createItem(selector, amount)
-    item:give(ECS.c.onMap)
-    item:give(ECS.c.position, universe.gridPositionToPixels(position))
+    item:give("onMap")
+    item:give("position", universe.gridPositionToPixels(position))
     --self:getWorld():addEntity(item)
     --itemUtils.placeItemOnGround(item, position)
   end
@@ -36,17 +36,17 @@ function ItemSystem:initializeTestTrees(mapSize)
     local selector = "growing.tree"
     local rawWood = itemUtils.createItem('raw_materials.wood', 2)
     local entity = ECS.Entity()
-    entity:give(ECS.c.sprite, "vegetation." .. lume.randomchoice({"tree01", "bush01", "grass01", "grass02", "grass03"}))
-    :give(ECS.c.onMap)
-    :give(ECS.c.collision)
-    :give(ECS.c.id, entityManager.generateId())
-    :give(ECS.c.construction, 100)
-    --:give(ECS.c.occluder)
-    :give(ECS.c.selector, selector)
-    :give(ECS.c.inventory, { rawWood.id.id })
-    :give(ECS.c.position, universe.gridPositionToPixels(position))
+    entity:give("sprite", "vegetation." .. lume.randomchoice({"tree01", "bush01", "grass01", "grass02", "grass03"}))
+    :give("onMap")
+    :give("collision")
+    :give("id", entityManager.generateId())
+    :give("construction", 100)
+    --:give("occluder")
+    :give("selector", selector)
+    :give("inventory", { rawWood.id.id })
+    :give("position", universe.gridPositionToPixels(position))
     if entity.sprite.selector == 'vegetation.tree01' then
-      entity:give(ECS.c.animation, {
+      entity:give("animation", {
         idle = {
           targetComponent = 'sprite',
           targetProperty = 'selector',

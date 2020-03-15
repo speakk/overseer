@@ -1,4 +1,4 @@
-local worker = ECS.Component(function(component, available)
+local worker = ECS.Component(..., function(component, available)
   component.available = available or true
 end)
 function worker:serialize() return { available = self.available } end

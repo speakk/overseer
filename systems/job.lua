@@ -7,7 +7,7 @@ local jobHandlers = require('models.jobTypes.jobTypes')
 
 local entityManager = require('models.entityManager')
 
-local JobSystem = ECS.System({ECS.c.job, 'jobs'})
+local JobSystem = ECS.System({ jobs = { "job" }})
 
 local function onJobAdded(self, pool, job)
   -- if not job.parent then
@@ -194,12 +194,12 @@ function JobSystem:jobFinished(job) --luacheck: ignore
   end
   jobComponent.finished = true
   jobComponent.reserved = false
-  job:remove(ECS.c.job)
+  job:remove("job")
   -- if job.parent then
   --   jobComponent.finished = true
   --   jobComponent.reserved = false
   -- else
-  --   job:remove(ECS.c.job)
+  --   job:remove("job")
   -- end
 
   --self:getWorld():emit("jobQueueUpdated", jobManager.getUnreservedJobs(self.jobs))

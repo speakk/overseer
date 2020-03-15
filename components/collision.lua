@@ -1,2 +1,2 @@
-local collision = ECS.Component()
+local collision = ECS.Component(...)
 return collision

@@ -7,7 +7,7 @@ local media = require('utils.media')
 local Vector = require('libs.brinevector')
 local entityManager = require('models.entityManager')
 
-local SpriteSystem = ECS.System({ECS.c.sprite, ECS.c.position})
+local SpriteSystem = ECS.System( { pool = { "sprite", "position" } })
 
 local cellSize = universe.getCellSize()
 

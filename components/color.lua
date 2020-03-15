@@ -1,4 +1,4 @@
-local color = ECS.Component(function(component, color)
+local color = ECS.Component(..., function(component, color)
   component.color = color or { 1, 1, 1, 1 }
 end)
 

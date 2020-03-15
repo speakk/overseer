@@ -1,4 +1,4 @@
-local AnimationSystem = ECS.System({ECS.c.animation})
+local AnimationSystem = ECS.System({pool = {"animation"}})
 
 function AnimationSystem:init()
 end
@@ -15,7 +15,7 @@ function AnimationSystem:update(dt)
       local animationProps = props[animationKey]
       --print("Going through", animationKey, animationProps)
       
-      local targetComponent = entity:get(ECS.c[animationProps.targetComponent])
+      local targetComponent = entity[animationProps.targetComponent]
 
       --print("Setting targetProperty", animationProps.targetProperty, animationProps.values[animationProps.currentValueIndex], "index:", animationProps.currentValueIndex)
       targetComponent[animationProps.targetProperty] = animationProps.values[animationProps.currentValueIndex]

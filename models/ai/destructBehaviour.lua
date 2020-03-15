@@ -29,7 +29,7 @@ local progressDestruct = {
       --blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor.work.jobId)
       --blackboard.world:emit("jobFinished", blackboard.job)
       print("path component in bp", blackboard.actor, blackboard.actor.path)
-      blackboard.actor:remove(ECS.c.path)
+      blackboard.actor:remove("path")
 
       blackboard.world:emit("immediateDestroy", blackboard.target)
 

@@ -1,4 +1,4 @@
-local settler = ECS.Component(function(component, name, skills)
+local settler = ECS.Component(..., function(component, name, skills)
   component.name = name or "Lucy"
   component.skills = skills or { construction = 15 }
 end)

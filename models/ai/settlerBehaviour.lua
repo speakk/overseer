@@ -91,7 +91,7 @@ local idle = {
         if nextPosition.x > universeSize.x then nextPosition.x = universeSize.x end
         if nextPosition.y < 1 then nextPosition.y = 1 end
         if nextPosition.y > universeSize.y then nextPosition.y = universeSize.y end
-        blackboard.idleTarget:give(ECS.c.position, universe.gridPositionToPixels(nextPosition))
+        blackboard.idleTarget:give("position", universe.gridPositionToPixels(nextPosition))
         blackboard.target = blackboard.idleTarget
         blackboard.lastIdleRandomTick = currentTime
       end

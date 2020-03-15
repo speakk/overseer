@@ -1,6 +1,6 @@
 local bitser = require 'libs.bitser'
 
-local animation = ECS.Component(function(component, props, activeAnimations)
+local animation = ECS.Component(..., function(component, props, activeAnimations)
   -- activeAnimations: {
   -- 'walk'
   -- }

@@ -419,7 +419,7 @@ function universe.getEntitiesInCoordinates(coordinateList, selector, componentRe
 
       if componentRequirements then
         for _, requirement in ipairs(componentRequirements) do
-          if not entity:has(ECS.c[requirement]) then return false end
+          if not entity["requirement"] then return false end
         end
       end
 
@@ -434,7 +434,7 @@ function universe.getItemsOnGround(selector, componentRequirements)
   if componentRequirements then
     return lume.filter(entityItemSelectorMap[selector], function(entity)
       for _, requirement in ipairs(componentRequirements) do
-        if not entity:has(ECS.c[requirement]) then return false end
+        if not entity["requirement"] then return false end
       end
 
       return true
@@ -466,8 +466,8 @@ function universe.takeItemFromGround(originalItem, amount)
 
   if not wasSplit then
     lume.remove(entityItemSelectorMap[selector], originalItem)
-    originalItem:remove(ECS.c.position)
-    originalItem:remove(ECS.c.onMap)
+    originalItem:remove("position")
+    originalItem:remove("onMap")
   end
 
   return item

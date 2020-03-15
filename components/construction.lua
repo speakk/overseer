@@ -1,4 +1,4 @@
-local construction = ECS.Component(function(component, durability)
+local construction = ECS.Component(..., function(component, durability)
   component.durability = durability
 end)
 

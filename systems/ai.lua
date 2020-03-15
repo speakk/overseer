@@ -1,7 +1,7 @@
 local entityManager = require('models.entityManager')
 local inspect = require('libs.inspect')
 
-local AISystem = ECS.System({ECS.c.ai, "ai"})
+local AISystem = ECS.System({ai = {"ai"}})
 
 local behaviours = {
   --idle = require('models.ai.idleBehaviour').createTree,

@@ -23,7 +23,7 @@ randomWalkX = lume.shuffle(randomWalkX)
 randomWalkY = lume.shuffle(randomWalkY)
 
 -- Create a draw System.
-local DrawSystem = ECS.System({ECS.c.position, ECS.c.sprite})
+local DrawSystem = ECS.System({ pool = {"position", "sprite"}})
 
 local tilesetBatch = love.graphics.newSpriteBatch(media.atlas, 500)
 local cachedCanvas

@@ -1,2 +1,2 @@
-local healingJob = ECS.Component()
+local healingJob = ECS.Component(...)
 return healingJob

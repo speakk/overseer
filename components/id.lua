@@ -1,4 +1,4 @@
-local id = ECS.Component(function(component, id)
+local id = ECS.Component(..., function(component, id)
   component.id = id or error("Id needs id")
 end)
 function id:serialize() return { id = self.id } end

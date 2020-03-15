@@ -1,4 +1,4 @@
-local speed = ECS.Component(function(component, speed)
+local speed = ECS.Component(..., function(component, speed)
   component.speed = speed or 0
 end)
 function speed:serialize() return { speed = self.speed } end

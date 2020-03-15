@@ -1,4 +1,4 @@
-local children = ECS.Component(function(component, children)
+local children = ECS.Component(..., function(component, children)
   component.children = children or {}
 end)
 function children:serialize()

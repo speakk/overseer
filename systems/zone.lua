@@ -2,7 +2,7 @@ local Vector = require('libs.brinevector')
 local universe = require('models.universe')
 local camera = require('models.camera')
 
-local ZoneSystem = ECS.System({ECS.c.zone, ECS.c.rect})
+local ZoneSystem = ECS.System({ pool = { "zone", "rect" } })
 
 local lastZoneUpdate = love.timer.getTime()
 local zoneUpdateInterval = 2
