@@ -85,6 +85,8 @@ function inGame:init()
     self.world:getSystem(ECS.Systems.bluePrint).generateGUIDraw, true)
     self.world:emit("registerGUIDrawGenerator", self.world:getSystem(ECS.Systems.zone),
     self.world:getSystem(ECS.Systems.zone).generateGUIDraw, true)
+    self.world:emit("registerGUIDrawGenerator", self.world:getSystem(ECS.Systems.dayCycle),
+    self.world:getSystem(ECS.Systems.dayCycle).generateGUIDraw)
     self.world:emit("registerGUIDrawGenerator", self.world:getSystem(ECS.Systems.serialization),
     self.world:getSystem(ECS.Systems.serialization).generateGUIDraw)
 

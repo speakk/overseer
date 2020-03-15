@@ -6,6 +6,7 @@ local entityManager = require('models.entityManager')
 local UntilDecorator = require('models.ai.decorators.until')
 local GotoAction = require('models.ai.sharedActions.goto')
 local AtTarget = require('models.ai.sharedActions.atTarget')
+local GetTreeDt = require('models.ai.sharedActions.getTreeDt')
 
 -- LEAF NODES
 
@@ -57,21 +58,12 @@ local isBluePrintFinished = {
 }
 
 local progressBuilding = {
-  start = function(task, blackboard)
-    blackboard.lastBuildTick = love.timer.getTime()
-    print("TEST TEST TEST")
-  end,
   run = function(task, blackboard)
     print("rpgoress buidlign")
     local constructionSkill = blackboard.actor.settler.skills.construction
     if blackboard.bluePrintComponent.buildProgress < 100 then
       print("Progress building!")
-      local time = love.timer.getTime()
-      local delta = time - blackboard.lastBuildTick
-
-      print("delta", time, blackboard.lastBuildTick, delta)
-      blackboard.world:emit('bluePrintProgress', blackboard.bluePrintComponent, constructionSkill * delta)
-      blackboard.lastBuildTick = time
+      blackboard.world:emit('bluePrintProgress', blackboard.bluePrintComponent, constructionSkill * blackboard.treeDt)
       task:running()
       return
     else
@@ -88,6 +80,7 @@ function createTree(actor, world, jobType)
   local progressBuilding = BehaviourTree.Task:new(progressBuilding)
   local gotoAction = GotoAction()
   local atTarget = AtTarget()
+  local getTreeDt = GetTreeDt()
 
   local target = entityManager.get(actor.work.jobId)
   print("TARGET IS", target)
@@ -96,6 +89,7 @@ function createTree(actor, world, jobType)
   local tree = BehaviourTree:new({
     tree = BehaviourTree.Priority:new({
       nodes = {
+        getTreeDt,
         isBluePrintFinished,
         progressBuilding,
         gotoAction
@@ -104,6 +98,7 @@ function createTree(actor, world, jobType)
   })
 
   tree:setObject({
+    lastTick = love.timer.getTime(),
     target = target,
     actor = actor,
     inventory = inventory,

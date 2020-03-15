@@ -111,8 +111,9 @@ function LightSystem:gridUpdated()
   love.graphics.setCanvas()
 end
 
-function LightSystem:timeOfDayChanged(timeOfDay)
-  ambientColor = { 0.6+timeOfDay*0.4, 0.6+timeOfDay*0.4, 1.0, 1.0, 1.0 }
+function LightSystem:timeChanged(time, timeOfDay)
+  local lightLevel = math.sin((timeOfDay-0.25)*math.pi*2)
+  ambientColor = { 0.6+lightLevel*0.4, 0.6+lightLevel*0.4, 1.0, 1.0, 1.0 }
   self:mixAmbientAndLights()
 end
 

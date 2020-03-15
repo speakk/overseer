@@ -32,6 +32,10 @@ local mediaDB = {
   {
     name = "farming",
     items = { 'potato_phase_1', 'potato_phase_2', 'potato_phase_3', 'potato_phase_4'  }
+  },
+  {
+    name = "misc",
+    items = { "daycycle" }
   }
 }
 
