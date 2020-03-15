@@ -22,13 +22,13 @@ end
 -- Return item, wasSplit
 function ItemUtils.splitItemStackIfNeeded(item, amount)
   if not item then error("Trying to split nil item") end
-  local currentAmount = item:get(ECS.c.amount).amount
+  local currentAmount = item.amount.amount
   local diff = currentAmount - amount
   if diff <= 0 then
     return item, false
   end
 
-  local selector = item:get(ECS.c.selector).selector
+  local selector = item.selector.selector
   item:give(ECS.c.amount, diff)
   local itemCopy = ItemUtils.createItem(selector, amount)
   itemCopy:give(ECS.c.amount, amount)
@@ -51,7 +51,7 @@ function ItemUtils.createItem(selector, amount)
     item:give(ECS.c[component.name], unpack(component.properties))
   end
 
-  print("Adding to world", item:get(ECS.c.id).id)
+  print("Adding to world", item.id.id)
   ItemUtils.world:addEntity(item)
   ItemUtils.world:__flush()
 
@@ -59,7 +59,7 @@ function ItemUtils.createItem(selector, amount)
 end
 
 -- function ItemUtils.placeItemOnGround(item, gridPosition) --luacheck: ignore
---   local selector = item:get(ECS.c.item).selector
+--   local selector = item.item.selector
 --   if not itemsOnGround[selector] then
 --     itemsOnGround[selector] = {}
 --   end
@@ -84,13 +84,13 @@ end
 -- TODO: Take amount away from item? Take away "amount" from parameters
 -- function ItemUtils.putItemIntoInventory(inventory, item, amount)
 --   local itemEnt = lume.match(inventory, function(itemInInv)
---     return itemInInv:get(ECS.c.item).selector == selector
+--     return itemInInv.item.selector == selector
 --   end)
 -- 
 --   if itemEnt then
---     local existingAmount = itemEnt:get(ECS.c.amount).amount 
+--     local existingAmount = itemEnt.amount.amount 
 --     existingAmount = existingAmount + amount
---     itemEnt:get(ECS.c.amount).amount = existingAmount
+--     itemEnt.amount.amount = existingAmount
 --   else
 --     table.insert(inventory, item)
 --   end

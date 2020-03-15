@@ -7,7 +7,7 @@ function AnimationSystem:update(dt)
   local currentTime = love.timer.getTime()
 
   for _, entity in ipairs(self.pool) do
-    local animation = entity:get(ECS.c.animation)
+    local animation = entity.animation
     local props = animation.props
     local activeAnimations = animation.activeAnimations
 
@@ -44,8 +44,8 @@ end
 
 -- TODO: Figure out a better way to do this
 function AnimationSystem:entityMoved(entity, position, positionDelta)
-  if entity:has(ECS.c.animation) then
-    local animation = entity:get(ECS.c.animation)
+  if entity.animation then
+    local animation = entity.animation
 
     if positionDelta.x > 0 then
       animation.flipped = false

@@ -13,18 +13,18 @@ local isBluePrintReadyToBuild = {
   run = function(task, blackboard)
     print("isBluePrintReadyToBuild")
     local bluePrint = blackboard.target
-    if bluePrint:get(ECS.c.job).finished then return false end
+    if bluePrint.job.finished then return false end
 
-    local bluePrintComponent = bluePrint:get(ECS.c.bluePrintJob)
-    local requirements = bluePrint:get(ECS.c.item).itemData.requirements
+    local bluePrintComponent = bluePrint.bluePrintJob
+    local requirements = bluePrint.item.itemData.requirements
 
     for selector, amount in pairs(requirements) do --luacheck: ignore
-      local itemId = bluePrint:get(ECS.c.inventory):findItem(selector)
+      local itemId = bluePrint.inventory:findItem(selector)
       local item = entityManager.get(itemId)
-      --local itemInv = itemUtils.getInventoryItemBySelector(bluePrint:get(ECS.c.inventory).inventory, selector)
-      -- print("Blueprint pos", universe.pixelsToGridCoordinates(bluePrint:get(ECS.c.position).vector))
-      -- local itemInPosition = itemUtils.getItemFromGround(selector, universe.pixelsToGridCoordinates(bluePrint:get(ECS.c.position).vector))
-      if not item or item:get(ECS.c.amount).amount < amount then
+      --local itemInv = itemUtils.getInventoryItemBySelector(bluePrint.inventory.inventory, selector)
+      -- print("Blueprint pos", universe.pixelsToGridCoordinates(bluePrint.position.vector))
+      -- local itemInPosition = itemUtils.getItemFromGround(selector, universe.pixelsToGridCoordinates(bluePrint.position.vector))
+      if not item or item.amount.amount < amount then
         --print("Didn't have no!", selector)
         --print("Failing isBluePrintReadyToBuild")
         task:fail()
@@ -43,10 +43,10 @@ local isBluePrintFinished = {
     if blackboard.bluePrintComponent.buildProgress >= 100 then
       print("Blue print finished!", blackboard.bluePrintComponent, "actorid", blackboard.actor)
       blackboard.world:emit("treeFinished", blackboard.actor, blackboard.jobType)
-      blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor:get(ECS.c.work).jobId)
+      blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor.work.jobId)
       blackboard.world:emit("jobFinished", blackboard.target)
       blackboard.finished = true
-      print("path component in bp", blackboard.actor, blackboard.actor:get(ECS.c.path))
+      print("path component in bp", blackboard.actor, blackboard.actor.path)
       blackboard.target:remove(ECS.c.bluePrintJob)
       blackboard.actor:remove(ECS.c.path)
       task:success()
@@ -63,7 +63,7 @@ local progressBuilding = {
   end,
   run = function(task, blackboard)
     print("rpgoress buidlign")
-    local constructionSkill = blackboard.actor:get(ECS.c.settler).skills.construction
+    local constructionSkill = blackboard.actor.settler.skills.construction
     if blackboard.bluePrintComponent.buildProgress < 100 then
       print("Progress building!")
       local time = love.timer.getTime()
@@ -89,10 +89,10 @@ function createTree(actor, world, jobType)
   local gotoAction = GotoAction()
   local atTarget = AtTarget()
 
-  local target = entityManager.get(actor:get(ECS.c.work).jobId)
+  local target = entityManager.get(actor.work.jobId)
   print("TARGET IS", target)
-  local bluePrintComponent = target:get(ECS.c.bluePrintJob)
-  local bluePrintGridPosition = universe.pixelsToGridCoordinates(target:get(ECS.c.position).vector)
+  local bluePrintComponent = target.bluePrintJob
+  local bluePrintGridPosition = universe.pixelsToGridCoordinates(target.position.vector)
   local tree = BehaviourTree:new({
     tree = BehaviourTree.Priority:new({
       nodes = {

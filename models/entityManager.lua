@@ -40,7 +40,7 @@ local test = {}
 -- end
 -- 
 local function onEntityRemoved(entity)
-  local id = entity:get(ECS.c.id).id
+  local id = entity.id.id
   --if not id or not references[id] then return end
 
   -- for _, onRemove in ipairs(references[id]) do
@@ -54,7 +54,7 @@ local function onEntityRemoved(entity)
 end
 
 local function onEntityAdded(entity)
-  local id = entity:get(ECS.c.id).id
+  local id = entity.id.id
   if not id then error "No ID for entity on removal" end
   entities[id] = entity
 end
@@ -108,8 +108,8 @@ return {
   --  print("All entities!")
   --  for id, entity in pairs(entities) do
   --    local jobtext = ""
-  --    if entity:has(ECS.c.job) then
-  --      jobtext = entity:get(ECS.c.job).jobType
+  --    if entity.job then
+  --      jobtext = entity.job.jobType
   --    end
   --    print("Entity:", id, entity, jobtext)
   --  end

@@ -80,7 +80,7 @@ function LightSystem:gridUpdated()
   local shadowResolutionMultiplier = 1
 
   for i, light in ipairs(self.pool) do
-    local position = light:get(ECS.c.position).vector
+    local position = light.position.vector
     local gridPosition = universe.pixelsToGridCoordinates(position)
 
     love.graphics.stencil(function()
@@ -98,7 +98,7 @@ function LightSystem:gridUpdated()
 
     love.graphics.setStencilTest("less", 1)
 
-    local color = light:get(ECS.c.light).color
+    local color = light.light.color
     love.graphics.setColor(color)
     love.graphics.draw(lightCircleImage,
     gridPosition.x-lightCircleImageWidth*lightCircleImageScale*0.5,
@@ -157,9 +157,9 @@ function LightSystem:renderLights(l, t, w, h, f) --luacheck: ignore
   -- Tiny bit of non-pixely glow as well. TODO: Cull based on t,w,h,f
   love.graphics.setBlendMode("add")
   for _, light in ipairs(self.pool) do
-    local position = light:get(ECS.c.position).vector
+    local position = light.position.vector
     if universe.isPositionWithinArea(position, l-margin, t-margin, w+margin, h+margin) then
-      local color = light:get(ECS.c.light).color
+      local color = light.light.color
       love.graphics.setColor(unpack(color))
       love.graphics.draw(lightGradientImage, 16+position.x-lightWidth/2, 16+position.y-lightHeight/2,
       0, lightScale, lightScale)

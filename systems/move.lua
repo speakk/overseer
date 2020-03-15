@@ -4,16 +4,16 @@ local MoveSystem = ECS.System({ECS.c.position, ECS.c.velocity})
 
 function MoveSystem:resetVelocities()
   for _, entity in ipairs(self.pool) do
-    entity:get(ECS.c.velocity).vector = Vector(0, 0)
+    entity.velocity.vector = Vector(0, 0)
   end
 end
 
 function MoveSystem:update(dt)
   for _, entity in ipairs(self.pool) do
-    local position = entity:get(ECS.c.position)
-    local velocity = entity:get(ECS.c.velocity).vector.copy
-    if entity:has(ECS.c.speed) then
-      velocity = velocity * entity:get(ECS.c.speed).speed
+    local position = entity.position
+    local velocity = entity.velocity.vector.copy
+    if entity.speed then
+      velocity = velocity * entity.speed.speed
     end
 
     position.vector = position.vector + velocity * dt

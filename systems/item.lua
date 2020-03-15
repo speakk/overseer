@@ -43,9 +43,9 @@ function ItemSystem:initializeTestTrees(mapSize)
     :give(ECS.c.construction, 100)
     --:give(ECS.c.occluder)
     :give(ECS.c.selector, selector)
-    :give(ECS.c.inventory, { rawWood:get(ECS.c.id).id })
+    :give(ECS.c.inventory, { rawWood.id.id })
     :give(ECS.c.position, universe.gridPositionToPixels(position))
-    if entity:get(ECS.c.sprite).selector == 'vegetation.tree01' then
+    if entity.sprite.selector == 'vegetation.tree01' then
       entity:give(ECS.c.animation, {
         idle = {
           targetComponent = 'sprite',

@@ -12,7 +12,7 @@ local progressDestruct = {
     blackboard.lastBuildTick = love.timer.getTime()
   end,
   run = function(task, blackboard)
-    local constructionSkill = blackboard.actor:get(ECS.c.actor).skills.construction
+    local constructionSkill = blackboard.actor.actor.skills.construction
     if blackboard.constructionComponent.durability > 0 then
       print("Progress destruct!")
       local time = love.timer.getTime()
@@ -26,9 +26,9 @@ local progressDestruct = {
       print("Destruct finished!", blackboard.constructionComponent, "actorid", blackboard.actor)
       blackboard.world:emit("treeFinished", blackboard.actor, blackboard.jobType)
       blackboard.finished = true
-      --blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor:get(ECS.c.work).jobId)
+      --blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor.work.jobId)
       --blackboard.world:emit("jobFinished", blackboard.job)
-      print("path component in bp", blackboard.actor, blackboard.actor:get(ECS.c.path))
+      print("path component in bp", blackboard.actor, blackboard.actor.path)
       blackboard.actor:remove(ECS.c.path)
 
       blackboard.world:emit("immediateDestroy", blackboard.target)
@@ -44,9 +44,9 @@ function createTree(actor, world, jobType)
   local gotoAction = GotoAction()
   local atTarget = AtTarget()
 
-  local target = entityManager.get(actor:get(ECS.c.work).jobId)
-  local constructionComponent = target:get(ECS.c.construction)
-  local targetGridPosition = universe.pixelsToGridCoordinates(target:get(ECS.c.position).vector)
+  local target = entityManager.get(actor.work.jobId)
+  local constructionComponent = target.construction
+  local targetGridPosition = universe.pixelsToGridCoordinates(target.position.vector)
   local tree = BehaviourTree:new({
     tree = BehaviourTree.Priority:new({
       nodes = {

@@ -37,16 +37,16 @@ function MapSystem:customDraw(l, t, w, h) --luacheck: ignore
 end
 
 function recursiveDelete(self, entity)
-  if entity:has(ECS.c.children) then
-    for _, childId in ipairs(entity:get(ECS.c.children).children) do
+  if entity.children then
+    for _, childId in ipairs(entity.children.children) do
       local child = entityManager.get(childId)
       recursiveDelete(self, child)
     end
   end
 
-  if entity:has(ECS.c.inventory) then
-    local inventory = entity:get(ECS.c.inventory)
-    --local currentGridPosition = universe.pixelsToGridCoordinates(entity:get(ECS.c.position).vector)
+  if entity.inventory then
+    local inventory = entity.inventory
+    --local currentGridPosition = universe.pixelsToGridCoordinates(entity.position.vector)
 
     for _, itemId in ipairs(inventory.inventory) do
       print("itemId", itemId)
@@ -55,7 +55,7 @@ function recursiveDelete(self, entity)
       item:give(ECS.c.onMap)
       -- TODO: If no space then randomize nearby position
       --local itemPosition = currentGridPosition
-      item:give(ECS.c.position, entity:get(ECS.c.position).vector.copy)
+      item:give(ECS.c.position, entity.position.vector.copy)
     end
   end
 
@@ -64,8 +64,8 @@ end
 
 function MapSystem:cancelConstruction(entities)
   for _, entity in ipairs(entities) do
-      if entity:has(ECS.c.construction) then
-        if not entity:has(ECS.c.job) or not entity:get(ECS.c.job).type == "destruct" then
+      if entity.construction then
+        if not entity.job or not entity.job.type == "destruct" then
           entity:give(ECS.c.job, "destruct")
         end
       else

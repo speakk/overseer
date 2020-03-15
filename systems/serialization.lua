@@ -12,13 +12,13 @@ local ui
 local SerializationSystem = ECS.System({ECS.c.id, 'ids'})
 
 local function onIdAdded(pool, entity) --luacheck: ignore
-  local id = entity:get(ECS.c.id).id
+  local id = entity.id.id
   entityManager.onEntityAdded(entity)
   --entityManager.set(id, entity)
 end
 
 local function onIdRemoved(pool, entity) --luacheck: ignore
-  local id = entity:get(ECS.c.id).id
+  local id = entity.id.id
   entityManager.onEntityRemoved(entity)
   --entityManager.removeByEntity(entity, id)
 end
@@ -54,7 +54,7 @@ local function serializeEntities(entities)
   local serialized = {}
 
   for _, entity in pairs(entities) do
-    local id = entity:get(ECS.c.id).id
+    local id = entity.id.id
     print("OKAY ID", id)
     serialized[id] = serializeEntity(entity)
   end
@@ -134,20 +134,20 @@ function createEntityHierarchy(entity, depthLimit, depth)
   depth = depth + 1
   if depth > depthLimit then return nil end
 
-  if depth == 0 and entity:has(ECS.c.parent) then return nil end
+  if depth == 0 and entity.parent then return nil end
 
   --print("What is entity?", entity)
 
-  --local id = tostring(entity:get(ECS.c.id).id) .. " / " .. tostring(entity)
+  --local id = tostring(entity.id.id) .. " / " .. tostring(entity)
   local id = tostring(entity)
-  if entity:has(ECS.c.children) then
+  if entity.children then
     id = id .. "*"
   end
-  if entity:has(ECS.c.name) then
-    id = id .. " (" .. entity:get(ECS.c.name).name .. ")"
+  if entity.name then
+    id = id .. " (" .. entity.name.name .. ")"
   end
   if ui:treePush('tab', id) then
-    if not entity:has(ECS.c.children) then
+    if not entity.children then
       local components = entity:getComponents()
       for cid, component in pairs(components) do
         local selected = false
@@ -161,7 +161,7 @@ function createEntityHierarchy(entity, depthLimit, depth)
         end
       end
     else
-      for _, kid in ipairs(entity:get(ECS.c.children).children) do
+      for _, kid in ipairs(entity.children.children) do
         if type(kid) == "table" and kid["has"] then
           createEntityHierarchy(kid, depthLimit, depth)
         end

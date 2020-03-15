@@ -53,11 +53,11 @@ end
 function SettlerSystem:finishWork(settler, jobId)
   local job = entityManager.get(jobId)
   settler:remove(ECS.c.work)
-  if not job:has(ECS.c.job) then
+  if not job.job then
     print("WTF NO JOB FOR JOB")
     return
   end
-  local jobType = job:get(ECS.c.job).jobType
+  local jobType = job.job.jobType
   if jobHandlers[jobType]["finish"] then
     jobHandlers[jobType].finish(job)
   end
@@ -68,9 +68,9 @@ function SettlerSystem:pathFinished(entity)
 end
 
 -- function SettlerSystem:processSettlerUpdate(settler, dt)
---   if not settler:has(ECS.c.path) then
---     if settler:has(ECS.c.work) then
---       local jobId = settler:get(ECS.c.work).jobId
+--   if not settler.path then
+--     if settler.work then
+--       local jobId = settler.work.jobId
 --       print("settler has work, jobId", jobId)
 -- 
 --       if not entityManager.get(jobId) then
@@ -128,8 +128,8 @@ function SettlerSystem:initializeTestSettlers()
 end
 
 function SettlerSystem:startJob(settler, job, jobQueue) -- luacheck: ignore
-  job:get(ECS.c.job).reserved = settler
-  settler:give(ECS.c.work, job:get(ECS.c.id).id)
+  job.job.reserved = settler
+  settler:give(ECS.c.work, job.id.id)
   lume.remove(jobQueue, job)
 end
 
@@ -142,7 +142,7 @@ function SettlerSystem:assignJobsForSettlers(jobQueue)
   while true do
     local availableWorker = nil
     for _, entity in ipairs(self.pool) do
-      if not entity:has(ECS.c.work) then
+      if not entity.work then
         availableWorker = entity
         break
       end
@@ -160,8 +160,8 @@ end
 function SettlerSystem:cancelConstruction(entities)
   for _, job in ipairs(entities) do
     for _, settler in ipairs(self.pool) do
-      if settler:has(ECS.c.work) then
-        local settlerJob = settler:get(ECS.c.work).job
+      if settler.work then
+        local settlerJob = settler.work.job
         if job == settlerJob then
           settler:remove(ECS.c.work)
           break

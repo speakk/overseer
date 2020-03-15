@@ -28,11 +28,11 @@ end
 
 function BluePrintSystem:generateGUIDraw()
   for _, entity in ipairs(self.pool) do
-    local progress = entity:get(ECS.c.bluePrintJob).buildProgress
+    local progress = entity.bluePrintJob.buildProgress
     if progress <= 0 then return end
 
     local barSize = Vector(32, 5)
-    local position = entity:get(ECS.c.position).vector
+    local position = entity.position.vector
     local offsetPosition = position + Vector(0, 32-barSize.y)
     love.graphics.setColor(0.3, 0.3, 0.4, 1)
     love.graphics.rectangle("fill",

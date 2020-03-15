@@ -13,15 +13,15 @@ function PathSystem:update(dt)
 end
 
 function PathSystem:processPathFinding(entity) --luacheck: ignore
-  local pathComponent = entity:get(ECS.c.path)
+  local pathComponent = entity.path
   --print("pathComponent in processPathFinding", entity, pathComponent)
-  local velocityComponent = entity:get(ECS.c.velocity)
+  local velocityComponent = entity.velocity
 
   velocityComponent.vector = Vector(0, 0)
 
   if not pathComponent.path then
     if not pathComponent.pathThread and love.timer.getTime() - pathComponent.componentAdded > pathComponent.randomDelay then
-      local entityPosition = universe.pixelsToGridCoordinates(entity:get(ECS.c.position).vector)
+      local entityPosition = universe.pixelsToGridCoordinates(entity.position.vector)
       pathComponent.pathThread = pathFinder.getPathThread(universe.getMap(), entityPosition.x, entityPosition.y, pathComponent.toX, pathComponent.toY)
       --print("Got thread", pathComponent.pathThread)
     end
@@ -43,7 +43,7 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
   end
 
 
-  local position = entity:get(ECS.c.position).vector
+  local position = entity.position.vector
 
   if not pathComponent.path._nodes then print("Didn't have _nodes!", inspect(pathComponent.path)) end
   local node = pathComponent.path._nodes[pathComponent.currentIndex]
@@ -93,8 +93,8 @@ end
 function PathSystem:gridUpdated()
   for _, entity in ipairs(self.pool) do
     -- Invalidate paths
-    if entity:has(ECS.c.path) and entity:get(ECS.c.path).path then
-      local path = entity:get(ECS.c.path).path
+    if entity.path and entity.path.path then
+      local path = entity.path.path
       if not universe.pathStillValid(path) then
         entity:remove(ECS.c.path)
         entity.searched_for_path = false
@@ -103,7 +103,7 @@ function PathSystem:gridUpdated()
     else
       -- Make sure current location is valid
       -- TODO: Uncomment this, please!
-      -- local position = entity:get(ECS.c.position).vector
+      -- local position = entity.position.vector
       -- local gridCoordinates = universe.pixelsToGridCoordinates(position)
       -- if not universe.isCellAvailable(gridCoordinates) then
       --   local newPath = universe.findPathToClosestEmptyCell(gridCoordinates)

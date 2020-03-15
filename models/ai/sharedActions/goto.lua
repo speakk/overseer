@@ -5,8 +5,8 @@ return function()
   return BehaviourTree.Task:new({
     run = function(task, blackboard)
       print("Goto")
-      if blackboard.actor:has(ECS.c.path) then
-        if blackboard.actor:get(ECS.c.path).finished then
+      if blackboard.actor.path then
+        if blackboard.actor.path.finished then
           blackboard.actor:remove(ECS.c.path)
           task:success()
           return
@@ -21,8 +21,8 @@ return function()
         return
       end
 
-      local from = universe.pixelsToGridCoordinates(blackboard.actor:get(ECS.c.position).vector)
-      local to = universe.pixelsToGridCoordinates(blackboard.target:get(ECS.c.position).vector)
+      local from = universe.pixelsToGridCoordinates(blackboard.actor.position.vector)
+      local to = universe.pixelsToGridCoordinates(blackboard.target.position.vector)
       blackboard.actor:give(ECS.c.path, nil, nil, from.x, from.y, to.x, to.y)
       task:running()
     end

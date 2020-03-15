@@ -35,7 +35,7 @@ local checkJobs = {
 
 local haveWork = {
   run = function(task, blackboard)
-    if blackboard.actor:has(ECS.c.work) then
+    if blackboard.actor.work then
       task:success()
     else
       task:fail()
@@ -46,15 +46,15 @@ local haveWork = {
 local doWork = {
   start = function(task, blackboard)
     print("Blackboard id", blackboard, blackboard.currentWork)
-    local job = entityManager.get(blackboard.actor:get(ECS.c.work).jobId)
-    local jobType = job:get(ECS.c.job).jobType
+    local job = entityManager.get(blackboard.actor.work.jobId)
+    local jobType = job.job.jobType
     blackboard.currentWork = behaviours[jobType](blackboard.actor, blackboard.world, jobType)
     print("So uh... starting?", blackboard.currentWork)
   end,
 
   run = function(task, blackboard)
-    --local job = entityManager.get(blackboard.actor:get(ECS.c.work).jobId)
-    --local jobType = job:get(ECS.c.job).jobType
+    --local job = entityManager.get(blackboard.actor.work.jobId)
+    --local jobType = job.job.jobType
     --print("Running work!", jobType)
     -- TODO: Properly hceck if the work the succeeded and handle somehow
     blackboard.currentWork:run()
@@ -84,7 +84,7 @@ local idle = {
     if currentTime - blackboard.lastIdleRandomTick > blackboard.idleRandomDelay then
       if not blackboard.target then
         local universeSize = universe.getSize()
-        local currentPosition = universe.pixelsToGridCoordinates(blackboard.actor:get(ECS.c.position).vector)
+        local currentPosition = universe.pixelsToGridCoordinates(blackboard.actor.position.vector)
         local radius = 10
         local nextPosition = Vector(love.math.random(currentPosition.x - radius, currentPosition.x + radius), love.math.random(currentPosition.y - radius, currentPosition.y + radius))
         if nextPosition.x < 0 then nextPosition.x = 0 end
@@ -111,7 +111,7 @@ function createTree(actor, world, jobType)
   local idle = BehaviourTree.Task:new(idle)
   local idleTarget = ECS.Entity()
 
-  --local target = entityManager.get(actor:get(ECS.c.work).jobId)
+  --local target = entityManager.get(actor.work.jobId)
   local tree = BehaviourTree:new({
     tree = BehaviourTree.Priority:new({
       nodes = {
