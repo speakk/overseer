@@ -98,7 +98,7 @@ local idle = {
     end
 
     if currentTime - blackboard.lastIdleRandomTick > blackboard.idleRandomDelay then
-      if not blackboard.target then
+      if not blackboard.actor.path then
         local universeSize = universe.getSize()
         local currentPosition = universe.pixelsToGridCoordinates(blackboard.actor.position.vector)
         local radius = 10
@@ -145,7 +145,6 @@ function createTree(actor, world, jobType)
             checkJobs,
             BehaviourTree.Sequence:new({
               nodes = {
-                BehaviourTree.Task:new({run = function(task, _) task:success() end})
                 idle,
                 gotoAction
               }

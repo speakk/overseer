@@ -244,7 +244,6 @@ function universe.isInPosition(position, comparePosition, acceptNeighbours)
 
   if acceptNeighbours then
     local toNode = grid:getNodeAt(comparePosition.x, comparePosition.y)
-    print("toNode", toNode, comparePosition.x, comparePosition.y)
     for clearance = 1,2 do
       for node in grid:around(toNode, clearance) do
         if Vector(node:getX(), node:getY()) == position then return true end
