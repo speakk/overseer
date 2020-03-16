@@ -61,10 +61,14 @@ function SpriteSystem:drawEntity(l, t, w, h, entity)
       self.tilesetBatch:setColor(1, 1, 1, transparentComponent.amount)
     end
 
-    local quad = media.getSpriteQuad(spriteComponent.selector)
+    local sprite = media.getSprite(spriteComponent.selector)
+    local quad = sprite.quad
     local _, _, w, h = quad:getViewport()
     local scaleX = 2
     local scaleY = 2
+
+    local originX = sprite.originX * w
+    local originY = sprite.originX * h
 
     if entity.animation then
       if entity.animation.flipped then
@@ -74,11 +78,11 @@ function SpriteSystem:drawEntity(l, t, w, h, entity)
 
     -- local finalX = positionVector.x - (w / 2 * scaleX)
     -- local finalY = positionVector.y + (cellSize - h*2)
-    local finalX = positionVector.x
-    local finalY = positionVector.y
+    local finalX = positionVector.x + cellSize / 2
+    local finalY = positionVector.y + cellSize / 2
 
     self.tilesetBatch:add(quad,
-      finalX, finalY, 0, scaleX, scaleY, 0, h/2)
+      finalX, finalY, 0, scaleX, scaleY, originX, originY)
     if transparentComponent then
       self.tilesetBatch:setColor(1, 1, 1, 1)
     end

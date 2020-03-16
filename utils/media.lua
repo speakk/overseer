@@ -6,12 +6,24 @@ local mediaDB = {
   {
     name = "tiles",
     items = { 'grass01', 'grass02', 'dirt01',
-      'wall_wood01', 'wall_iron01', 'door_stone01', 'door_wood01',
-      'wall_stone01' },
+    'wall_wood01', 'wall_iron01', 'door_stone01', 'door_wood01',
+    'wall_stone01' },
   },
   {
     name = "vegetation",
-    items = { 'tree01', 'tree01b', 'bush01', 'grass01', 'grass02', 'grass03', },
+    items = {
+      {
+        fileName = 'tree01',
+        originX = 0.5,
+        originY = 1
+      },
+      {
+        fileName = 'tree01b',
+        originX = 0.5,
+        originY = 1
+      },
+      'bush01', 'grass01', 'grass02', 'grass03'
+    }
   },
   {
     name = "resources",
@@ -19,7 +31,23 @@ local mediaDB = {
   },
   {
     name = "characters",
-    items = { 'settler1_01', 'settler1_02', 'settler1_03' }
+    items = {
+      {
+        fileName = 'settler1_01',
+        originX = 0.5,
+        originY = 1
+      },
+      {
+        fileName = 'settler1_02',
+        originX = 0.5,
+        originY = 1
+      },
+      {
+        fileName = 'settler1_03',
+        originX = 0.5,
+        originY = 1
+      }
+    },
   },
   {
     name = "items",
@@ -42,7 +70,6 @@ local mediaDB = {
 local flatMediaDB = {}
 local fileList = {}
 
-
 local atlasWidth = 1280
 local atlasHeight = 1280
 local atlasCanvas = love.graphics.newCanvas(atlasWidth, atlasHeight)
@@ -55,18 +82,27 @@ do
   local lastRowHeight = 0
 
   for _, category in ipairs(mediaDB) do
-    for _, name in ipairs(category.items) do
-      local fileName = generateTileName(category.name, name)
+    for _, item in ipairs(category.items) do
+      if type(item) == "string" then
+        local fileName = item
+        item = {}
+        item.fileName = fileName
+        item.originX = 0.5
+        item.originY = 0.5
+      end
+      local fileName = generateTileName(category.name, item.fileName)
       local sprite = love.graphics.newImage(fileName)
       local spriteWidth, spriteHeight = sprite:getDimensions()
 
       love.graphics.draw(sprite, currentX, currentY)
 
       local quad = love.graphics.newQuad(currentX, currentY, spriteWidth, spriteHeight, atlasCanvas:getDimensions())
-      --print("drawing to canvas", currentX, currentY, spriteWidth, spriteHeight, atlasCanvas:getDimensions())
 
-      flatMediaDB[category.name .. "." .. name] = {
-        quad = quad
+      flatMediaDB[category.name .. "." .. item.fileName] = {
+        quad = quad,
+        hotPoints = item.hotPoints,
+        originX = item.originX,
+        originY = item.originY,
       }
 
       currentX = currentX + spriteWidth
@@ -88,29 +124,20 @@ do
   love.graphics.setCanvas()
 end
 
---print("flat", inspect(flatMediaDB))
-
-
--- for _, flatItem in ipairs(flatMediaDB) do
---   table.insert(fileList, flatItem.fileName)
--- end
-
--- print("fileList", inspect(fileList))
--- for _, fileName in ipairs(fileList) do
---   local sprite = love.graphics.newImage(fileName)
--- end
--- local sprites = love.graphics.newArrayImage(fileList)
--- sprites:setFilter("nearest", "nearest")
-
 local function getSpriteQuad(selector)
-  --print(inspect(flatMediaDB[selector]))
   if not selector then error("getSprite is missing selector") end
-
   if not flatMediaDB[selector] then error("No sprite found with selector: " .. selector) end
   return flatMediaDB[selector].quad
 end
 
+local function getSprite(selector)
+  if not selector then error("getSprite is missing selector") end
+  if not flatMediaDB[selector] then error("No sprite found with selector: " .. selector) end
+  return flatMediaDB[selector]
+end
+
 return {
   atlas = atlasCanvas,
-  getSpriteQuad = getSpriteQuad
+  getSpriteQuad = getSpriteQuad,
+  getSprite = getSprite
 }
