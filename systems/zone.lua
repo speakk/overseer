@@ -1,4 +1,5 @@
 local Vector = require('libs.brinevector')
+local lume = require('libs.lume')
 local universe = require('models.universe')
 local camera = require('models.camera')
 
@@ -20,20 +21,22 @@ end
 
 local zoneHandlers = {
   deconstruct = {
-    run = function(self, zone, params, dt)
+    run = function(self, zone, params, coords, dt)
       print("Running zoneHandlers deconstruct")
-      local rect = zone.rect
-      local coords = getZoneCoorinates(rect)
-
       local entities = universe.getEntitiesInCoordinates(coords, params.selector, params.componentRequirements)
       self:getWorld():emit("cancelConstruction", entities)
     end
   },
+  harvest = {
+    run = function(self, zone, params, coords, dt)
+      local entities = universe.getEntitiesInCoordinates(coords, nil, {'plant'})
+      local ripeEntities = lume.filter(entities, function(entity) return entity.plant.finished end)
+      print("ripeEntities", #ripeEntities)
+      self:getWorld():emit("cancelConstruction", ripeEntities)
+    end
+  },
   construct = {
-    run = function(self, zone, params, dt)
-      local rect = zone.rect
-      local coords = getZoneCoorinates(rect)
-
+    run = function(self, zone, params, coords, dt)
       local constructSelector = params.selector
 
       for _, coordinate in ipairs(coords) do
@@ -61,10 +64,14 @@ end
 function ZoneSystem:tickZones()
   for _, zone in ipairs(self.pool) do
     local zoneC = zone.zone
-    local type = zoneC.type
+    local rect = zone.rect
+    local types = zoneC.types
     local params = zoneC.params
-    assert(zoneHandlers[type], "No such zone handler exists: " .. (type or "nil"))
-    zoneHandlers[type].run(self, zone, params, dt)
+    local coords = getZoneCoorinates(rect)
+    for _, type in ipairs(types) do
+      assert(zoneHandlers[type], "No such zone handler exists: " .. (type or "nil"))
+      zoneHandlers[type].run(self, zone, params, coords, dt)
+    end
   end
 end
 

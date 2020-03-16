@@ -1,16 +1,16 @@
 local bitser = require 'libs.bitser'
-local zone = ECS.Component(..., function(component, type, params)
-  component.type = type
+local zone = ECS.Component(..., function(component, types, params)
+  component.types = types
   component.params = params
 end)
 function zone:serialize()
   return {
-    type = self.type,
+    types = self.types,
     params = bitser.dumps(self.params)
   }
 end
 function zone:deserialize(data)
-  self.type = data.type
+  self.types = data.types
   self.params = bitser.loads(data.params)
 end
 return zone

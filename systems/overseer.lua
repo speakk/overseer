@@ -196,7 +196,7 @@ function OverseerSystem:zones(coords, rect)
   local params = self.dataSelectorParams
   local zoneEntity = ECS.Entity()
   zoneEntity:give("id", entityManager.generateId())
-  zoneEntity:give("zone", params.type, params)
+  zoneEntity:give("zone", params.types, params)
   zoneEntity:give("color", zoneColor)
   zoneEntity:give("rect", rect.x1, rect.y1, rect.x2, rect.y2)
 

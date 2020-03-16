@@ -34,6 +34,7 @@ function PlantSystem:plantProgress(entity)
   if plantC.currentStage >= #plantC.frames then
     plantC.currentStage = #plantC.frames
     plantC.finished = true
+    print("PLANT FINISHED RIPE")
     self:getWorld():emit("plantGrowingFinished")
   end
 

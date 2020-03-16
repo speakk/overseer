@@ -72,7 +72,7 @@ function GUISystem:init()
             potato = {
               name = "Potato",
               params = {
-                type = "construct",
+                types = {"construct", "harvest"},
                 selector = "growing.potato"
               }
             }
@@ -81,7 +81,7 @@ function GUISystem:init()
         chopTrees = {
           name = "Chop trees",
           params = {
-            type = "deconstruct",
+            types = { "deconstruct" },
             selector = "growing.tree"
           }
         }
