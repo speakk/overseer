@@ -7,23 +7,28 @@ return function()
       if blackboard.actor.path then
         if blackboard.actor.path.finished then
           blackboard.actor:remove("path")
-          task:success()
-          return
+          return task:success()
         else
-          task:running()
-          return
+          -- if universe.isInPosition(from, to, true) then
+          --   return task:success()
+          -- end
+          return task:running()
         end
       end
 
       if not blackboard.target then
-        task:fail()
-        return
+        return task:fail()
       end
 
       local from = universe.pixelsToGridCoordinates(blackboard.actor.position.vector)
       local to = universe.pixelsToGridCoordinates(blackboard.target.position.vector)
+
+      if universe.isInPosition(from, to, true) then
+        return task:success()
+      end
+
       blackboard.actor:give("path", nil, nil, from.x, from.y, to.x, to.y)
-      task:running()
+      return task:running()
     end
   })
 end

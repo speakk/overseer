@@ -67,7 +67,7 @@ end
 function MapSystem:cancelConstruction(entities)
   for _, entity in ipairs(entities) do
       if entity.construction then
-        if not entity.job or not entity.job.type == "destruct" then
+        if not entity.job or not entity.job.jobType == "destruct" then
           entity:give("job", "destruct")
         end
       else

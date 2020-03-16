@@ -11,18 +11,18 @@ local lume = require('libs.lume')
 while true do
   local pathFindObject = channelMain:demand()
 
-  local toNodesToCheck = {}
 
   grid = Grid(pathFindObject.map)
   finder = Pathfinder(grid, 'JPS', 0)
 
   local toNode = grid:getNodeAt(pathFindObject.toX, pathFindObject.toY)
 
-  if pathFindObject.searchNeighbours then
-    toNodesToCheck = grid:getNeighbours(toNode)
-  end
+  --if pathFindObject.searchNeighbours then
+  local toNodesToCheck = grid:getNeighbours(toNode)
+    --print("thread, toNodesToCheck", toNodesToCheck)
+  --end
 
-  table.insert(toNodesToCheck, toNode)
+  table.insert(toNodesToCheck, 1, toNode)
 
   local path = nil
   for _, node in ipairs(toNodesToCheck) do

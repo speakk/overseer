@@ -5,7 +5,6 @@ local universe = require('models.universe')
 local entityManager = require('models.entityManager')
 local UntilDecorator = require('models.ai.decorators.until')
 local GotoAction = require('models.ai.sharedActions.goto')
-local AtTarget = require('models.ai.sharedActions.atTarget')
 
 local progressDestruct = {
   start = function(task, blackboard)
@@ -36,28 +35,18 @@ local progressDestruct = {
 function createTree(actor, world, jobType)
   local progressDestruct = BehaviourTree.Task:new(progressDestruct)
   local gotoAction = GotoAction()
-  local atTarget = AtTarget()
 
   local target = entityManager.get(actor.work.jobId)
+  print("Setting target", target)
   local constructionComponent = target.construction
   local targetGridPosition = universe.pixelsToGridCoordinates(target.position.vector)
   local tree = BehaviourTree:new({
-    tree = BehaviourTree.Priority:new({
+    tree = BehaviourTree.Sequence:new({
       nodes = {
-        BehaviourTree.Sequence:new({
-          nodes = {
-            BehaviourTree.Priority:new({
-              nodes = {
-                atTarget,
-                gotoAction
-              }
-            }),
-            progressDestruct
-          }
-        }),
+        gotoAction,
+        progressDestruct
       }
     })
-
   })
 
   tree:setObject({

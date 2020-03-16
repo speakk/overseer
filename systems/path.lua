@@ -20,21 +20,30 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
   velocityComponent.vector = Vector(0, 0)
 
   if not pathComponent.path then
+    --print("No path yet", pathComponent.pathThread, love.timer.getTime() - pathComponent.componentAdded, pathComponent.randomDelay)
     if not pathComponent.pathThread and love.timer.getTime() - pathComponent.componentAdded > pathComponent.randomDelay then
       local entityPosition = universe.pixelsToGridCoordinates(entity.position.vector)
       pathComponent.pathThread = pathFinder.getPathThread(universe.getMap(), entityPosition.x, entityPosition.y, pathComponent.toX, pathComponent.toY)
-      --print("Got thread", pathComponent.pathThread)
     end
 
     if not pathComponent.pathThread then return end
+    --print(inspect(pathComponent.pathThread))
+    local err = pathComponent.pathThread.thread:getError()
+    if err then print("ERROR", err) end
 
     local pathNodes = pathComponent.pathThread.channelThread:pop()
+    --print("pathNodes", pathNodes)
     if pathNodes and type(pathNodes) ~= "string" then
       local gridPath = Path()
       for _, node in ipairs(pathNodes) do
         gridPath:addNode(Node(node.x, node.y))
       end
       pathComponent.path = gridPath
+    end
+
+
+    if type(pathNodes) == "string" then
+      print("Error from pathFind:", pathNodes)
     end
   end
 

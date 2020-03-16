@@ -40,6 +40,7 @@ function loading:enter(from, existingSave)
     self.world:getSystem(ECS.Systems.settler):initializeTestSettlers()
     self.world:getSystem(ECS.Systems.item):initializeTestItems(self.universe:getSize())
     self.world:getSystem(ECS.Systems.item):initializeTestTrees(self.universe:getSize())
+    self.world:getSystem(ECS.Systems.item):initializeTestShrubbery(self.universe:getSize())
   end
 
   Gamestate.switch(inGame, self.world)

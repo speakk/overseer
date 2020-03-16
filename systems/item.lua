@@ -32,12 +32,12 @@ function ItemSystem:initializeTestItems(mapSize)
 end
 
 function ItemSystem:initializeTestTrees(mapSize)
-  for i=1,200,1 do  --luacheck: ignore
-    local position = Vector(math.random(mapSize.x), math.random(mapSize.y))
+  for i=1,50,1 do  --luacheck: ignore
+    local position = Vector(love.math.random(mapSize.x), love.math.random(mapSize.y))
     local selector = "growing.tree"
     local rawWood = itemUtils.createItem('raw_materials.wood', 2)
     local entity = ECS.Entity()
-    entity:give("sprite", "vegetation." .. lume.randomchoice({"tree01", "bush01", "grass01", "grass02", "grass03"}))
+    entity:give("sprite", "vegetation.tree01")
     :give("onMap")
     :give("collision")
     :give("id", entityManager.generateId())
@@ -46,31 +46,41 @@ function ItemSystem:initializeTestTrees(mapSize)
     :give("selector", selector)
     :give("inventory", { rawWood.id.id })
     :give("position", universe.gridPositionToPixels(position))
-    if entity.sprite.selector == 'vegetation.tree01' then
-      entity:give("animation", {
-        idle = {
-          targetComponent = 'sprite',
-          targetProperty = 'selector',
-          interpolate = false,
-          repeatAnimation = true,
-          values = {
-            "vegetation.tree01", "vegetation.tree01b"
-          },
-          currentValueIndex = love.math.random(1,2),
-          frameLength = 0.4, -- in ms
-          lastFrameUpdate = love.timer.getTime(),
-          finished = false
-        }
-      },
-      {
-        'idle'
-      })
-    end
+    :give("animation", {
+      idle = {
+        targetComponent = 'sprite',
+        targetProperty = 'selector',
+        interpolate = false,
+        repeatAnimation = true,
+        values = {
+          "vegetation.tree01", "vegetation.tree01b"
+        },
+        currentValueIndex = love.math.random(1,2),
+        frameLength = 0.4, -- in ms
+        lastFrameUpdate = love.timer.getTime(),
+        finished = false
+      }
+    },
+    {
+      'idle'
+    })
     self:getWorld():addEntity(entity)
     --itemUtils.placeItemOnGround(item, position)
   end
 end
 
+function ItemSystem:initializeTestShrubbery(mapSize)
+  for i=1,200,1 do  --luacheck: ignore
+    local position = Vector(love.math.random(mapSize.x), love.math.random(mapSize.y))
+    local entity = ECS.Entity()
+    entity:give("sprite", "vegetation." .. lume.randomchoice({"bush01", "grass01", "grass02", "grass03"}))
+    :give("onMap")
+    :give("id", entityManager.generateId())
+    :give("position", universe.gridPositionToPixels(position))
+    self:getWorld():addEntity(entity)
+    --itemUtils.placeItemOnGround(item, position)
+  end
+end
 ItemSystem.Inventory = {}
 
 return ItemSystem

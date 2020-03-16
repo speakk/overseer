@@ -103,7 +103,7 @@ local idle = {
         local currentPosition = universe.pixelsToGridCoordinates(blackboard.actor.position.vector)
         local radius = 10
         local nextPosition = Vector(love.math.random(currentPosition.x - radius, currentPosition.x + radius), love.math.random(currentPosition.y - radius, currentPosition.y + radius))
-        if nextPosition.x < 0 then nextPosition.x = 0 end
+        if nextPosition.x < 1 then nextPosition.x = 1 end
         if nextPosition.x > universeSize.x then nextPosition.x = universeSize.x end
         if nextPosition.y < 1 then nextPosition.y = 1 end
         if nextPosition.y > universeSize.y then nextPosition.y = universeSize.y end
@@ -145,6 +145,7 @@ function createTree(actor, world, jobType)
             checkJobs,
             BehaviourTree.Sequence:new({
               nodes = {
+                BehaviourTree.Task:new({run = function(task, _) task:success() end})
                 idle,
                 gotoAction
               }

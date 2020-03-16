@@ -22,7 +22,7 @@ end
 local zoneHandlers = {
   deconstruct = {
     run = function(self, zone, params, coords, dt)
-      print("Running zoneHandlers deconstruct")
+      print("Running zoneHandlers deconstruct", params.selector)
       local entities = universe.getEntitiesInCoordinates(coords, params.selector, params.componentRequirements)
       self:getWorld():emit("cancelConstruction", entities)
     end
