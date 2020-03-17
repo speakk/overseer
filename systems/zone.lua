@@ -23,7 +23,6 @@ end
 local zoneHandlers = {
   deconstruct = {
     run = function(self, zone, params, coords, dt)
-      print("Running zoneHandlers deconstruct", params.selector)
       local entities = universe.getEntitiesInCoordinates(coords, params.selector, params.componentRequirements)
       self:getWorld():emit("cancelConstruction", entities)
     end
@@ -125,17 +124,15 @@ end
 function ZoneSystem:mousemoved(x, y, dx, dy, istouch)
   for _, entity in ipairs(self.pool) do
     local rect = entity.rect
-    local left = universe.gridPositionToPixels(math.min(rect.x1, rect.x2))
-    local top = universe.gridPositionToPixels(math.min(rect.y1, rect.y2))
-    local right = universe.gridPositionToPixels(math.max(rect.x1, rect.x2))
-    local bottom = universe.gridPositionToPixels(math.max(rect.y1, rect.y2))
+    local corner1 = universe.gridPositionToPixels(Vector(math.min(rect.x1, rect.x2), math.min(rect.y1, rect.y2)))
+    local corner2 = universe.gridPositionToPixels(Vector(math.max(rect.x1, rect.x2), math.max(rect.y1, rect.y2)), "right_bottom")
 
     local globalX, globalY = camera:toWorld(x, y)
 
-    if globalX > left and
-      globalX < right and
-      globalY > top and
-      globalY < bottom then
+    if globalX > corner1.x and
+      globalX < corner2.x and
+      globalY > corner1.y and
+      globalY < corner2.y then
       entity.zone.hilighted = true
     else
       entity.zone.hilighted = false
@@ -144,9 +141,7 @@ function ZoneSystem:mousemoved(x, y, dx, dy, istouch)
 end
 
 function ZoneSystem:zoneDeleteClick(mouseCoordinates)
-  print("zoneDeleteClick!")
   local hilighted = table.filter(self.pool, function(entity) return entity.zone.hilighted end)
-  print("hilighted!!", hilighted, #hilighted)
   if #hilighted > 0 then
     for _, entity in ipairs(hilighted) do
       entity:destroy()
