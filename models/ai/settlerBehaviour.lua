@@ -71,7 +71,7 @@ local doWork = {
     blackboard.currentWork:run()
     --print("finished?", blackboard.currentWork.object.finished)
     if not blackboard.currentWork.object.finished then
-      print("Work: running")
+      --print("Work: running")
       return task:running()
     else
       print("Work: success")

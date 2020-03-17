@@ -12,7 +12,7 @@ local settings = require('settings')
 
 local OverseerSystem = ECS.System()
 
-local zoneColor = { 0.3, 0.3, 0.9, 1.0 }
+local zoneColor = { 0.3, 0.3, 0.9, 0.5 }
 
 
 local drag = {
@@ -45,10 +45,15 @@ function OverseerSystem:init()
     },
     zones = {
       action1 = function(mouseCoordinates, button)
+        print("ZONE ACITON1")
         self:dragAction(mouseCoordinates, button, true, function(coords, rect)
           self:zones(coords, rect)
         end,
         zoneColor)
+      end,
+      action2 = function(mouseCoordinates, button)
+        print("ZONE action 2")
+        self:getWorld():emit("zoneDeleteClick", mouseCoordinates)
       end
     }
   }
@@ -152,9 +157,14 @@ function OverseerSystem:endDrag(mouseCoordinates)
 end
 
 function OverseerSystem:mapClicked(mouseCoordinates, button, actionType)
-  if not actionType then return end
+  drag.active = false
+  drag.startPoint = nil
+  drag.endPoint = nil
+
+  if not actionType or not self.selectedAction then return end
   local actions = self.actionCallbacks[actionType]
   if not actions then return end
+  print("actionType, actions", actionType, actions)
 
   if button == 1 then
     actions.action1(mouseCoordinates, button)
@@ -179,6 +189,10 @@ function OverseerSystem:dragAction(mouseCoordinates, button, fill, callBack, col
 end
 
 function OverseerSystem:mouseReleased(mouseCoordinates, button) --luacheck: ignore
+
+  if not self.selectedAction then return end
+  if not drag.active then return end
+
   if not settings.mouse_toggle_construct then
     self:endDrag(mouseCoordinates)
   end

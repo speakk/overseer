@@ -41,7 +41,8 @@ function BluePrintSystem:generateGUIDraw()
       barSize.x,
       barSize.y)
 
-    local progressRectSize = barSize.x/100*progress
+    --local progressRectSize = barSize.x/100*progress
+    local progressRectSize = barSize.x/100*math.min(progress, 100)
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.rectangle("fill",
       offsetPosition.x,

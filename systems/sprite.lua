@@ -1,10 +1,14 @@
+require("libs.batteries.stable_sort")
+require("libs.batteries.table")
 local inspect = require('libs.inspect')
 local lume = require('libs.lume')
+local Vector = require('libs.brinevector')
+
 local utils = require('utils.utils')
+local media = require('utils.media')
+
 local universe = require('models.universe')
 local camera = require('models.camera')
-local media = require('utils.media')
-local Vector = require('libs.brinevector')
 local entityManager = require('models.entityManager')
 
 local SpriteSystem = ECS.System( { pool = { "sprite", "position" } })
@@ -18,7 +22,9 @@ end
 function SpriteSystem:customDraw(l, t, w, h)
   self.tilesetBatch:clear()
   -- TODO: OPTIMIZE THIS SUCKER
-  local zSorted = lume.sort(self.pool, function(a, b) return a.position.vector.y < b.position.vector.y end)
+  local zSorted = table.insertion_sort(table.copy(self.pool), function(a, b) return a.position.vector.y < b.position.vector.y end)
+  --local zSorted = lume.sort(self.pool, function(a, b) return a.position.vector.y < b.position.vector.y end)
+  --(self.pool, function(a, b) return a.position.vector.y < b.position.vector.y end)
   for _, entity in ipairs(zSorted) do
     self:drawEntity(l, t, w, h, entity)
   end

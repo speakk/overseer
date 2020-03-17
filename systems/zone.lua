@@ -1,3 +1,4 @@
+require('libs.batteries.functional')
 local Vector = require('libs.brinevector')
 local lume = require('libs.lume')
 local universe = require('models.universe')
@@ -93,6 +94,10 @@ function ZoneSystem:generateGUIDraw()
       love.graphics.setColor(1, 1, 1, 1)
     end
 
+    if entity.zone.hilighted then
+      love.graphics.setColor(1,1,1,1)
+    end
+
     love.graphics.rectangle("line",
       startPoint.x,
       startPoint.y,
@@ -114,6 +119,38 @@ function ZoneSystem:generateGUIDraw()
       endPoint.x - startPoint.x,
       endPoint.y - startPoint.y
     )
+  end
+end
+
+function ZoneSystem:mousemoved(x, y, dx, dy, istouch)
+  for _, entity in ipairs(self.pool) do
+    local rect = entity.rect
+    local left = universe.gridPositionToPixels(math.min(rect.x1, rect.x2))
+    local top = universe.gridPositionToPixels(math.min(rect.y1, rect.y2))
+    local right = universe.gridPositionToPixels(math.max(rect.x1, rect.x2))
+    local bottom = universe.gridPositionToPixels(math.max(rect.y1, rect.y2))
+
+    local globalX, globalY = camera:toWorld(x, y)
+
+    if globalX > left and
+      globalX < right and
+      globalY > top and
+      globalY < bottom then
+      entity.zone.hilighted = true
+    else
+      entity.zone.hilighted = false
+    end
+  end
+end
+
+function ZoneSystem:zoneDeleteClick(mouseCoordinates)
+  print("zoneDeleteClick!")
+  local hilighted = table.filter(self.pool, function(entity) return entity.zone.hilighted end)
+  print("hilighted!!", hilighted, #hilighted)
+  if #hilighted > 0 then
+    for _, entity in ipairs(hilighted) do
+      entity:destroy()
+    end
   end
 end
 
