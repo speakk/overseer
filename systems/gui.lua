@@ -25,12 +25,14 @@ local function buildMenuHierarchy(self, items, key, path)
         requirements = requirements .. ", "
       end
     else
-      requirements = requirements .. '-'
+      requirements = nil
     end
 
     local selectionMatch = path == self.dataSelector
     local sel = { value = selectionMatch}
-    if ui:selectable(items.name .. ", " .. requirements, sel) then
+    local name = items.name
+    if requirements then name = name .. ", " .. requirements end
+    if ui:selectable(name, sel) then
       if sel.value then
 
         self.dataSelector = path
