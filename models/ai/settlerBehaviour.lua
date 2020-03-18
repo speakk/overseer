@@ -60,18 +60,13 @@ local doWork = {
   end,
 
   run = function(task, blackboard)
-    --local job = entityManager.get(blackboard.actor.work.jobId)
-    --local jobType = job.job.jobType
-    --print("Running work!", jobType)
     -- TODO: Properly hceck if the work the succeeded and handle somehow
     if not blackboard.currentWork then
       return task:fail()
     end
     blackboard.currentWork.object.treeDt = blackboard.treeDt
     blackboard.currentWork:run()
-    --print("finished?", blackboard.currentWork.object.finished)
     if not blackboard.currentWork.object.finished then
-      --print("Work: running")
       return task:running()
     else
       print("Work: success")
