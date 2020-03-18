@@ -45,7 +45,7 @@
 - [ ] Syncing all dt dependant activity to also take into account world time
 - [ ] Handle the world in chunks
 
-#Long term goals
+# Long term goals
 - [ ] Research progression
 - [ ] A point to the game (lol)
 - [ ] A vibe (l o l)
