@@ -3,7 +3,7 @@ A colony manager simulator inspired by games like Dwarf Fortress and Rimworld.
 
 Implemented using lua/love.
 
-Heavily work in progress.
+Heavily work in progress. [TODO](./TODO.md)
 
 ![Screenshot](./media/screenshots/screen1.jpg)
 
