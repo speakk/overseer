@@ -75,10 +75,11 @@ local doWork = {
       return task:running()
     else
       print("Work: success")
-      local job = entityManager.get(blackboard.actor.work.jobId)
+      local work = blackboard.actor.work
+      if not work then return task:success() end
+      local job = entityManager.get(work.jobId)
+      if not job then return task:success() end
       local jobType = job.job.jobType
-      --blackboard.world:emit("treeFinished", blackboard.actor, jobType)
-      blackboard.world:emit("finishWork", blackboard.actor, blackboard.actor.work.jobId)
       blackboard.world:emit("jobFinished", job)
       return task:success()
     end

@@ -68,7 +68,8 @@ function MapSystem:cancelConstruction(entities)
   for _, entity in ipairs(entities) do
       if entity.construction then
         if not entity.job or not entity.job.jobType == "destruct" then
-          entity:give("job", "destruct")
+          -- TODO: Using immediateDestroy here, but really should do destructFinished
+          entity:give("job", "destruct", "immediateDestroy")
         end
       else
         recursiveDelete(self, entity)

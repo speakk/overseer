@@ -1,5 +1,6 @@
-local job = ECS.Component(..., function(component, jobType)
+local job = ECS.Component(..., function(component, jobType, finishEvent)
   component.jobType = jobType or error("Job needs jobType")
+  component.finishEvent = finishEvent
   component.target = nil
   component.reserved = false
   component.finished = false

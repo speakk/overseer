@@ -5,25 +5,29 @@ local entityManager = require('models.entityManager')
 local universe = require('models.universe')
 local BluePrintSystem = ECS.System({pool = {"bluePrintJob", "job"}})
 
-local BluePrint = require('models.jobTypes.bluePrint')
+--local BluePrint = require('models.jobTypes.bluePrint')
 
 
 function BluePrintSystem:bluePrintsPlaced(coords, constructionType, selector)
   print("bluePrintsPlaced")
-    for _, position in ipairs(coords) do
-      --local gridPosition = universe.clampToWorldBounds(Vector(node:getX(), node:getY()))
-      if universe.isPositionWalkable(position) then
-        local job, children = BluePrint.generate(position, constructionType, selector)
-        if children then
-          for _, child in ipairs(children) do
-            --local child = entityManager.get(childId)
-            self:getWorld():addEntity(child)
-          end
+  for _, position in ipairs(coords) do
+    --local gridPosition = universe.clampToWorldBounds(Vector(node:getX(), node:getY()))
+    if universe.isPositionWalkable(position) then
+      local job = ECS.Entity():assemble(ECS.a.jobs.bluePrint, position, constructionType, selector)
+      if constructionType.requirements then
+        job:give("children", {})
+        local childrenIds = job.children.children
+        for selector, amount in pairs(constructionType.requirements) do
+          local subJob = ECS.Entity():assemble(ECS.a.jobs.fetch, job.id.id, constructionType, selector)
+          subJob:give("parent", job.id.id)
+          table.insert(childrenIds, subJob.id.id)
+          self:getWorld():addEntity(subJob)
         end
-        self:getWorld():addEntity(job)
-        --self:getWorld():emit("jobAdded", job)
       end
+      self:getWorld():addEntity(job)
+      --self:getWorld():emit("jobAdded", job)
     end
+  end
 end
 
 function BluePrintSystem:generateGUIDraw()
@@ -53,6 +57,21 @@ function BluePrintSystem:generateGUIDraw()
   end
 end
 
+function BluePrintSystem:finish(job)
+  job:give("collision")
+  job:give("construction", 100)
+  job:remove("transparent")
+
+  local itemData = job.item.itemData
+
+  if itemData.components then
+    for _, component in ipairs(itemData.components) do
+      if component.afterConstructed then
+        job:give(component.name, unpack(component.properties))
+      end
+    end
+  end
+end
 
 local buildProgressSpeedModifier = 5
 function BluePrintSystem:bluePrintProgress(bluePrintComponent, amount)

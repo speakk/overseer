@@ -3,37 +3,26 @@ local lume = require('libs.lume')
 local utils = require('utils.utils')
 
 local jobManager = require('models.jobManager')
-local jobHandlers = require('models.jobTypes.jobTypes')
 
 local entityManager = require('models.entityManager')
 
 local JobSystem = ECS.System({ jobs = { "job" }})
 
 local function onJobAdded(self, pool, job)
-  -- if not job.parent then
-  --   table.insert(self.jobs, job)
-  --   job:getWorld():emit("jobQueueUpdated", self:getUnreservedJobs())
-  -- end
   jobManager.updateJobs(pool)
 end
 
 local function onJobRemoved(self, pool, job)
-  -- if not job.parent then
-  --   table.insert(self.jobs, job)
-  --   job:getWorld():emit("jobQueueUpdated", self:getUnreservedJobs())
-  -- end
   jobManager.updateJobs(pool)
 end
 
 function JobSystem:init()
-  -- self.jobs = {}
   self.jobs.onEntityAdded = function(pool, job)
     onJobAdded(self, pool, job)
   end
   self.jobs.onEntityRemoved = function(pool, job)
     onJobRemoved(self, pool, job)
   end
-  --TODO: onEntityRemoved
 end
 
 local function printJob(job, level, y)
@@ -91,24 +80,6 @@ function JobSystem:draw()
   end
 end
 
--- function JobSystem:getNextUnreservedJob()
---   for _, job in ipairs(self.jobs) do
---     if not job.parent then -- Only go through tree roots
---       local jobComponent = job.job
---       if not jobComponent.reserved and not jobComponent.finished then
---         local firstSubJob = self:getFirstSubJob(job)
---         if firstSubJob then
---           local subJobComponent = firstSubJob.job
---           --return firstSubJob
---           if not subJobComponent.finished and not subJobComponent.isInaccessible then
---             if not subJobComponent.reserved and subJobComponent.canStart then return firstSubJob end
---           end
---         end
---       end
---     end
---   end
--- end
-
 local function getChildren(job)
   if job.children then
     return lume.map(job.children.children, function(childId)
@@ -129,85 +100,42 @@ function JobSystem:gridUpdated()
   end
 end
 
--- function JobSystem:getUnreservedJobs()
---   local unreservedJobs = {}
---   for _, job in ipairs(self.jobs) do
---     if not job.parent and job.job then -- Only go through tree roots
---       local jobComponent = job.job
---       if not jobComponent.reserved and not jobComponent.finished then
---         local firstSubJob = self:getFirstSubJob(job)
---         if firstSubJob then
---           local subJobComponent = firstSubJob.job
---           --return firstSubJob
---           if not subJobComponent.finished then
---             if not subJobComponent.reserved and subJobComponent.canStart then
---               table.insert(unreservedJobs, firstSubJob)
---             end
---           end
---         end
---       end
---     end
---   end
--- 
---   print("Returning", unreservedJobs)
---   return unreservedJobs
--- end
+function JobSystem:startJob(worker, job, jobQueue) -- luacheck: ignore
+  job.job.reserved = worker.id.id
+  worker:give("work", job.id.id)
+  lume.remove(jobQueue, job)
+end
 
--- function JobSystem:getFirstSubJob(job)
---   local allChildrenFinished = true
--- 
---   if job.children then
---     local childrenIds = job.children.children
---     for _, childId in ipairs(childrenIds) do
---       local child = entityManager.get(childId)
---       local firstChildJob = self:getFirstSubJob(child)
---       if firstChildJob then
---         local firstChildJobComponent = firstChildJob.job
---         if firstChildJobComponent then
---           if not firstChildJobComponent.finished then
---             allChildrenFinished = false
---             if not firstChildJobComponent.reserved then
---               return firstChildJob
---             end
---           end
---         end
---       end
---     end
---   end
--- 
---   if allChildrenFinished then
---     local jobComponent = job.job
---     if jobComponent then
---       jobComponent.canStart = true
---     end
---   end
--- 
---   return job
--- end
+function JobSystem:jobFinished(entity) --luacheck: ignore
+  print("Finishing job", entity)
 
-function JobSystem:jobFinished(job) --luacheck: ignore
-  print("Finishing job", job)
-  local jobComponent = job.job
+  local worker = entityManager.get(entity.job.reserved)
+  worker:remove("work")
+
+  local jobComponent = entity.job
   if not jobComponent then
     print("jobFinished but NO jobComponent, something went WRONG")
     return
   end
+
   jobComponent.finished = true
   jobComponent.reserved = false
-  job:remove("job")
-  -- if job.parent then
-  --   jobComponent.finished = true
-  --   jobComponent.reserved = false
-  -- else
-  --   job:remove("job")
-  -- end
 
-  --self:getWorld():emit("jobQueueUpdated", jobManager.getUnreservedJobs(self.jobs))
+  local finishEvent = jobComponent.finishEvent
+  if finishEvent then
+    self:getWorld():emit(finishEvent, entity, self:getWorld())
+  end
+
+  entity:remove("job")
 end
 
---function JobSystem:addJob(job)
---  table.insert(self.jobs, job)
---  self:getWorld():emit("jobQueueUpdated", self:getUnreservedJobs())
---end
+function JobSystem:cancelConstruction(entities)
+  for _, job in ipairs(entities) do
+    local worker = entityManager.get(job.job.reserved)
+    if worker then
+      worker:remove("work")
+    end
+  end
+end
 
 return JobSystem

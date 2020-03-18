@@ -27,6 +27,13 @@ ECS.Entity = Concord.entity
 Concord.utils.loadNamespace("components")
 ECS.Systems = Concord.utils.loadNamespace("systems", {})
 
+ECS.a = {
+  jobs = {},
+  creatures = {}
+}
+Concord.utils.loadNamespace("assemblages/jobs", ECS.a.jobs)
+Concord.utils.loadNamespace("assemblages/creatures", ECS.a.creatures)
+
 --Concord.loadComponents("components")
 --Concord.loadSystems("systems")
 
