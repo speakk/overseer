@@ -6,19 +6,16 @@ local universe = require('models.universe')
 local jobManager = require('models.jobManager')
 local entityManager = require('models.entityManager')
 
-return function(settler, gridPosition)
+return function(settler, gridPosition, name)
   local worldSize = universe.getSize()
 
-  settler:give("position", universe.gridPositionToPixels(gridPosition))
+  settler:assemble(ECS.a.creatures.creature, gridPosition)
   :give("sprite", 'characters.settler1_01')
-  :give("id", entityManager.generateId())
   :give("settler")
   :give("ai", 'settler')
-  :give("speed", 300)
-  :give("name", "Settler")
+  :give("name", name)
   :give("inventory")
   :give("worker")
-  :give("velocity")
   :give("animation", {
     walk = {
       targetComponent = 'sprite',

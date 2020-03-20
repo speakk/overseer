@@ -38,6 +38,7 @@ function loading:enter(from, existingSave)
   else
     self.world:addSystems(ECS.Systems.settler)
     self.world:getSystem(ECS.Systems.settler):initializeTestSettlers()
+    self.world:getSystem(ECS.Systems.settler):initializeTestCreatures()
     self.world:getSystem(ECS.Systems.item):initializeTestItems(self.universe:getSize())
     self.world:getSystem(ECS.Systems.item):initializeTestTrees(self.universe:getSize())
     self.world:getSystem(ECS.Systems.item):initializeTestShrubbery(self.universe:getSize())

@@ -50,6 +50,21 @@ local mediaDB = {
     },
   },
   {
+    name = "creatures",
+    items = {
+      {
+        fileName = 'crawler1',
+        originX = 0.5,
+        originY = 0.6
+      },
+      {
+        fileName = 'crawler2',
+        originX = 0.5,
+        originY = 0.6
+      }
+    }
+  },
+  {
     name = "items",
     items = { 'torch01' }
   },
@@ -64,6 +79,16 @@ local mediaDB = {
   {
     name = "misc",
     items = { "daycycle" }
+  },
+  {
+    name = "gore",
+    items = {
+      {
+        fileName = 'blood1',
+        originX = 0.5,
+        originY = 0.8
+      },
+    }
   }
 }
 

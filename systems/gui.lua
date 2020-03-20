@@ -5,14 +5,83 @@ local Vector = require('libs.brinevector')
 
 local camera = require("models.camera")
 
+local ui
+local uiState
 local constructionTypes = require('data.constructionTypes')
 
 local menuWidth = 400
 local menuHeight = 300
 
-local ui
+local config = {
+  settlerListWindow = { w = 400, h = 400 },
+  settlerWindow = { w = 400, h = 400 },
+}
 
-local GUISystem = ECS.System()
+local function drawSettlerListWindow(self, state)
+  ui:windowBegin("Settlers", 30, love.graphics.getHeight() - settings.actions_bar_height - config.settlerListWindow.h, config.settlerListWindow.w, config.settlerListWindow.h, { 'title', 'scrollbar' })
+  for _, entity in ipairs(self.settlers) do
+    local name = entity.name.name
+    ui:layoutRowBegin('dynamic', 30, 3)
+    ui:layoutRowPush(0.33)
+    if ui:button(name) then
+      uiState.selectedSettler = entity
+    end
+    ui:label("Health", 'right')
+    ui:stylePush({progress={['cursor normal']=nuklear.colorRGBA(100,255,100)}})
+    ui:progress(entity.health.value, 100)
+    ui:stylePop()
+    ui:layoutRowEnd()
+
+  end
+  ui:windowEnd()
+end
+
+
+uiState = {
+  selectedSettler = nil,
+  menuHierarchy = {
+    {
+      name = "Build",
+      id = "build",
+      shortCut = "q",
+      subItems = constructionTypes.data
+    },
+    {
+      name = "Zones",
+      id = "zones",
+      shortCut = "e",
+      subItems = {
+        farming = {
+          name = "Farming",
+          subItems = {
+            potato = {
+              name = "Potato",
+              params = {
+                types = {"construct", "harvest"},
+                selector = "growing.potato"
+              }
+            }
+          }
+        },
+        chopTrees = {
+          name = "Chop trees",
+          params = {
+            types = { "deconstruct" },
+            selector = "growing.tree"
+          }
+        }
+      }
+    },
+    {
+      name = "Settlers",
+      id = "settlers",
+      shortCut = "r",
+      draw = drawSettlerListWindow
+    }
+  }
+}
+
+local GUISystem = ECS.System( {settlers = { "settler" } })
 
 local function buildMenuHierarchy(self, items, key, path)
   if path and string.len(path) > 0 then path = path .. "." .. key else path = key end
@@ -56,45 +125,6 @@ function GUISystem:init()
   self.selectedAction = nil
   self.dataSelector = nil
 
-  self.menuHierarchy = {
-    {
-      name = "Build",
-      id = "build",
-      shortCut = "q",
-      subItems = constructionTypes.data
-    },
-    {
-      name = "Zones",
-      id = "zones",
-      shortCut = "e",
-      subItems = {
-        farming = {
-          name = "Farming",
-          subItems = {
-            potato = {
-              name = "Potato",
-              params = {
-                types = {"construct", "harvest"},
-                selector = "growing.potato"
-              }
-            }
-          }
-        },
-        chopTrees = {
-          name = "Chop trees",
-          params = {
-            types = { "deconstruct" },
-            selector = "growing.tree"
-          }
-        }
-      }
-    },
-    {
-      name = "Settlers",
-      id = "settlers",
-      subItems = {}
-    }
-  }
 end
 
 function GUISystem:update(dt) --luacheck: ignore
@@ -105,7 +135,7 @@ function GUISystem:update(dt) --luacheck: ignore
 
   if ui:windowBegin('actions_bar', 0, windowHeight-actionsBarHeight, windowWidth, actionsBarHeight) then
     ui:layoutRow('dynamic', actionsBarHeight-10, 10)
-    for _, menuItem in ipairs(self.menuHierarchy) do
+    for _, menuItem in ipairs(uiState.menuHierarchy) do
       local sel = { value = menuItem.id == self.selectedAction }
       if ui:selectable(menuItem.name .. ' (' .. (menuItem.shortCut or '') .. ')', sel) then
         if sel.value then
@@ -120,17 +150,51 @@ function GUISystem:update(dt) --luacheck: ignore
   end
   ui:windowEnd()
 
-  for _, menuItem in pairs(self.menuHierarchy) do
+  for _, menuItem in pairs(uiState.menuHierarchy) do
     if self.selectedAction == menuItem.id then
-      if ui:windowBegin('menu', 0, windowHeight-menuHeight-actionsBarHeight, menuWidth, menuHeight) then
-        for key, subItem in pairs(menuItem.subItems) do
-          buildMenuHierarchy(self, subItem, key)
+      if menuItem.subItems then
+        if ui:windowBegin('menu', 0, windowHeight-menuHeight-actionsBarHeight, menuWidth, menuHeight) then
+          for key, subItem in pairs(menuItem.subItems) do
+            buildMenuHierarchy(self, subItem, key)
+          end
+          ui:windowEnd()
         end
-        ui:windowEnd()
+      end
+
+      if menuItem.draw then
+        menuItem.draw(self)
       end
     end
   end
+
+  self:renderWindows(uiState)
   ui:frameEnd()
+end
+
+function GUISystem:renderWindows(uiState)
+  if uiState.selectedSettler then
+    local settler = uiState.selectedSettler
+    if ui:windowBegin("Settler: " .. settler.name.name, 30, 30, config.settlerWindow.w, config.settlerWindow.h, { 'title', 'movable', 'closable' }) then
+      ui:layoutRowBegin('dynamic', 30, 2)
+      ui:layoutRowPush(0.5)
+      ui:label("Health")
+      ui:stylePush({progress={['cursor normal']=nuklear.colorRGBA(100,255,100)}})
+      ui:progress(settler.health.value, 100)
+      ui:stylePop()
+      ui:layoutRowEnd()
+      ui:layoutRowBegin('dynamic', 30, 2)
+      ui:layoutRowPush(0.5)
+      ui:label("Satiation level")
+      ui:stylePush({progress={['cursor normal']=nuklear.colorRGBA(200,200,100)}})
+      ui:progress(settler.satiety.value, 100)
+      ui:stylePop()
+      ui:layoutRowEnd()
+      ui:windowEnd()
+    else
+      print("Setting selectedSettler to nil")
+      uiState.selectedSettler = nil
+    end
+  end
 end
 
 function GUISystem:guiDraw() --luacheck: ignore
@@ -155,7 +219,7 @@ end
 
 
 function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
-  for _, menuItem in pairs(self.menuHierarchy) do
+  for _, menuItem in pairs(uiState.menuHierarchy) do
     if menuItem.shortCut == pressedKey then
       menuItem.selected = not menuItem.selected
       if menuItem.selected then
@@ -185,6 +249,12 @@ end
 
 function GUISystem:mousemoved(x, y, dx, dy, istouch) --luacheck: ignore
   ui:mousemoved(x, y, dx, dy, istouch)
+end
+
+function GUISystem:wheelmoved(x, y)
+  if not ui:wheelmoved(x, y) then
+    self:getWorld():emit("wheelmoved_pass", x, y)
+  end
 end
 
 return GUISystem

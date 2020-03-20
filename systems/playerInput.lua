@@ -34,7 +34,7 @@ function PlayerInputSystem:update(dt)
   self:getWorld():emit("cameraPositionChanged", camera:getPosition())
 end
 
-function PlayerInputSystem:wheelmoved(x, y) --luacheck: ignore
+function PlayerInputSystem:wheelmoved_pass(x, y) --luacheck: ignore
   local zoomSpeed = 0.3
   local maxZoom = 4
   local minZoom = 0.1

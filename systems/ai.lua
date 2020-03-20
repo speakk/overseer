@@ -5,7 +5,8 @@ local AISystem = ECS.System({ai = {"ai"}})
 
 local behaviours = {
   --idle = require('models.ai.idleBehaviour').createTree,
-  settler = require('models.ai.settlerBehaviour').createTree
+  settler = require('models.ai.settlerBehaviour').createTree,
+  animal = require('models.ai.animalBehaviour').createTree
 }
 
 local attachedBehaviours = {}

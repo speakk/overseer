@@ -10,6 +10,9 @@ local settlerSpeed = 200
 
 local SettlerSystem = ECS.System({ pool = { "settler", "worker", "position", "velocity" } })
 
+local frontNames = { "Herbert", "George", "Rebecca", "Suzanne", "Korb", "Lily", "Mark", "Bran", "Mary", "Aloysius", "Marshal" }
+local lastNames = { "Mallory", "Rombert", "Bluelie", "Smith", "Knob", "Wallace", "Stratham", "Prism" }
+
 function SettlerSystem:initializeTestSettlers()
   for _ = 1,20,1 do
     local worldSize = universe.getSize()
@@ -20,8 +23,23 @@ function SettlerSystem:initializeTestSettlers()
         break
       end
     end
-    local settler = ECS.Entity():assemble(ECS.a.creatures.settler, position)
+    local settler = ECS.Entity():assemble(ECS.a.creatures.settler, position, lume.randomchoice(frontNames) .. " " .. lume.randomchoice(lastNames))
     self:getWorld():addEntity(settler)
+  end
+end
+
+function SettlerSystem:initializeTestCreatures()
+  for _ = 1,20,1 do
+    local worldSize = universe.getSize()
+    local position
+    while true do
+      position = universe.clampToWorldBounds(Vector(math.random(worldSize.x), math.random(worldSize.y)))
+      if universe.isPositionWalkable(position) then
+        break
+      end
+    end
+    local creature = ECS.Entity():assemble(ECS.a.creatures.crawler, position)
+    self:getWorld():addEntity(creature)
   end
 end
 

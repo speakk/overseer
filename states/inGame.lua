@@ -57,6 +57,8 @@ function inGame:init()
       ECS.Systems.light,
       ECS.Systems.playerInput,
       ECS.Systems.overseer,
+      ECS.Systems.satiety,
+      ECS.Systems.health,
       ECS.Systems.gui,
       ECS.Systems.camera,
       ECS.Systems.draw,

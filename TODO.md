@@ -22,7 +22,10 @@
 - [ ] Health and dying (sorry guys)
 
 ## Other entities
-- [ ] Animals
+- [x] Animals
+
+## Creature features
+- [ ] Breeding
 
 ## GUI and "New game" experience
 - [ ] Choosing / seeing your settlers
