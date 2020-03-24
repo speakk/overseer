@@ -17,54 +17,58 @@ function ItemSystem:initializeTestItems(mapSize)
 
   for i=1,40,1 do  --luacheck: ignore
     local position = Vector(math.random(mapSize.x), math.random(mapSize.y))
-    local keys1 = lume.keys(randomTable)
-    local key = keys1[math.random(#keys1)]
-    local category = randomTable[key]
-    local itemName = category[math.random(#category)]
-    local selector = key .. "." .. itemName
-    local amount = 100
-    local item = itemUtils.createItem(selector, amount)
-    item:give("onMap")
-    item:give("position", universe.gridPositionToPixels(position))
-    --self:getWorld():addEntity(item)
-    --itemUtils.placeItemOnGround(item, position)
+    if universe.isPositionWalkable(position) then
+      local keys1 = lume.keys(randomTable)
+      local key = keys1[math.random(#keys1)]
+      local category = randomTable[key]
+      local itemName = category[math.random(#category)]
+      local selector = key .. "." .. itemName
+      local amount = 100
+      local item = itemUtils.createItem(selector, amount)
+      item:give("onMap")
+      item:give("position", universe.gridPositionToPixels(position))
+      --self:getWorld():addEntity(item)
+      --itemUtils.placeItemOnGround(item, position)
+    end
   end
 end
 
 function ItemSystem:initializeTestTrees(mapSize)
-  for i=1,50,1 do  --luacheck: ignore
+  for i=1,400,1 do  --luacheck: ignore
     local position = Vector(love.math.random(mapSize.x), love.math.random(mapSize.y))
-    local selector = "growing.tree"
-    local rawWood = itemUtils.createItem('raw_materials.wood', 2)
-    local entity = ECS.Entity()
-    entity:give("sprite", "vegetation.tree01")
-    :give("onMap")
-    :give("collision")
-    :give("id", entityManager.generateId())
-    :give("construction", 100)
-    --:give("occluder")
-    :give("selector", selector)
-    :give("inventory", { rawWood.id.id })
-    :give("position", universe.gridPositionToPixels(position))
-    :give("animation", {
-      idle = {
-        targetComponent = 'sprite',
-        targetProperty = 'selector',
-        interpolate = false,
-        repeatAnimation = true,
-        values = {
-          "vegetation.tree01", "vegetation.tree01b"
-        },
-        currentValueIndex = love.math.random(1,2),
-        frameLength = 0.4, -- in ms
-        lastFrameUpdate = love.timer.getTime(),
-        finished = false
-      }
-    },
-    {
-      'idle'
-    })
-    self:getWorld():addEntity(entity)
+    if universe.isPositionWalkable(position) then
+      local selector = "growing.tree"
+      local rawWood = itemUtils.createItem('raw_materials.wood', 2)
+      local entity = ECS.Entity()
+      entity:give("sprite", "vegetation.tree01")
+      :give("onMap")
+      :give("collision")
+      :give("id", entityManager.generateId())
+      :give("construction", 100)
+      --:give("occluder")
+      :give("selector", selector)
+      :give("inventory", { rawWood.id.id })
+      :give("position", universe.gridPositionToPixels(position))
+      :give("animation", {
+        idle = {
+          targetComponent = 'sprite',
+          targetProperty = 'selector',
+          interpolate = false,
+          repeatAnimation = true,
+          values = {
+            "vegetation.tree01", "vegetation.tree01b"
+          },
+          currentValueIndex = love.math.random(1,2),
+          frameLength = 0.4, -- in ms
+          lastFrameUpdate = love.timer.getTime(),
+          finished = false
+        }
+      },
+      {
+        'idle'
+      })
+      self:getWorld():addEntity(entity)
+    end
     --itemUtils.placeItemOnGround(item, position)
   end
 end

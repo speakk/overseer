@@ -4,9 +4,8 @@ local inspect = require('libs.inspect')
 local AISystem = ECS.System({ai = {"ai"}})
 
 local behaviours = {
-  --idle = require('models.ai.idleBehaviour').createTree,
-  settler = require('models.ai.settlerBehaviour').createTree,
-  animal = require('models.ai.animalBehaviour').createTree
+  settler = require('models.ai.settler').createTree,
+  animal = require('models.ai.animal').createTree
 }
 
 local attachedBehaviours = {}

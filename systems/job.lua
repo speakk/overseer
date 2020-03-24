@@ -131,9 +131,11 @@ end
 
 function JobSystem:cancelConstruction(entities)
   for _, job in ipairs(entities) do
-    local worker = entityManager.get(job.job.reserved)
-    if worker then
-      worker:remove("work")
+    if job.job then
+      local worker = entityManager.get(job.job.reserved)
+      if worker then
+        worker:remove("work")
+      end
     end
   end
 end

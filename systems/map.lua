@@ -4,7 +4,7 @@ local inspect = require('libs.inspect') --luacheck: ignore
 local Vector = require('libs.brinevector') --luacheck: ignore
 
 local MapSystem = ECS.System({
-  collision = { "collision" },
+  collision = { "collision", "position" },
   onMap = { "onMap", "position" },
   onMapItem = {"onMap", "position", "selector" },
   occluder = {"onMap", "position", "occluder" }

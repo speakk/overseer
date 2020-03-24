@@ -51,7 +51,7 @@ function ItemUtils.createItem(selector, amount)
     item:give(component.name, unpack(component.properties))
   end
 
-  print("Adding to world", item.id.id)
+  print("Adding to world", selector)
   ItemUtils.world:addEntity(item)
   ItemUtils.world:__flush()
 

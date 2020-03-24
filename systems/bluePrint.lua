@@ -57,7 +57,7 @@ function BluePrintSystem:generateGUIDraw()
   end
 end
 
-function BluePrintSystem:finish(job)
+function BluePrintSystem:jobFinished(job)
   job:give("collision")
   job:give("construction", 100)
   job:remove("transparent")

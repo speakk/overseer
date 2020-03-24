@@ -70,19 +70,13 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
     validNode = false
   end
 
-  -- -- TODO: Proper handling of invalid path
-  -- if not validNode then
-  --   print("Something went wrong, no valid node next")
-  --   --entity:remove("path")
-  --   pathComponent.finished = true 
-  --   return
-  -- end
-
   local nextPosition = universe.gridPositionToPixels(nextGridPosition, "center", 2)
-  local angle = math.atan2(nextPosition.y - position.y, nextPosition.x - position.x)
-  velocityComponent.vector = Vector(math.cos(angle), math.sin(angle)).normalized
+  local diffVector = (nextPosition - position)
+  local length = diffVector.length
+  velocityComponent.vector = diffVector.normalized
 
-  if universe.isInPosition(universe.pixelsToGridCoordinates(position), nextGridPosition) then
+  if length < 32 then
+  --if universe.isInPosition(universe.pixelsToGridCoordinates(position), nextGridPosition) then
     --print("currentIndex", pathComponent.currentIndex, "length:", #pathComponent.path._nodes)
     if pathComponent.currentIndex == #pathComponent.path._nodes then
       self:getWorld():emit("pathFinished", entity)
@@ -90,7 +84,6 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
       return
     end
 
-    --print("We are in position for the next path node, advance index")
     pathComponent.currentIndex = pathComponent.currentIndex + 1
   end
 

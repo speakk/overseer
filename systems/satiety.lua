@@ -2,7 +2,7 @@ local Vector = require('libs.brinevector')
 -- Create a System class as lovetoys.System subclass.
 local SatietySystem = ECS.System({ pool = { "satiety" } })
 
-local hungerSpeed = 10
+local hungerSpeed = 0.1
 local maxSatiety = 100
 
 function SatietySystem:update(dt)

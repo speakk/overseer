@@ -12,10 +12,9 @@ local AtTarget = require('models.ai.sharedActions.atTarget')
 local GetTreeDt = require('models.ai.sharedActions.getTreeDt')
 
 local behaviours = {
-  --idle = require('models.ai.idleBehaviour').createTree,
-  fetch = require('models.ai.fetchBehaviour').createTree,
-  bluePrint = require('models.ai.bluePrintBehaviour').createTree,
-  destruct = require('models.ai.destructBehaviour').createTree
+  fetch = require('models.ai.task.fetch').createTree,
+  bluePrint = require('models.ai.task.bluePrint').createTree,
+  destruct = require('models.ai.task.destruct').createTree
 }
 
 local checkJobs = {
@@ -99,10 +98,11 @@ local idle = {
         local currentPosition = universe.pixelsToGridCoordinates(blackboard.actor.position.vector)
         local radius = 10
         local nextPosition = Vector(love.math.random(currentPosition.x - radius, currentPosition.x + radius), love.math.random(currentPosition.y - radius, currentPosition.y + radius))
-        if nextPosition.x < 1 then nextPosition.x = 1 end
-        if nextPosition.x > universeSize.x then nextPosition.x = universeSize.x end
-        if nextPosition.y < 1 then nextPosition.y = 1 end
-        if nextPosition.y > universeSize.y then nextPosition.y = universeSize.y end
+        if nextPosition.x < 1 then nextPosition.x = 2 end
+        if nextPosition.x > universeSize.x then nextPosition.x = universeSize.x-1 end
+        if nextPosition.y < 1 then nextPosition.y = 2 end
+        if nextPosition.y > universeSize.y then nextPosition.y = universeSize.y-1 end
+        --print("currentPosition, nextPosition", currentPosition, nextPosition)
         blackboard.idleTarget:give("position", universe.gridPositionToPixels(nextPosition))
         blackboard.target = blackboard.idleTarget
         blackboard.lastIdleRandomTick = currentTime

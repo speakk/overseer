@@ -15,6 +15,9 @@ while true do
   grid = Grid(pathFindObject.map)
   finder = Pathfinder(grid, 'JPS', 0)
 
+  local width = grid:getWidth()
+  local height = grid:getHeight()
+
   local toNode = grid:getNodeAt(pathFindObject.toX, pathFindObject.toY)
 
   --if pathFindObject.searchNeighbours then

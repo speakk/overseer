@@ -4,7 +4,7 @@ local bresenham = require('libs.bresenham')
 local universe = require('models.universe')
 local camera = require('models.camera')
 
-local LightSystem = ECS.System({ pool = { "light" }})
+local LightSystem = ECS.System({ pool = { "light", "position" }})
 
 local lightGradientImage = love.graphics.newImage("media/misc/light_gradient.png")
 local lightCircleImage = love.graphics.newImage("media/misc/light_circle.png")
@@ -16,6 +16,7 @@ local universeSize = universe.getSize()
 local cellSize = universe.getCellSize()
 local lightCanvas = love.graphics.newCanvas(universeSize.x, universeSize.y+1)
 local lightAmbientMixCanvas = love.graphics.newCanvas(universeSize.x+1, universeSize.y+1)
+lightAmbientMixCanvas:setFilter("nearest", "linear")
 
 local ambientColor = { 0.0, 0.0, 0.1, 1.0 }
 
@@ -24,15 +25,17 @@ function LightSystem:init()
 end
 
 function LightSystem:initializeTestLights()
-  for _=1,3 do
+  local mapSize = universe.getSize()
+  for _=1,6 do
     local light = ECS.Entity()
-    light:give("position",
-      universe.snapPixelToGrid(
-        Vector(love.math.random((universeSize.x-1)*cellSize)+cellSize, love.math.random((universeSize.y-1)*cellSize)+cellSize)))
-    light:give("sprite", "items.torch01")
-    light:give("light",
+    local position = Vector(love.math.random(mapSize.x), love.math.random(mapSize.y))
+    if universe.isPositionWalkable(position) then
+      light:give("position", universe.gridPositionToPixels(position))
+      light:give("sprite", "items.torch01")
+      light:give("light",
       { math.ceil(love.math.random()-0.5), math.ceil(love.math.random()-0.5), math.ceil(love.math.random()-0.5)}, 8)
-    self:getWorld():addEntity(light)
+      self:getWorld():addEntity(light)
+    end
   end
 end
 

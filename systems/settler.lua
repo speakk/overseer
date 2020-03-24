@@ -14,7 +14,7 @@ local frontNames = { "Herbert", "George", "Rebecca", "Suzanne", "Korb", "Lily", 
 local lastNames = { "Mallory", "Rombert", "Bluelie", "Smith", "Knob", "Wallace", "Stratham", "Prism" }
 
 function SettlerSystem:initializeTestSettlers()
-  for _ = 1,20,1 do
+  for _ = 1,40 do
     local worldSize = universe.getSize()
     local position
     while true do
@@ -29,7 +29,7 @@ function SettlerSystem:initializeTestSettlers()
 end
 
 function SettlerSystem:initializeTestCreatures()
-  for _ = 1,20,1 do
+  for _ = 1,20 do
     local worldSize = universe.getSize()
     local position
     while true do

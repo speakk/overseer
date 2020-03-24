@@ -1,7 +1,6 @@
 local itemUtils = require('utils.itemUtils')
 local universe = require('models.universe')
 local entityManager = require('models.entityManager')
-local FetchBehaviour = require('models.ai.fetchBehaviour')
 
 return function(subJob, targetId, itemData, selector)
   subJob

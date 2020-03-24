@@ -16,10 +16,10 @@
 - [ ] Sleep
 
 ## Settler existance
-- [ ] Hunger
+- [x] Hunger
 - [ ] Tiredness
 - [x] Skills (very basic)
-- [ ] Health and dying (sorry guys)
+- [x] Health and dying (sorry guys)
 
 ## Other entities
 - [x] Animals
@@ -32,6 +32,9 @@
 - [ ] Mission / world briefing
 - [ ] Making the start menu pretty
 - [ ] Settler manager
+  - [x] Basic window
+  - [ ] Details page
+    - [x] Basic window
 - [ ] Job / work manager
 
 ## Zones

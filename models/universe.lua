@@ -39,6 +39,7 @@ function universe:load(newWorld)
   world = newWorld
   local grassNoiseScale = 0.05
   local foliageNoiseScale = 0.05
+  local waterNoiseScale = 0.04
 
   for y = 1,height,1 do
     local row = {}
@@ -50,29 +51,20 @@ function universe:load(newWorld)
         b = love.math.noise(x + love.math.random(), y + love.math.random()),
         c = love.math.noise(x + love.math.random(), y + love.math.random()),
         grass = cpml.utils.round(love.math.noise(x * grassNoiseScale, y * grassNoiseScale)-0.3),
-        foliage = cpml.utils.round(love.math.noise(x+1 * foliageNoiseScale, y+1 * foliageNoiseScale)-0.44)
+        foliage = cpml.utils.round(love.math.noise(x+1 * foliageNoiseScale, y+1 * foliageNoiseScale)-0.44),
+        water = cpml.utils.round(love.math.noise(x * waterNoiseScale, y * waterNoiseScale)-0.45)
       }
+
+      if colorRow[x].water == 1 then
+        row[x] = 1
+      end 
     end
     map[y] = row
     mapColors[y] = colorRow
   end
 
-  mapColors[1][1].grass = 1
-  mapColors[2][2].grass = 1
-  mapColors[3][3].grass = 1
-
   self.recalculateGrid(map, true)
   pathThreadPool.initializePool(grid, myFinder)
-
-  -- local generateTileName = function(name) return 'media/tiles/' .. name .. '.png' end
-  -- local tiles = {
-  --   generateTileName('grass01'),
-  --   generateTileName('grass02'),
-  --   generateTileName('dirt01')
-  -- }
-  -- local image = love.graphics.newArrayImage(tiles)
-  -- image:setFilter("nearest", "linear") -- this "linear filter" removes some artifacts if we were to scale the tiles
-
 end
 
 function universe.getSize()
@@ -222,21 +214,6 @@ end
 function universe.getPath(from, to, searchNeighbours)
   local pathThread = pathThreadPool.getPathThread(from.x, from.y, to.x, to.y)
   return pathThread
-
-  --local toNodesToCheck = {}
-
-  --if searchNeighbours then
-  --  toNodesToCheck = grid:getNeighbours(toNode)
-  --end
-
-  --table.insert(toNodesToCheck, toNode)
-
-  --for _, node in ipairs(toNodesToCheck) do
-  --  local path = myFinder:getPath(from.x, from.y, node:getX(), node:getY())
-  --  if path then return path end
-  --end
-
-  --return nil
 end
 
 function universe.isInPosition(position, comparePosition, acceptNeighbours)

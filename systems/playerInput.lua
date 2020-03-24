@@ -61,7 +61,7 @@ function PlayerInputSystem:keypressed(pressedKey, scancode, isrepeat) --luacheck
   end
 
   if pressedKey == "x" then
-      debug.debug()
+      PROFILER = not PROFILER
    end
 end
 

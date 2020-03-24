@@ -93,11 +93,10 @@ function inGame:init()
     self.world:emit("registerGUIDrawGenerator", self.world:getSystem(ECS.Systems.serialization),
     self.world:getSystem(ECS.Systems.serialization).generateGUIDraw)
 
-    -- if PROFILER then
-    --   require('systems.profiler')
-    --   self.world:addSystem(ECS.Systems.profiler, "update")
-    --   self.world:addSystem(ECS.Systems.profiler, "draw")
-    -- end
+    if PROFILER then
+      require('systems.profiler')
+      self.world:addSystem(ECS.Systems.profiler)
+    end
     self.world:getSystem(ECS.Systems.light):initializeTestLights()
 
   end
