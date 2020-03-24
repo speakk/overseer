@@ -1,5 +1,3 @@
-local inspect = require('libs.inspect')
-
 local generateTileName = function(category, name) return 'media/' .. category .. '/' .. name .. '.png' end
 
 local mediaDB = {
@@ -93,7 +91,6 @@ local mediaDB = {
 }
 
 local flatMediaDB = {}
-local fileList = {}
 
 local atlasWidth = 1280
 local atlasHeight = 1280

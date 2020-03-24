@@ -2,12 +2,12 @@ local Vector = require('libs.brinevector')
 local Path = require('libs.jumper.core.path')
 local Node = require('libs.jumper.core.node')
 local inspect = require('libs.inspect')
-local universe = require('models.universe')
+local positionUtils = require('models.positionUtils')
 local pathFinder = require('models.pathFinder')
 local PathSystem = ECS.System({ pool = { "path", "position" } })
 
-function PathSystem:update(dt)
-  for i, entity in ipairs(self.pool) do
+function PathSystem:update(dt) --luacheck: ignore
+  for _, entity in ipairs(self.pool) do
     self:processPathFinding(entity)
   end
 end
@@ -20,10 +20,12 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
   velocityComponent.vector = Vector(0, 0)
 
   if not pathComponent.path then
-    --print("No path yet", pathComponent.pathThread, love.timer.getTime() - pathComponent.componentAdded, pathComponent.randomDelay)
-    if not pathComponent.pathThread and love.timer.getTime() - pathComponent.componentAdded > pathComponent.randomDelay then
-      local entityPosition = universe.pixelsToGridCoordinates(entity.position.vector)
-      pathComponent.pathThread = pathFinder.getPathThread(universe.getMap(), entityPosition.x, entityPosition.y, pathComponent.toX, pathComponent.toY)
+    if not pathComponent.pathThread and
+      love.timer.getTime() - pathComponent.componentAdded > pathComponent.randomDelay then
+      local entityPosition = positionUtils.pixelsToGridCoordinates(entity.position.vector)
+      pathComponent.pathThread = pathFinder.getPathThread(
+        positionUtils.getMap(), entityPosition.x, entityPosition.y, pathComponent.toX, pathComponent.toY
+      )
     end
 
     if not pathComponent.pathThread then return end
@@ -57,30 +59,23 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
   if not pathComponent.path._nodes then print("Didn't have _nodes!", inspect(pathComponent.path)) end
   local node = pathComponent.path._nodes[pathComponent.currentIndex]
 
-  local validNode = true
   local nextGridPosition
 
-  if not node then
-    validNode = false
-  else
+  if node then
     nextGridPosition = Vector(node:getX(), node:getY())
   end
 
-  if not nextGridPosition then
-    validNode = false
-  end
-
-  local nextPosition = universe.gridPositionToPixels(nextGridPosition, "center", 2)
+  local nextPosition = positionUtils.gridPositionToPixels(nextGridPosition, "center", 2)
   local diffVector = (nextPosition - position)
   local length = diffVector.length
   velocityComponent.vector = diffVector.normalized
 
   if length < 32 then
-  --if universe.isInPosition(universe.pixelsToGridCoordinates(position), nextGridPosition) then
+  --if positionUtils.isInPosition(positionUtils.pixelsToGridCoordinates(position), nextGridPosition) then
     --print("currentIndex", pathComponent.currentIndex, "length:", #pathComponent.path._nodes)
     if pathComponent.currentIndex == #pathComponent.path._nodes then
       self:getWorld():emit("pathFinished", entity)
-      pathComponent.finished = true 
+      pathComponent.finished = true
       return
     end
 
@@ -97,18 +92,18 @@ function PathSystem:gridUpdated()
     -- Invalidate paths
     if entity.path and entity.path.path then
       local path = entity.path.path
-      if not universe.pathStillValid(path) then
+      if not positionUtils.pathStillValid(path) then
         entity:remove("path")
         entity.searched_for_path = false
         print("Path was not valid, setting 'searched_for_path' to false")
       end
-    else
+    else --luacheck: ignore
       -- Make sure current location is valid
       -- TODO: Uncomment this, please!
       -- local position = entity.position.vector
-      -- local gridCoordinates = universe.pixelsToGridCoordinates(position)
-      -- if not universe.isCellAvailable(gridCoordinates) then
-      --   local newPath = universe.findPathToClosestEmptyCell(gridCoordinates)
+      -- local gridCoordinates = positionUtils.pixelsToGridCoordinates(position)
+      -- if not positionUtils.isCellAvailable(gridCoordinates) then
+      --   local newPath = positionUtils.findPathToClosestEmptyCell(gridCoordinates)
       --   if newPath then
       --     entity:give("path", newPath)
       --   end

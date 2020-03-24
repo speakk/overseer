@@ -8,20 +8,12 @@ local entityManager = require('models.entityManager')
 
 local JobSystem = ECS.System({ jobs = { "job" }})
 
-local function onJobAdded(self, pool, job)
-  jobManager.updateJobs(pool)
-end
-
-local function onJobRemoved(self, pool, job)
-  jobManager.updateJobs(pool)
-end
-
 function JobSystem:init()
-  self.jobs.onEntityAdded = function(pool, job)
-    onJobAdded(self, pool, job)
+  self.jobs.onEntityAdded = function(pool, job) --luacheck: ignore
+    jobManager.updateJobs(pool)
   end
-  self.jobs.onEntityRemoved = function(pool, job)
-    onJobRemoved(self, pool, job)
+  self.jobs.onEntityRemoved = function(pool, job) --luacheck: ignore
+    jobManager.updateJobs(pool)
   end
 end
 
@@ -129,7 +121,7 @@ function JobSystem:jobFinished(entity) --luacheck: ignore
   entity:remove("job")
 end
 
-function JobSystem:cancelConstruction(entities)
+function JobSystem:cancelConstruction(entities) --luacheck: ignore
   for _, job in ipairs(entities) do
     if job.job then
       local worker = entityManager.get(job.job.reserved)

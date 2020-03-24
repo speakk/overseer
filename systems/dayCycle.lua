@@ -21,7 +21,7 @@ function DayCycleSystem:update(dt) --luacheck: ignore
   end
 end
 
-function DayCycleSystem:timeChanged(time, timeOfDay)
+function DayCycleSystem:timeChanged(time, timeOfDay) -- luacheck: ignore
   hour = math.ceil(timeOfDay * 24)
 
   local rotation = timeOfDay * math.pi*2 - math.pi
@@ -43,7 +43,7 @@ function DayCycleSystem:timeChanged(time, timeOfDay)
   love.graphics.pop()
 end
 
-function DayCycleSystem:generateGUIDraw()
+function DayCycleSystem:generateGUIDraw() -- luacheck: ignore
   local w, h = love.graphics.getDimensions()
   love.graphics.setColor(1,1,1,1)
   love.graphics.draw(cycleCanvas, w-120, h-settings.actions_bar_height-50)

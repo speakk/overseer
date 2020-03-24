@@ -6,7 +6,6 @@ local Vector = require('libs.brinevector')
 local camera = require("models.camera")
 
 local ui
-local uiState
 local constructionTypes = require('data.constructionTypes')
 
 local menuWidth = 400
@@ -17,8 +16,9 @@ local config = {
   settlerWindow = { w = 400, h = 400 },
 }
 
-local function drawSettlerListWindow(self, state)
-  ui:windowBegin("Settlers", 30, love.graphics.getHeight() - settings.actions_bar_height - config.settlerListWindow.h, config.settlerListWindow.w, config.settlerListWindow.h, { 'title', 'scrollbar' })
+local drawSettlerListWindow = function(self, uiState) --luacheck: ignore
+  ui:windowBegin("Settlers", 30, love.graphics.getHeight() - settings.actions_bar_height - config.settlerListWindow.h,
+  config.settlerListWindow.w, config.settlerListWindow.h, { 'title', 'scrollbar' })
   for _, entity in ipairs(self.settlers) do
     local name = entity.name.name
     ui:layoutRowBegin('dynamic', 30, 3)
@@ -36,8 +36,7 @@ local function drawSettlerListWindow(self, state)
   ui:windowEnd()
 end
 
-
-uiState = {
+local uiState = {
   selectedSettler = nil,
   menuHierarchy = {
     {
@@ -81,20 +80,21 @@ uiState = {
   }
 }
 
+
+
+
 local GUISystem = ECS.System( {settlers = { "settler" } })
 
 local function buildMenuHierarchy(self, items, key, path)
   if path and string.len(path) > 0 then path = path .. "." .. key else path = key end
   if not items.subItems then
-    local requirements = ""
+    local requirements
     if items.requirements then
       requirements = "Requires: "
       for itemKey, value in pairs(items.requirements) do
         requirements = requirements .. constructionTypes.getBySelector(itemKey).name .. ": " .. value
         requirements = requirements .. ", "
       end
-    else
-      requirements = nil
     end
 
     local selectionMatch = path == self.dataSelector
@@ -162,19 +162,20 @@ function GUISystem:update(dt) --luacheck: ignore
       end
 
       if menuItem.draw then
-        menuItem.draw(self)
+        menuItem.draw(self, uiState)
       end
     end
   end
 
-  self:renderWindows(uiState)
+  self:renderWindows()
   ui:frameEnd()
 end
 
-function GUISystem:renderWindows(uiState)
+function GUISystem:renderWindows() --luacheck: ignore
   if uiState.selectedSettler then
     local settler = uiState.selectedSettler
-    if ui:windowBegin("Settler: " .. settler.name.name, 30, 30, config.settlerWindow.w, config.settlerWindow.h, { 'title', 'movable', 'closable' }) then
+    if ui:windowBegin("Settler: " .. settler.name.name, 30, 30,
+      config.settlerWindow.w, config.settlerWindow.h, { 'title', 'movable', 'closable' }) then
       ui:layoutRowBegin('dynamic', 30, 2)
       ui:layoutRowPush(0.5)
       ui:label("Health")

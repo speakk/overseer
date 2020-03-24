@@ -2,13 +2,13 @@ local HealthSystem = ECS.System({ pool = { "health" } })
 
 local stomachEmptyDamageSpeed = 10
 
-function HealthSystem:satietyAtZero(entity, dt)
+function HealthSystem:satietyAtZero(entity, dt) --luacheck: ignore
   if entity.health then
     entity.health.value = entity.health.value - stomachEmptyDamageSpeed * dt
   end
 end
 
-function HealthSystem:update(dt)
+function HealthSystem:update(dt) --luacheck: ignore
   for _, entity in ipairs(self.pool) do
     if entity.health.value <= 0 then
       self:getWorld():emit("death", entity)

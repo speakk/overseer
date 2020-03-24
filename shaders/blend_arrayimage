@@ -1,5 +1,5 @@
 extern vec2 transform;
-extern vec2 universeSize;
+extern vec2 positionUtils.ize;
 extern float scale = 1;
 extern Image light_canvas; 
 extern vec2 light_canvas_size; 
@@ -7,8 +7,8 @@ extern vec2 light_canvas_size;
 vec4 effect( vec4 color, Image tex, vec2 uvs, vec2 screen_coords ) {
   float cellSize = 32*scale;
 
-  float dx = 1/cellSize*(1/(universeSize.x/cellSize));
-  float dy = 1/cellSize*(1/(universeSize.y/cellSize));
+  float dx = 1/cellSize*(1/(positionUtils.ize.x/cellSize));
+  float dy = 1/cellSize*(1/(positionUtils.ize.y/cellSize));
 
   vec2 canvas_texture_coords = ((screen_coords + cellSize/2 + transform * scale) / light_canvas_size) / scale;
   vec2 final_coords = vec2(dx * floor(canvas_texture_coords.x / dx),

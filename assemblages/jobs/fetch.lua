@@ -1,5 +1,3 @@
-local itemUtils = require('utils.itemUtils')
-local universe = require('models.universe')
 local entityManager = require('models.entityManager')
 
 return function(subJob, targetId, itemData, selector)

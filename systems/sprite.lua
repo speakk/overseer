@@ -1,19 +1,14 @@
-require("libs.batteries.stable_sort")
-require("libs.batteries.table")
-local inspect = require('libs.inspect')
-local lume = require('libs.lume')
 local Vector = require('libs.brinevector')
 
 local utils = require('utils.utils')
 local media = require('utils.media')
 
-local universe = require('models.universe')
-local camera = require('models.camera')
+local positionUtils = require('models.positionUtils')
 local entityManager = require('models.entityManager')
 
 local SpriteSystem = ECS.System( { pool = { "sprite", "position" } })
 
-local cellSize = universe.getCellSize()
+local cellSize = positionUtils.getCellSize()
 
 function SpriteSystem:init()
   self.tilesetBatch = love.graphics.newSpriteBatch(media.atlas, 500)
@@ -22,7 +17,9 @@ end
 function SpriteSystem:customDraw(l, t, w, h)
   self.tilesetBatch:clear()
   -- TODO: OPTIMIZE THIS SUCKER
-  local zSorted = table.insertion_sort(table.copy(self.pool), function(a, b) return a.position.vector.y < b.position.vector.y end)
+  local zSorted = table.insertion_sort(table.copy(self.pool), function(a, b)
+    return a.position.vector.y < b.position.vector.y
+  end)
   --local zSorted = lume.sort(self.pool, function(a, b) return a.position.vector.y < b.position.vector.y end)
   --(self.pool, function(a, b) return a.position.vector.y < b.position.vector.y end)
   for _, entity in ipairs(zSorted) do
@@ -43,23 +40,6 @@ function SpriteSystem:drawEntity(l, t, w, h, entity)
     positionVector.x + sizeVector.x,
     positionVector.y + sizeVector.y,
     l, t, l+w, t+h, sizeVector.x) then
-    -- local color = draw.color
-    -- local size = draw.size
-
-
-    -- if entity.job then
-    --   if entity.bluePrintJob then
-    --     local jobComponent = entity.job
-    --     if jobComponent.finished then
-    --       color[4] = 1.0
-    --     else
-    --       color[4] = 0.5
-    --       love.graphics.setColor(1, 1, 1, 1)
-    --       local progress = entity.bluePrintJob.buildProgress
-    --       love.graphics.print(" " .. string.format("%d", progress) .. "%", positionVector.x, positionVector.y)
-    --     end
-    --   end
-    -- end
 
     local spriteComponent = entity.sprite
     local transparentComponent = entity.transparent
@@ -69,12 +49,12 @@ function SpriteSystem:drawEntity(l, t, w, h, entity)
 
     local sprite = media.getSprite(spriteComponent.selector)
     local quad = sprite.quad
-    local _, _, w, h = quad:getViewport()
+    local _, _, quadW, quadH = quad:getViewport()
     local scaleX = 2
     local scaleY = 2
 
-    local originX = sprite.originX * w
-    local originY = sprite.originX * h
+    local originX = sprite.originX * quadW
+    local originY = sprite.originX * quadH
 
     if entity.animation then
       if entity.animation.flipped then
@@ -82,8 +62,6 @@ function SpriteSystem:drawEntity(l, t, w, h, entity)
       end
     end
 
-    -- local finalX = positionVector.x - (w / 2 * scaleX)
-    -- local finalY = positionVector.y + (cellSize - h*2)
     local finalX = positionVector.x + cellSize / 2
     local finalY = positionVector.y + cellSize / 2
 
@@ -92,14 +70,6 @@ function SpriteSystem:drawEntity(l, t, w, h, entity)
     if transparentComponent then
       self.tilesetBatch:setColor(1, 1, 1, 1)
     end
-
-    -- love.graphics.setColor(color[1], color[2], color[3], color[4])
-    -- love.graphics.rectangle("fill",
-    -- positionVector.x,
-    -- positionVector.y,
-    -- size.x, size.y)
-
-
   end
 end
 
@@ -138,7 +108,7 @@ function SpriteSystem:generateGUIDraw()
         if pathComponent.path then
           local vertices = {}
           for node, count in pathComponent.path:nodes() do --luacheck: ignore
-            local pixelPosition = universe.gridPositionToPixels(
+            local pixelPosition = positionUtils.gridPositionToPixels(
             Vector(node:getX(), node:getY()), 'center', 2
             )
             love.graphics.circle('fill', pixelPosition.x, pixelPosition.y, 5)

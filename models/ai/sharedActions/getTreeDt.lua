@@ -1,5 +1,4 @@
 local BehaviourTree = require('libs.behaviourtree')
-local universe = require('models.universe')
 
 return function()
   return BehaviourTree.Task:new({

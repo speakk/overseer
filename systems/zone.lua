@@ -1,7 +1,7 @@
 require('libs.batteries.functional')
 local Vector = require('libs.brinevector')
 local lume = require('libs.lume')
-local universe = require('models.universe')
+local positionUtils = require('utils.positionUtils')
 local camera = require('models.camera')
 
 local constructionTypes = require('data.constructionTypes')
@@ -12,7 +12,7 @@ local lastZoneUpdate = love.timer.getTime()
 local zoneUpdateInterval = 2
 
 local function getZoneCoorinates(rect)
-  return universe.getOuterBorderCoordinates(
+  return positionUtils.getOuterBorderCoordinates(
   math.min(rect.x1, rect.x2),
   math.min(rect.y1, rect.y2),
   math.max(rect.x1, rect.x2),
@@ -22,25 +22,25 @@ end
 
 local zoneHandlers = {
   deconstruct = {
-    run = function(self, zone, params, coords, dt)
-      local entities = universe.getEntitiesInCoordinates(coords, params.selector, params.componentRequirements)
+    run = function(self, zone, params, coords, dt) --luacheck: ignore
+      local entities = positionUtils.getEntitiesInCoordinates(coords, params.selector, params.componentRequirements)
       self:getWorld():emit("cancelConstruction", entities)
     end
   },
   harvest = {
-    run = function(self, zone, params, coords, dt)
-      local entities = universe.getEntitiesInCoordinates(coords, nil, {'plant'})
+    run = function(self, zone, params, coords, dt) --luacheck: ignore
+      local entities = positionUtils.getEntitiesInCoordinates(coords, nil, {'plant'})
       local ripeEntities = lume.filter(entities, function(entity) return entity.plant.finished end)
       print("ripeEntities", #ripeEntities)
       self:getWorld():emit("cancelConstruction", ripeEntities)
     end
   },
   construct = {
-    run = function(self, zone, params, coords, dt)
+    run = function(self, zone, params, coords, dt) --luacheck: ignore
       local constructSelector = params.selector
 
       for _, coordinate in ipairs(coords) do
-        if not universe.isPositionOccupied(coordinate) then
+        if not positionUtils.isPositionOccupied(coordinate) then
           local data = constructionTypes.getBySelector(constructSelector)
           self:getWorld():emit("bluePrintsPlaced", {coordinate}, data, constructSelector)
         end
@@ -48,10 +48,6 @@ local zoneHandlers = {
     end
   }
 }
-
-function ZoneSystem:init()
-
-end
 
 function ZoneSystem:update(dt)
   local currentTime = love.timer.getTime()
@@ -61,7 +57,7 @@ function ZoneSystem:update(dt)
   end
 end
 
-function ZoneSystem:tickZones()
+function ZoneSystem:tickZones(dt)
   for _, zone in ipairs(self.pool) do
     local zoneC = zone.zone
     local rect = zone.rect
@@ -84,8 +80,8 @@ function ZoneSystem:generateGUIDraw()
     local top = math.min(rect.y1, rect.y2)
     local right = math.max(rect.x1, rect.x2)
     local bottom = math.max(rect.y1, rect.y2)
-    local startPoint = universe.gridPositionToPixels(Vector(left, top), "left_top", 0)
-    local endPoint = universe.gridPositionToPixels(Vector(right, bottom), "right_bottom", 0)
+    local startPoint = positionUtils.gridPositionToPixels(Vector(left, top), "left_top", 0)
+    local endPoint = positionUtils.gridPositionToPixels(Vector(right, bottom), "right_bottom", 0)
 
     if entity.color then
       love.graphics.setColor(unpack(entity.color.color))
@@ -121,11 +117,11 @@ function ZoneSystem:generateGUIDraw()
   end
 end
 
-function ZoneSystem:mousemoved(x, y, dx, dy, istouch)
+function ZoneSystem:mousemoved(x, y, dx, dy, istouch) --luacheck: ignore
   for _, entity in ipairs(self.pool) do
     local rect = entity.rect
-    local corner1 = universe.gridPositionToPixels(Vector(math.min(rect.x1, rect.x2), math.min(rect.y1, rect.y2)))
-    local corner2 = universe.gridPositionToPixels(Vector(math.max(rect.x1, rect.x2), math.max(rect.y1, rect.y2)), "right_bottom")
+    local corner1 = positionUtils.gridPositionToPixels(Vector(math.min(rect.x1, rect.x2), math.min(rect.y1, rect.y2)))
+    local corner2 = positionUtils.gridPositionToPixels(Vector(math.max(rect.x1, rect.x2), math.max(rect.y1, rect.y2)), "right_bottom") --luacheck: ignore
 
     local globalX, globalY = camera:toWorld(x, y)
 
@@ -140,7 +136,7 @@ function ZoneSystem:mousemoved(x, y, dx, dy, istouch)
   end
 end
 
-function ZoneSystem:zoneDeleteClick(mouseCoordinates)
+function ZoneSystem:zoneDeleteClick(mouseCoordinates) -- luacheck:ignore
   local hilighted = table.filter(self.pool, function(entity) return entity.zone.hilighted end)
   if #hilighted > 0 then
     for _, entity in ipairs(hilighted) do

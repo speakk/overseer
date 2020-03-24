@@ -1,13 +1,13 @@
 local BehaviourTree = require('libs.behaviourtree')
-local universe = require('models.universe')
+local positionUtils = require('models.positionUtils')
 
 return function()
   return BehaviourTree.Task:new({
     run = function(task, blackboard)
-      local gridPosition = universe.pixelsToGridCoordinates(blackboard.actor.position.vector)
-      local targetGridPosition = universe.pixelsToGridCoordinates(blackboard.target.position.vector)
+      local gridPosition = positionUtils.pixelsToGridCoordinates(blackboard.actor.position.vector)
+      local targetGridPosition = positionUtils.pixelsToGridCoordinates(blackboard.target.position.vector)
 
-      if universe.isInPosition(gridPosition, targetGridPosition, true) then
+      if positionUtils.isInPosition(gridPosition, targetGridPosition, true) then
         task:success()
       else
         task:fail()

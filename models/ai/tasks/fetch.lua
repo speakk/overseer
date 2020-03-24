@@ -1,14 +1,14 @@
 local BehaviourTree = require('libs.behaviourtree')
 local lume = require('libs.lume')
-local Vector = require('libs.brinevector')
 
+local positionUtils = require('models.positionUtils')
 local universe = require('models.universe')
 local entityManager = require('models.entityManager')
 local UntilDecorator = require('models.ai.decorators.until')
 local GotoAction = require('models.ai.sharedActions.goto')
 local AtTarget = require('models.ai.sharedActions.atTarget')
 
-function createTree(actor, world, jobType)
+local function createTree(actor, world, jobType)
   -- LEAF NODES
   --
   local hasEnoughOfItem = BehaviourTree.Task:new({
@@ -30,7 +30,7 @@ function createTree(actor, world, jobType)
   local getPotentialItemStack = BehaviourTree.Task:new({
     run = function(task, blackboard)
       print("fetch getPotentialItemStack", blackboard.selector)
-      local itemsOnMap = universe.getItemsOnGround(blackboard.selector, { "item" })
+      local itemsOnMap = positionUtils.getItemsOnGround(blackboard.selector, { "item" })
 
       if not itemsOnMap or #itemsOnMap == 0 then
         print("NO ITEMSONMAP JESUS CHRIST")
@@ -73,7 +73,7 @@ function createTree(actor, world, jobType)
   local pickItemAmountUp = BehaviourTree.Task:new({
     run = function(task, blackboard)
       print("fetch pickItemAmountUp")
-      local gridPosition = universe.pixelsToGridCoordinates(blackboard.actor.position.vector)
+      local gridPosition = positionUtils.pixelsToGridCoordinates(blackboard.actor.position.vector)
       --print("gridPosition", gridPosition)
       local itemInCurrentLocation = universe.getItemFromGround(blackboard.selector, gridPosition, { "item" })
       --print("itemInCurrentLocation", blackboard.selector, itemInCurrentLocation)
@@ -119,7 +119,6 @@ function createTree(actor, world, jobType)
         if potentialItem.reserved then
           local reservedComponent = potentialItem.reserved
           if potentialItem.amount.amount - reservedComponent.amount < blackboard.targetAmount then
-            --print("Failing 'cause not enough nonreserved?", potentialItem.amount.amount, reservedComponent.amount, blackboard.targetAmount)
             task:fail()
             return
           else
@@ -131,7 +130,7 @@ function createTree(actor, world, jobType)
           potentialItem:give("reserved", blackboard.actor.id.id, blackboard.targetAmount)
         end
         --print("potentialItem", potentialItem, potentialItem.item.selector)
-        --print("potentialItem position", universe.pixelsToGridCoordinates(potentialItem.position.vector))
+        --print("potentialItem position", positionUtils.pixelsToGridCoordinates(potentialItem.position.vector))
         blackboard.target = potentialItem
         --print("popTargetFromItemStack success")
         task:success()
@@ -170,7 +169,7 @@ function createTree(actor, world, jobType)
               nodes = {
                 getPotentialItemStack,
                 UntilDecorator:new({
-                  node = 
+                  node =
                   BehaviourTree.Sequence:new({
                     nodes = {
                       popTargetFromItemStack,
@@ -221,7 +220,6 @@ function createTree(actor, world, jobType)
     fetch = fetch,
     targetAmount = targetAmount,
     job = job,
-    target = target,
     destination = destination,
     world = world,
     jobType = jobType

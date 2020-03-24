@@ -1,6 +1,3 @@
-local entityManager = require('models.entityManager')
-local inspect = require('libs.inspect')
-
 local AISystem = ECS.System({ai = {"ai"}})
 
 local behaviours = {
@@ -26,12 +23,12 @@ local function detachBehaviour(entity, type)
 end
 
 function AISystem:init()
-  self.ai.onEntityAdded = function(pool, entity)
+  self.ai.onEntityAdded = function(pool, entity) --luacheck: ignore
     local behaviourType = entity.ai.behaviourType
     attachBehaviour(entity, behaviourType, self:getWorld())
   end
 
-  self.ai.onEntityRemoved = function(pool, entity)
+  self.ai.onEntityRemoved = function(pool, entity) --luacheck: ignore
     if entity.work then
       local behaviourType = entity.ai.behaviourType
       detachBehaviour(entity, behaviourType)
@@ -39,7 +36,7 @@ function AISystem:init()
   end
 end
 
-function AISystem:treeFinished(entity, jobType)
+function AISystem:treeFinished(entity, jobType) --luacheck: ignore
   detachBehaviour(entity, jobType)
 end
 

@@ -5,14 +5,8 @@ local threadPool = {}
 
 local currentPoolIndex = 1
 
--- function doCalculate(pathFindObject)
---   local threadObject = getNextAvailableThreadObject()
---   threadObject.channelMain:push(pathFindObject)
--- end
---
-
-local function initializePool(grid, finder)
-  for i=1,processorCount do
+local function initializePool()
+  for _=1,processorCount do
     local thread = love.thread.newThread("models/pathThread.lua")
     local channelMain = love.thread.newChannel()
     local channelThread = love.thread.newChannel()

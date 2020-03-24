@@ -1,8 +1,9 @@
 local Vector = require('libs.brinevector')
 local bresenham = require('libs.bresenham')
+local Gamestate = require("libs.hump.gamestate")
 
+local positionUtils = require('models.positionUtils')
 local universe = require('models.universe')
-local camera = require('models.camera')
 
 local LightSystem = ECS.System({ pool = { "light", "position" }})
 
@@ -12,25 +13,54 @@ local lightCircleImageWidth = lightCircleImage:getWidth()
 local lightCircleImageHeight = lightCircleImage:getHeight()
 local lightCircleImageScale = 1
 
-local universeSize = universe.getSize()
-local cellSize = universe.getCellSize()
-local lightCanvas = love.graphics.newCanvas(universeSize.x, universeSize.y+1)
-local lightAmbientMixCanvas = love.graphics.newCanvas(universeSize.x+1, universeSize.y+1)
-lightAmbientMixCanvas:setFilter("nearest", "linear")
+local lightCanvas
+local lightAmbientMixCanvas
 
 local ambientColor = { 0.0, 0.0, 0.1, 1.0 }
 
 function LightSystem:init()
   self.useShader = true
+
+  self.mapConfig = Gamestate.current().mapConfig
+
+  lightCanvas = love.graphics.newCanvas(self.mapConfig.width, self.mapConfig.height+1)
+  lightAmbientMixCanvas = love.graphics.newCanvas(self.mapConfig.width+1, self.mapConfig.height+1)
+  lightAmbientMixCanvas:setFilter("nearest", "linear")
+end
+
+local function drawAmbientLight()
+  local cellSize = Gamestate.current().mapConfig.cellSize
+  love.graphics.clear(1,1,1,1)
+  love.graphics.setColor(unpack(ambientColor))
+  love.graphics.rectangle('fill', 0,0, (positionUtils.ize.x+1)*cellSize, (positionUtils.ize.y+1)*cellSize)
+end
+
+local function drawLightCanvas()
+  love.graphics.setColor(1, 1, 1, 1)
+  love.graphics.setBlendMode("add")
+  love.graphics.draw(lightCanvas)
+  love.graphics.setBlendMode("alpha")
+end
+
+local function mixAmbientAndLights()
+  love.graphics.push('all')
+  love.graphics.reset()
+  love.graphics.setScissor()
+  love.graphics.setCanvas(lightAmbientMixCanvas)
+  love.graphics.setColor(1, 1, 1, 1)
+  drawAmbientLight()
+  drawLightCanvas()
+  love.graphics.setCanvas()
+  love.graphics.pop()
 end
 
 function LightSystem:initializeTestLights()
-  local mapSize = universe.getSize()
+  local mapSize = Vector(self.mapConfig.width, self.mapConfig.height)
   for _=1,6 do
     local light = ECS.Entity()
     local position = Vector(love.math.random(mapSize.x), love.math.random(mapSize.y))
-    if universe.isPositionWalkable(position) then
-      light:give("position", universe.gridPositionToPixels(position))
+    if positionUtils.isPositionWalkable(position) then
+      light:give("position", positionUtils.gridPositionToPixels(position))
       light:give("sprite", "items.torch01")
       light:give("light",
       { math.ceil(love.math.random()-0.5), math.ceil(love.math.random()-0.5), math.ceil(love.math.random()-0.5)}, 8)
@@ -39,24 +69,28 @@ function LightSystem:initializeTestLights()
   end
 end
 
-function calcShadows(self, lightPos, resolutionMultiplier)
+local function calcShadows(self, lightPos, resolutionMultiplier)
+  local mapSize = Vector(self.mapConfig.width, self.mapConfig.height)
   local shadowMap = {}
-  for y = -1,(universeSize.y+1)*resolutionMultiplier do
+  for y = -1,(mapSize.y+1)*resolutionMultiplier do
     local row = {}
-    for x = -1,(universeSize.x+1)*resolutionMultiplier do row[x] = 1 end -- 1 = Shadow
+    for x = -1,(mapSize.x+1)*resolutionMultiplier do row[x] = 1 end -- 1 = Shadow
     shadowMap[y] = row
   end
 
   local lightRadius = 14 -- radius in tiles
 
-  for _, coords in ipairs(universe.getCoordinatesAround(lightPos.x+0.5, lightPos.y+0.5, lightRadius)) do
-    bresenham.los(lightPos.x*resolutionMultiplier,lightPos.y*resolutionMultiplier, coords.x*resolutionMultiplier, coords.y*resolutionMultiplier, function(x, y)
-      local occluded = universe.isPositionOccluded(Vector(math.floor(x/resolutionMultiplier), math.floor(y/resolutionMultiplier)))
+  for _, coords in ipairs(positionUtils.getCoordinatesAround(lightPos.x+0.5, lightPos.y+0.5, lightRadius)) do
+    bresenham.los(lightPos.x*resolutionMultiplier,lightPos.y*resolutionMultiplier,
+    coords.x*resolutionMultiplier, coords.y*resolutionMultiplier, function(x, y)
+      local occluded = universe.isPositionOccluded(
+      Vector(math.floor(x/resolutionMultiplier), math.floor(y/resolutionMultiplier))
+      )
 
-      if x < (universeSize.x+1)*resolutionMultiplier and
+      if x < (mapSize.x+1)*resolutionMultiplier and
         x >= 0 and
         y >= 0 and
-        y < (universeSize.y+1)*resolutionMultiplier then
+        y < (mapSize.y+1)*resolutionMultiplier then
 
 
         if not occluded then
@@ -82,9 +116,9 @@ function LightSystem:gridUpdated()
 
   local shadowResolutionMultiplier = 1
 
-  for i, light in ipairs(self.pool) do
+  for _, light in ipairs(self.pool) do
     local position = light.position.vector
-    local gridPosition = universe.pixelsToGridCoordinates(position)
+    local gridPosition = positionUtils.pixelsToGridCoordinates(position)
 
     love.graphics.stencil(function()
       local shadowMap = calcShadows(self, gridPosition, shadowResolutionMultiplier)
@@ -92,7 +126,8 @@ function LightSystem:gridUpdated()
         for x = 1,#shadowMap[y] do
           if shadowMap[y][x] == 1 then -- add shadow
             love.graphics.setColor(1, 0, 1, 1)
-            love.graphics.rectangle('fill', x/shadowResolutionMultiplier, y/shadowResolutionMultiplier, shadowResolutionMultiplier, shadowResolutionMultiplier)
+            love.graphics.rectangle('fill', x/shadowResolutionMultiplier, y/shadowResolutionMultiplier,
+            shadowResolutionMultiplier, shadowResolutionMultiplier)
           end
         end
       end
@@ -114,39 +149,17 @@ function LightSystem:gridUpdated()
   love.graphics.setCanvas()
 end
 
-function LightSystem:timeChanged(time, timeOfDay)
+function LightSystem:timeChanged(time, timeOfDay) --luacheck: ignore
   local lightLevel = math.sin((timeOfDay-0.25)*math.pi*2)
   ambientColor = { 0.6+lightLevel*0.4, 0.6+lightLevel*0.4, 1.0, 1.0, 1.0 }
-  self:mixAmbientAndLights()
+  mixAmbientAndLights()
 end
 
-local function drawAmbientLight()
-  love.graphics.clear(1,1,1,1)
-  love.graphics.setColor(unpack(ambientColor))
-  love.graphics.rectangle('fill', 0,0, (universeSize.x+1)*cellSize, (universeSize.y+1)*cellSize)
-end
-
-local function drawLightCanvas()                          
-  love.graphics.setColor(1, 1, 1, 1)
-  love.graphics.setBlendMode("add")
-  love.graphics.draw(lightCanvas)
-  love.graphics.setBlendMode("alpha")
-end                                                 
-
-function LightSystem:mixAmbientAndLights()
-  love.graphics.push('all')
-  love.graphics.reset()
-  love.graphics.setScissor()
-  love.graphics.setCanvas(lightAmbientMixCanvas)
-  love.graphics.setColor(1, 1, 1, 1)
-  drawAmbientLight()
-  drawLightCanvas()
-  love.graphics.setCanvas()
-  love.graphics.pop()
-end
 
 function LightSystem:renderLights(l, t, w, h, f) --luacheck: ignore
   f()
+
+  local cellSize = self.mapConfig.cellSize
 
   love.graphics.setBlendMode("multiply", "premultiplied")
   love.graphics.draw(lightAmbientMixCanvas, 0, 0, 0, cellSize, cellSize)
@@ -162,7 +175,7 @@ function LightSystem:renderLights(l, t, w, h, f) --luacheck: ignore
   love.graphics.setBlendMode("add")
   for _, light in ipairs(self.pool) do
     local position = light.position.vector
-    if universe.isPositionWithinArea(position, l-margin, t-margin, w+margin, h+margin) then
+    if positionUtils.isPositionWithinArea(position, l-margin, t-margin, w+margin, h+margin) then
       local color = light.light.color
       love.graphics.setColor(unpack(color))
       love.graphics.draw(lightGradientImage, 16+position.x-lightWidth/2, 16+position.y-lightHeight/2,

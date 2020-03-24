@@ -3,7 +3,7 @@ local lume = require('libs.lume')
 local Vector = require('libs.brinevector')
 local inspect = require('libs.inspect')
 
-local universe = require('models.universe')
+local positionUtils = require('models.positionUtils')
 local entityManager = require('models.entityManager')
 local jobManager = require('models.jobManager')
 local UntilDecorator = require('models.ai.decorators.until')
@@ -21,15 +21,15 @@ local idle = {
 
     if currentTime - blackboard.lastIdleRandomTick > blackboard.idleRandomDelay then
       if not blackboard.actor.path then
-        local universeSize = universe.getSize()
-        local currentPosition = universe.pixelsToGridCoordinates(blackboard.actor.position.vector)
+        local mapConfig = Gamestate.current().mapConfig
+        local currentPosition = positionUtils.pixelsToGridCoordinates(blackboard.actor.position.vector)
         local radius = 10
         local nextPosition = Vector(love.math.random(currentPosition.x - radius, currentPosition.x + radius), love.math.random(currentPosition.y - radius, currentPosition.y + radius))
         if nextPosition.x < 1 then nextPosition.x = 1 end
-        if nextPosition.x > universeSize.x then nextPosition.x = universeSize.x end
+        if nextPosition.x > mapConfig.width then nextPosition.x = mapConfig.width-1 end
         if nextPosition.y < 1 then nextPosition.y = 1 end
-        if nextPosition.y > universeSize.y then nextPosition.y = universeSize.y end
-        blackboard.idleTarget:give("position", universe.gridPositionToPixels(nextPosition))
+        if nextPosition.y > mapConfig.height.y then nextPosition.y = mapConfig.height-1 end
+        blackboard.idleTarget:give("position", positionUtils.gridPositionToPixels(nextPosition))
         blackboard.target = blackboard.idleTarget
         blackboard.lastIdleRandomTick = currentTime
       end

@@ -59,10 +59,6 @@ function PlayerInputSystem:keypressed(pressedKey, scancode, isrepeat) --luacheck
     DEBUG = not DEBUG
     self:getWorld():emit("debugModeChanged", DEBUG)
   end
-
-  if pressedKey == "x" then
-      PROFILER = not PROFILER
-   end
 end
 
 return PlayerInputSystem

@@ -1,9 +1,6 @@
 local AnimationSystem = ECS.System({pool = {"animation"}})
 
-function AnimationSystem:init()
-end
-
-function AnimationSystem:update(dt)
+function AnimationSystem:update(dt) --luacheck: ignore
   local currentTime = love.timer.getTime()
 
   for _, entity in ipairs(self.pool) do
@@ -13,15 +10,12 @@ function AnimationSystem:update(dt)
 
     for _, animationKey in ipairs(activeAnimations) do
       local animationProps = props[animationKey]
-      --print("Going through", animationKey, animationProps)
-      
+
       local targetComponent = entity[animationProps.targetComponent]
 
-      --print("Setting targetProperty", animationProps.targetProperty, animationProps.values[animationProps.currentValueIndex], "index:", animationProps.currentValueIndex)
       targetComponent[animationProps.targetProperty] = animationProps.values[animationProps.currentValueIndex]
 
       if not animation.finished then
-        --print("Not finished")
         if currentTime > animationProps.lastFrameUpdate + animationProps.frameLength then
           animationProps.lastFrameUpdate = currentTime
           animationProps.currentValueIndex = animationProps.currentValueIndex + 1
@@ -43,7 +37,7 @@ function AnimationSystem:update(dt)
 end
 
 -- TODO: Figure out a better way to do this
-function AnimationSystem:entityMoved(entity, position, positionDelta)
+function AnimationSystem:entityMoved(entity, position, positionDelta) --luacheck: ignore
   if entity.animation then
     local animation = entity.animation
 

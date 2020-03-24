@@ -1,8 +1,4 @@
-local universe = require('models.universe')
-
 return function(settler, gridPosition)
-  local worldSize = universe.getSize()
-
   settler:assemble(ECS.a.creatures.creature, gridPosition)
   :give("sprite", 'creature.crawler1')
   :give("ai", 'animal')

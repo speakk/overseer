@@ -22,23 +22,7 @@ function MapSystem:init()
   self.onMapItem.onEntityRemoved = universe.onOnMapItemRemoved
 end
 
-function MapSystem:update(dt) --luacheck: ignore
-  universe.update(dt)
-end
-
-function MapSystem:customDraw(l, t, w, h) --luacheck: ignore
-  --local draw = universe.draw(l, t, w, h)
-  --love.graphics.push()
-  --local transform = love.math.newTransform()
-  --love.graphics.replaceTransform(transform)
-  --love.graphics.origin()
-  --love.graphics.draw(draw, 32, 32)
-  --love.graphics.draw(draw, 100, 100)
-  --love.graphics.draw(draw, -300, -600)
-  --love.graphics.pop()
-end
-
-function recursiveDelete(self, entity)
+local function recursiveDelete(self, entity)
   if entity.children then
     for _, childId in ipairs(entity.children.children) do
       local child = entityManager.get(childId)
@@ -48,7 +32,6 @@ function recursiveDelete(self, entity)
 
   if entity.inventory then
     local inventory = entity.inventory
-    --local currentGridPosition = universe.pixelsToGridCoordinates(entity.position.vector)
 
     for _, itemId in ipairs(inventory.inventory) do
       print("itemId", itemId)
@@ -82,7 +65,7 @@ function MapSystem:immediateDestroy(entity)
 end
 
 local destructSpeedModifier = 5
-function MapSystem:destructProgress(constructionComponent, amount)
+function MapSystem:destructProgress(constructionComponent, amount) -- luacheck: ignore
   constructionComponent.durability = constructionComponent.durability - amount * destructSpeedModifier
   print("durability now", constructionComponent.durability)
 end

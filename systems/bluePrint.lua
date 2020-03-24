@@ -1,23 +1,18 @@
 local inspect = require('libs.inspect') --luacheck: ignore
 local Vector = require('libs.brinevector')
-local entityManager = require('models.entityManager')
 
-local universe = require('models.universe')
+local positionUtils = require('models.positionUtils')
 local BluePrintSystem = ECS.System({pool = {"bluePrintJob", "job"}})
 
---local BluePrint = require('models.jobTypes.bluePrint')
-
-
-function BluePrintSystem:bluePrintsPlaced(coords, constructionType, selector)
+function BluePrintSystem:bluePrintsPlaced(coords, constructionType, bluePrintSelector)
   print("bluePrintsPlaced")
   for _, position in ipairs(coords) do
-    --local gridPosition = universe.clampToWorldBounds(Vector(node:getX(), node:getY()))
-    if universe.isPositionWalkable(position) then
-      local job = ECS.Entity():assemble(ECS.a.jobs.bluePrint, position, constructionType, selector)
+    if positionUtils.isPositionWalkable(position) then
+      local job = ECS.Entity():assemble(ECS.a.jobs.bluePrint, position, constructionType, bluePrintSelector)
       if constructionType.requirements then
         job:give("children", {})
         local childrenIds = job.children.children
-        for selector, amount in pairs(constructionType.requirements) do
+        for selector, _ in pairs(constructionType.requirements) do
           local subJob = ECS.Entity():assemble(ECS.a.jobs.fetch, job.id.id, constructionType, selector)
           subJob:give("parent", job.id.id)
           table.insert(childrenIds, subJob.id.id)
@@ -57,7 +52,7 @@ function BluePrintSystem:generateGUIDraw()
   end
 end
 
-function BluePrintSystem:jobFinished(job)
+function BluePrintSystem:jobFinished(job) --luacheck: ignore
   job:give("collision")
   job:give("construction", 100)
   job:remove("transparent")
@@ -74,8 +69,8 @@ function BluePrintSystem:jobFinished(job)
 end
 
 local buildProgressSpeedModifier = 5
-function BluePrintSystem:bluePrintProgress(bluePrintComponent, amount)
-  bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + amount * bluePrintComponent.constructionSpeed * buildProgressSpeedModifier
+function BluePrintSystem:bluePrintProgress(bluePrintComponent, amount) --luacheck: ignore
+  bluePrintComponent.buildProgress = bluePrintComponent.buildProgress + amount * bluePrintComponent.constructionSpeed * buildProgressSpeedModifier --luacheck: ignore
   print("buildProgress now", bluePrintComponent.buildProgress)
 end
 

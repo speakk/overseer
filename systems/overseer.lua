@@ -1,11 +1,11 @@
-local universe = require('models.universe')
+local positionUtils = require('models.positionUtils')
 local camera = require('models.camera')
 
 local entityManager = require('models.entityManager')
 
 local Vector = require('libs.brinevector')
 local lume = require('libs.lume')
-local inspect = require('libs.inspect')
+local inspect = require('libs.inspect') --luacheck: ignore
 
 local constructionTypes = require('data.constructionTypes')
 local settings = require('settings')
@@ -29,29 +29,29 @@ function OverseerSystem:init()
 
   self.actionCallbacks = {
     build = {
-      action1 = function(mouseCoordinates, button)
+      action1 = function(mouseCoordinates, button) --luacheck: ignore
         --actions.action1(mouseCoordinates, button)
-        self:dragAction(mouseCoordinates, button, false, function(coords, rect)
+        self:dragAction(mouseCoordinates, button, false, function(coords, rect) --luacheck: ignore
           self:build(coords)
         end,
         { 1, 1, 1, 1 })
       end,
-      action2 = function(mouseCoordinates, button)
-        self:dragAction(mouseCoordinates, button, true, function(coords, rect)
+      action2 = function(mouseCoordinates, button) --luacheck: ignore
+        self:dragAction(mouseCoordinates, button, true, function(coords, rect) --luacheck: ignore
           self:destruct(coords)
         end,
         { 1, 0, 0, 1 })
       end,
     },
     zones = {
-      action1 = function(mouseCoordinates, button)
+      action1 = function(mouseCoordinates, button) --luacheck: ignore
         print("ZONE ACITON1")
         self:dragAction(mouseCoordinates, button, true, function(coords, rect)
           self:zones(coords, rect)
         end,
         zoneColor)
       end,
-      action2 = function(mouseCoordinates, button)
+      action2 = function(mouseCoordinates, button) --luacheck: ignore
         print("ZONE action 2")
         self:getWorld():emit("zoneDeleteClick", mouseCoordinates)
       end
@@ -70,8 +70,8 @@ function OverseerSystem:generateGUIDraw() --luacheck: ignore
     local top = math.min(startPixels.y, globalY)
     local right = math.max(startPixels.x, globalX)
     local bottom = math.max(startPixels.y, globalY)
-    local startPoint = universe.snapPixelToGrid(Vector(left, top), "left_top", 0)
-    local endPoint = universe.snapPixelToGrid(Vector(right, bottom), "right_bottom", 0)
+    local startPoint = positionUtils.snapPixelToGrid(Vector(left, top), "left_top", 0)
+    local endPoint = positionUtils.snapPixelToGrid(Vector(right, bottom), "right_bottom", 0)
     local camStart = Vector(camera:toScreen(startPoint.x, startPoint.y))
     local camEnd = Vector(camera:toScreen(endPoint.x, endPoint.y))
     --camera:draw(function(l,t,w,h) --luacheck: ignore
@@ -117,12 +117,12 @@ end
 function OverseerSystem:update(dt) --luacheck: ignore
 end
 
-function OverseerSystem:enactDrag(dragEvent)
+function OverseerSystem:enactDrag(dragEvent) --luacheck: ignore
   if not dragEvent or not dragEvent.action then print("uh what") return end
-  local gridCoordsStart = universe.pixelsToGridCoordinates(dragEvent.startPoint)
-  local gridCoordsEnd = universe.pixelsToGridCoordinates(dragEvent.endPoint)
+  local gridCoordsStart = positionUtils.pixelsToGridCoordinates(dragEvent.startPoint)
+  local gridCoordsEnd = positionUtils.pixelsToGridCoordinates(dragEvent.endPoint)
 
-  local coords = universe.getOuterBorderCoordinates(
+  local coords = positionUtils.getOuterBorderCoordinates(
   math.min(gridCoordsStart.x, gridCoordsEnd.x),
   math.min(gridCoordsStart.y, gridCoordsEnd.y),
   math.max(gridCoordsStart.x, gridCoordsEnd.x),
@@ -131,9 +131,9 @@ function OverseerSystem:enactDrag(dragEvent)
 
   dragEvent.action(coords, {
     x1 = gridCoordsStart.x,
-    y1 = gridCoordsStart.y, 
-    x2 = gridCoordsEnd.x, 
-    y2 = gridCoordsEnd.y 
+    y1 = gridCoordsStart.y,
+    x2 = gridCoordsEnd.x,
+    y2 = gridCoordsEnd.y
   })
 
   -- if dragEvent.type == 'construct' then
@@ -174,7 +174,7 @@ function OverseerSystem:mapClicked(mouseCoordinates, button, actionType)
   --self:mapClicked(mouseCoordinates, button, actions.action1, actions.action2)
 end
 
-function OverseerSystem:dragAction(mouseCoordinates, button, fill, callBack, color)
+function OverseerSystem:dragAction(mouseCoordinates, button, fill, callBack, color) --luacheck: ignore
   if settings.mouse_toggle_drag then
     if drag.active then
       self:endDrag(mouseCoordinates)
@@ -206,7 +206,7 @@ function OverseerSystem:build(coords)
   end
 end
 
-function OverseerSystem:zones(coords, rect)
+function OverseerSystem:zones(coords, rect) --luacheck: ignore
   local params = self.dataSelectorParams
   local zoneEntity = ECS.Entity()
   zoneEntity:give("id", entityManager.generateId())
@@ -220,8 +220,8 @@ end
 function OverseerSystem:destruct(coords)
   local allEntities = {}
   for _, position in ipairs(coords) do
-    --local gridPosition = universe.clampToWorldBounds(position)
-    local entities = universe.getEntitiesInLocation(position)
+    --local gridPosition = positionUtils.clampToWorldBounds(position)
+    local entities = positionUtils.getEntitiesInLocation(position)
     allEntities = lume.concat(allEntities, entities)
   end
   self:getWorld():emit("cancelConstruction", allEntities)

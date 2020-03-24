@@ -1,4 +1,4 @@
-local universe = require('models.universe')
+local positionUtils = require('models.positionUtils')
 local itemUtils = require('utils.itemUtils')
 local entityManager = require('models.entityManager')
 
@@ -11,7 +11,7 @@ return function(e, gridPosition, itemData, bluePrintItemSelector)
   :give("bluePrintJob", itemData.constructionSpeed or 1)
   :give("inventory") -- Item consumed so far
   :give("item", itemData, bluePrintItemSelector)
-  :give("position", universe.gridPositionToPixels(gridPosition))
+  :give("position", positionUtils.gridPositionToPixels(gridPosition))
   :give("transparent")
 
   if itemData.components then

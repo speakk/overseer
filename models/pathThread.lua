@@ -4,32 +4,22 @@ local Pathfinder = require('libs.jumper.pathfinder')
 
 require 'love.math'
 
-local universe = require('models.universe')
 local lume = require('libs.lume')
 
 
 while true do
   local pathFindObject = channelMain:demand()
 
-
-  grid = Grid(pathFindObject.map)
-  finder = Pathfinder(grid, 'JPS', 0)
-
-  local width = grid:getWidth()
-  local height = grid:getHeight()
+  local grid = Grid(pathFindObject.map)
+  local finder = Pathfinder(grid, 'JPS', 0)
 
   local toNode = grid:getNodeAt(pathFindObject.toX, pathFindObject.toY)
-
-  --if pathFindObject.searchNeighbours then
   local toNodesToCheck = grid:getNeighbours(toNode)
-    --print("thread, toNodesToCheck", toNodesToCheck)
-  --end
-
   table.insert(toNodesToCheck, 1, toNode)
 
   local path = nil
-  for _, node in ipairs(toNodesToCheck) do
-    path = finder:getPath(pathFindObject.fromX, pathFindObject.fromY, node:getX(), node:getY())
+  for _, nodeToCheck in ipairs(toNodesToCheck) do
+    path = finder:getPath(pathFindObject.fromX, pathFindObject.fromY, nodeToCheck:getX(), nodeToCheck:getY())
     if path then
       path = lume.map(path._nodes, function(node) return { x = node._x, y = node._y } end)
       break

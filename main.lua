@@ -3,6 +3,9 @@ local windowHeight = 800
 love.window.setMode(windowWidth, windowHeight, { resizable=true })
 love.graphics.setDefaultFilter('nearest', 'nearest')
 
+require("libs.batteries.stable_sort")
+require("libs.batteries.table")
+
 local inspect = require('libs.inspect')
 limits = love.graphics.getSystemLimits( )
 print(inspect(limits))
