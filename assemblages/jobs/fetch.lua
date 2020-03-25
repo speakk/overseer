@@ -1,8 +1,8 @@
-local entityManager = require('models.entityManager')
+local entityRegistry = require('models.entityRegistry')
 
 return function(subJob, targetId, itemData, selector)
   subJob
-  :give("id", entityManager.generateId())
+  :give("id", entityRegistry.generateId())
   :give("job", "fetch")
   :give("name", "FetchJob")
   :give("item", itemData)

@@ -1,5 +1,7 @@
-local universe = require('models.universe')
-local entityManager = require('models.entityManager')
+local entityFinder = require('models.entityFinder')
+local Gamestate = require("libs.hump.gamestate")
+local positionUtils = require('utils.position')
+local entityRegistry = require('models.entityRegistry')
 local inspect = require('libs.inspect') --luacheck: ignore
 local Vector = require('libs.brinevector') --luacheck: ignore
 
@@ -11,21 +13,29 @@ local MapSystem = ECS.System({
 }
 )
 
+function onCollisionEntityAdded(_, entity) --luacheck: ignore
+  local position = positionUtils.pixelsToGridCoordinates(entity.position.vector)
+  Gamestate.current():changeMapAt(position.x, position.y, 1)
+end
+
+function onCollisionEntityRemoved(_, entity)
+    local position = positionUtils.pixelsToGridCoordinates(entity.position.vector)
+    Gamestate.current():changeMapAt(position.x, position.y, 0)
+end
+
 function MapSystem:init()
-  self.collision.onEntityAdded = universe.onCollisionEntityAdded
-  self.collision.onEntityRemoved = universe.onCollisionEntityRemoved
-  self.occluder.onEntityAdded = universe.onOccluderEntityAdded
-  self.occluder.onEntityRemoved = universe.onOccluderEntityRemoved
-  self.onMap.onEntityAdded = universe.onOnMapEntityAdded
-  self.onMap.onEntityRemoved = universe.onOnMapEntityRemoved
-  self.onMapItem.onEntityAdded = universe.onOnMapItemAdded
-  self.onMapItem.onEntityRemoved = universe.onOnMapItemRemoved
+  self.collision.onEntityAdded = onCollisionEntityAdded
+  self.collision.onEntityRemoved = onCollisionEntityRemoved
+  self.onMap.onEntityAdded = entityFinder.onOnMapEntityAdded
+  self.onMap.onEntityRemoved = entityFinder.onOnMapEntityRemoved
+  self.onMapItem.onEntityAdded = entityFinder.onOnMapItemAdded
+  self.onMapItem.onEntityRemoved = entityFinder.onOnMapItemRemoved
 end
 
 local function recursiveDelete(self, entity)
   if entity.children then
     for _, childId in ipairs(entity.children.children) do
-      local child = entityManager.get(childId)
+      local child = entityRegistry.get(childId)
       recursiveDelete(self, child)
     end
   end
@@ -35,7 +45,7 @@ local function recursiveDelete(self, entity)
 
     for _, itemId in ipairs(inventory.inventory) do
       print("itemId", itemId)
-      local item = entityManager.get(itemId)
+      local item = entityRegistry.get(itemId)
       print("item", item)
       item:give("onMap")
       -- TODO: If no space then randomize nearby position

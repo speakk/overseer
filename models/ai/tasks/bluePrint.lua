@@ -2,7 +2,7 @@ local BehaviourTree = require('libs.behaviourtree')
 local lume = require('libs.lume')
 
 local positionUtils = require('utils.position')
-local entityManager = require('models.entityManager')
+local entityRegistry = require('models.entityRegistry')
 local UntilDecorator = require('models.ai.decorators.until')
 local GotoAction = require('models.ai.sharedActions.goto')
 local AtTarget = require('models.ai.sharedActions.atTarget')
@@ -22,7 +22,7 @@ local isBluePrintReadyToBuild = {
 
     for selector, amount in pairs(requirements) do --luacheck: ignore
       local itemId = bluePrint.inventory:findItem(selector)
-      local item = entityManager.get(itemId)
+      local item = entityRegistry.get(itemId)
       if not item or item.amount.amount < amount then
         return task:fail()
       end
@@ -75,7 +75,7 @@ function createTree(actor, world, jobType)
   local gotoAction = GotoAction()
   local atTarget = AtTarget()
 
-  local target = entityManager.get(actor.work.jobId)
+  local target = entityRegistry.get(actor.work.jobId)
   print("TARGET IS", target)
   local bluePrintComponent = target.bluePrintJob
   local bluePrintGridPosition = positionUtils.pixelsToGridCoordinates(target.position.vector)

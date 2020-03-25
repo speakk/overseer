@@ -1,6 +1,6 @@
 local Gamestate = require("libs.hump.gamestate")
 local inspect = require('libs.inspect') -- luacheck: ignore
-local entityManager = require('models.entityManager')
+local entityRegistry = require('models.entityRegistry')
 local constructionTypes = require('data.constructionTypes')
 
 local ItemUtils = {}
@@ -30,7 +30,7 @@ function ItemUtils.createItem(selector, amount)
   :give("selector", selector)
   :give("amount", amount)
   :give("name", "Item: " .. selector)
-  :give("id", entityManager.generateId())
+  :give("id", entityRegistry.generateId())
 
   for _, component in ipairs(itemData.components) do
     item:give(component.name, unpack(component.properties))

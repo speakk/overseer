@@ -5,7 +5,7 @@ local Vector = require('libs.brinevector')
 local inspect = require('libs.inspect')
 
 local positionUtils = require('utils.position')
-local entityManager = require('models.entityManager')
+local entityRegistry = require('models.entityRegistry')
 local jobManager = require('models.jobManager')
 local UntilDecorator = require('models.ai.decorators.until')
 local GotoAction = require('models.ai.sharedActions.goto')
@@ -49,7 +49,7 @@ function createTree(actor, world, jobType)
 
   local getTreeDt = GetTreeDt()
 
-  --local target = entityManager.get(actor.work.jobId)
+  --local target = entityRegistry.get(actor.work.jobId)
   local tree = BehaviourTree:new({
     tree = BehaviourTree.Sequence:new({
       nodes = {

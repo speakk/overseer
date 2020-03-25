@@ -4,7 +4,7 @@ local utils = require('utils.utils')
 
 local jobManager = require('models.jobManager')
 
-local entityManager = require('models.entityManager')
+local entityRegistry = require('models.entityRegistry')
 
 local JobSystem = ECS.System({ jobs = { "job" }})
 
@@ -57,7 +57,7 @@ local function printJob(job, level, y)
 
     if childrenIds then
       for _, childId in ipairs(childrenIds) do
-        local child = entityManager.get(childId)
+        local child = entityRegistry.get(childId)
         printJob(child, level + 1, y + 1, true)
       end
     end
@@ -75,7 +75,7 @@ end
 local function getChildren(job)
   if job.children then
     return lume.map(job.children.children, function(childId)
-      return entityManager.get(childId)
+      return entityRegistry.get(childId)
     end)
   end
 
@@ -101,7 +101,7 @@ end
 function JobSystem:jobFinished(entity) --luacheck: ignore
   print("Finishing job", entity)
 
-  local worker = entityManager.get(entity.job.reserved)
+  local worker = entityRegistry.get(entity.job.reserved)
   worker:remove("work")
 
   local jobComponent = entity.job
@@ -124,7 +124,7 @@ end
 function JobSystem:cancelConstruction(entities) --luacheck: ignore
   for _, job in ipairs(entities) do
     if job.job then
-      local worker = entityManager.get(job.job.reserved)
+      local worker = entityRegistry.get(job.job.reserved)
       if worker then
         worker:remove("work")
       end

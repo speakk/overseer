@@ -2,8 +2,8 @@ local BehaviourTree = require('libs.behaviourtree')
 local lume = require('libs.lume')
 
 local positionUtils = require('utils.position')
-local universe = require('models.universe')
-local entityManager = require('models.entityManager')
+local entityFinder = require('models.entityFinder')
+local entityRegistry = require('models.entityRegistry')
 local UntilDecorator = require('models.ai.decorators.until')
 local GotoAction = require('models.ai.sharedActions.goto')
 local AtTarget = require('models.ai.sharedActions.atTarget')
@@ -16,7 +16,7 @@ local function createTree(actor, world, jobType)
       print("fetch hasEnoughOfItem")
       local invItemId = blackboard.inventory:findItem(blackboard.selector)
       if invItemId then
-        local invItem = entityManager.get(invItemId)
+        local invItem = entityRegistry.get(invItemId)
         if invItem and invItem.amount.amount >= blackboard.targetAmount then
           task:success()
           return
@@ -30,7 +30,7 @@ local function createTree(actor, world, jobType)
   local getPotentialItemStack = BehaviourTree.Task:new({
     run = function(task, blackboard)
       print("fetch getPotentialItemStack", blackboard.selector)
-      local itemsOnMap = universe.getItemsOnGround(blackboard.selector, { "item" })
+      local itemsOnMap = entityFinder.getItemsOnGround(blackboard.selector, { "item" })
 
       if not itemsOnMap or #itemsOnMap == 0 then
         print("NO ITEMSONMAP JESUS CHRIST")
@@ -75,7 +75,7 @@ local function createTree(actor, world, jobType)
       print("fetch pickItemAmountUp")
       local gridPosition = positionUtils.pixelsToGridCoordinates(blackboard.actor.position.vector)
       --print("gridPosition", gridPosition)
-      local itemInCurrentLocation = universe.getItemFromGround(blackboard.selector, gridPosition, { "item" })
+      local itemInCurrentLocation = entityFinder.getItemFromGround(blackboard.selector, gridPosition, { "item" })
       --print("itemInCurrentLocation", blackboard.selector, itemInCurrentLocation)
       if not itemInCurrentLocation then
         --print("Failing, not itemInCurrentLocation")
@@ -83,7 +83,7 @@ local function createTree(actor, world, jobType)
         return
       end
 
-      local item = universe.takeItemFromGround(itemInCurrentLocation, blackboard.targetAmount)
+      local item = entityFinder.takeItemFromGround(itemInCurrentLocation, blackboard.targetAmount)
       local itemAmount = item.amount.amount
 
       if itemAmount >= blackboard.targetAmount then
@@ -151,11 +151,11 @@ local function createTree(actor, world, jobType)
   local gotoAction = GotoAction()
   local atTarget = AtTarget()
   local inventory = actor.inventory
-  local job = entityManager.get(actor.work.jobId)
+  local job = entityRegistry.get(actor.work.jobId)
   local fetch = job.fetchJob
   local targetAmount = fetch.amount
   local selector = fetch.selector
-  local destination = entityManager.get(job.fetchJob.targetId)
+  local destination = entityRegistry.get(job.fetchJob.targetId)
   local tree = BehaviourTree:new({
     tree = BehaviourTree.Sequence:new({
       nodes = {

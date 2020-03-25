@@ -3,7 +3,7 @@ local nuklear = require("nuklear")
 local bitser = require('libs.bitser')
 local inspect = require('libs.inspect')
 local settings = require('settings')
-local entityManager = require('models.entityManager')
+local entityRegistry = require('models.entityRegistry')
 
 local debugFont = love.graphics.newFont(12)
 
@@ -13,14 +13,14 @@ local SerializationSystem = ECS.System({ ids = { "id" } })
 
 local function onIdAdded(pool, entity) --luacheck: ignore
   local id = entity.id.id
-  entityManager.onEntityAdded(entity)
-  --entityManager.set(id, entity)
+  entityRegistry.onEntityAdded(entity)
+  --entityRegistry.set(id, entity)
 end
 
 local function onIdRemoved(pool, entity) --luacheck: ignore
   local id = entity.id.id
-  entityManager.onEntityRemoved(entity)
-  --entityManager.removeByEntity(entity, id)
+  entityRegistry.onEntityRemoved(entity)
+  --entityRegistry.removeByEntity(entity, id)
 end
 
 local function serializeComponent(component)
@@ -70,9 +70,9 @@ end
 
 function SerializationSystem:serializeState() --luacheck: ignore
   return bitser.dumps({
-    entities = serializeEntities(entityManager.getEntities())
+    entities = serializeEntities(entityRegistry.getEntities())
   }),
-  inspect(serializeEntities(entityManager.getEntities()))
+  inspect(serializeEntities(entityRegistry.getEntities()))
 end
 
 local function deserializeEntities(entityShells)
@@ -114,7 +114,7 @@ function SerializationSystem:loadGame(saveName)
   --local settlerSystem = self:getWorld():getSystem(ECS.Systems.settler)
   --self:getWorld():disableSystem(settlerSystem)
   self:getWorld():clear()
-  entityManager.clear()
+  entityRegistry.clear()
   self:getWorld():__flush()
 
   local file = love.filesystem.read(saveName)
@@ -126,7 +126,7 @@ function SerializationSystem:loadGame(saveName)
 
   self:getWorld():__flush()
 
-  --entityManager.initializeReferences()
+  --entityRegistry.initializeReferences()
   --self:getWorld():enableSystem(settlerSystem)
 end
 
@@ -184,7 +184,7 @@ function SerializationSystem:update(dt)
   local entityWindowHeight = windowHeight
 
   if ui:windowBegin('entityWindow', windowWidth-entityWindowWidth, 0, entityWindowWidth, entityWindowHeight, 'scrollbar') then
-    for id, entity in pairs(entityManager.getEntities()) do
+    for id, entity in pairs(entityRegistry.getEntities()) do
       createEntityHierarchy(entity, 4, 0)
     end
     ui:windowEnd()

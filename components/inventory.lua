@@ -1,5 +1,5 @@
 local lume = require 'libs.lume'
-local entityManager = require 'models.entityManager'
+local entityRegistry = require 'models.entityRegistry'
 local ItemUtils = require 'utils.itemUtils'
 -- TODO: Add the methods into a metatable
 local inventory = ECS.Component(..., function(component, inventory)
@@ -7,7 +7,7 @@ local inventory = ECS.Component(..., function(component, inventory)
 
   component.findItem = function(e, selector) -- luacheck: ignore
     local itemId = lume.match(component.inventory, function(itemId)
-      local item = entityManager.get(itemId)
+      local item = entityRegistry.get(itemId)
       return item:get("selector").selector == selector
     end)
     return itemId
@@ -16,7 +16,7 @@ local inventory = ECS.Component(..., function(component, inventory)
   component.popItem = function(e, selector, amount)
     local originalItemId = e:findItem(selector)
     if not originalItemId then return end
-    local item, wasSplit = ItemUtils.splitItemStackIfNeeded(entityManager.get(originalItemId), amount)
+    local item, wasSplit = ItemUtils.splitItemStackIfNeeded(entityRegistry.get(originalItemId), amount)
     if not wasSplit then
       lume.remove(component.inventory, item:get("id").id)
     end
@@ -26,22 +26,22 @@ local inventory = ECS.Component(..., function(component, inventory)
 
   component.insertItem = function(e, itemId)
     print("Inserting id into inventory", itemId)
-    local item = entityManager.get(itemId)
+    local item = entityRegistry.get(itemId)
     local amount = item:get("amount").amount
     local selector = item:get("selector").selector
 
     local existingId = lume.match(component.inventory, function(invItemId)
-      local invItem = entityManager.get(invItemId)
+      local invItem = entityRegistry.get(invItemId)
       return invItem:get("selector").selector == selector
     end)
 
     if existingId then
-      local existing = entityManager.get(existingId)
+      local existing = entityRegistry.get(existingId)
       local existingAmount = existing:get("amount").amount
       existingAmount = existingAmount + amount
       existing:get("amount").amount = existingAmount
     else
-      --entityManager.registerReference(item:get("id").id, function(deletedId) e.inventory[deletedId] = nil end)
+      --entityRegistry.registerReference(item:get("id").id, function(deletedId) e.inventory[deletedId] = nil end)
       table.insert(component.inventory, itemId)
     end
   end

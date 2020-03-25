@@ -1,8 +1,8 @@
 local positionUtils = require('utils.position')
-local universe = require('models.universe')
+local entityFinder = require('models.entityFinder')
 local camera = require('models.camera')
 
-local entityManager = require('models.entityManager')
+local entityRegistry = require('models.entityRegistry')
 
 local Vector = require('libs.brinevector')
 local lume = require('libs.lume')
@@ -210,7 +210,7 @@ end
 function OverseerSystem:zones(coords, rect) --luacheck: ignore
   local params = self.dataSelectorParams
   local zoneEntity = ECS.Entity()
-  zoneEntity:give("id", entityManager.generateId())
+  zoneEntity:give("id", entityRegistry.generateId())
   zoneEntity:give("zone", params.types, params)
   zoneEntity:give("color", zoneColor)
   zoneEntity:give("rect", rect.x1, rect.y1, rect.x2, rect.y2)
@@ -222,7 +222,7 @@ function OverseerSystem:destruct(coords)
   local allEntities = {}
   for _, position in ipairs(coords) do
     --local gridPosition = positionUtils.clampToWorldBounds(position)
-    local entities = universe.getEntitiesInLocation(position)
+    local entities = entityFinder.getEntitiesInLocation(position)
     allEntities = lume.concat(allEntities, entities)
   end
   self:getWorld():emit("cancelConstruction", allEntities)

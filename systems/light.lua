@@ -4,7 +4,7 @@ local bresenham = require('libs.bresenham')
 local Gamestate = require("libs.hump.gamestate")
 
 local positionUtils = require('utils.position')
-local universe = require('models.universe')
+local entityFinder = require('models.entityFinder')
 
 local LightSystem = ECS.System({
   pool = { "light", "position" },
@@ -22,6 +22,31 @@ local lightAmbientMixCanvas
 
 local ambientColor = { 0.0, 0.0, 0.1, 1.0 }
 
+local occluderMap = {}
+
+function onOccluderEntityAdded(_, entity)
+  local posString = entityFinder.getPositionStringFromEntity(entity)
+
+  occluderMap[posString] = 1
+end
+
+function onOccluderEntityRemoved(_, entity)
+  if not entity.position then return end
+  local posString = entityFinder.getPositionStringFromEntity(entity)
+
+  occluderMap[posString] = 0
+end
+
+function isPositionOccluded(gridPosition)
+  local posString = gridPosition.x .. ":" .. gridPosition.y
+
+  if occluderMap[posString] == 1 then
+    return true
+  end
+
+  return false
+end
+
 function LightSystem:init()
   self.useShader = true
 
@@ -32,10 +57,12 @@ function LightSystem:init()
   lightAmbientMixCanvas:setFilter("nearest", "linear")
 
   self.occluders.onEntityAdded = function(_, entity)
+    onOccluderEntityAdded(_, entity)
     self:gridUpdated()
   end
 
   self.occluders.onEntityRemoved = function(_, entity)
+    onOccluderEntityRemoved(_, entity)
     self:gridUpdated()
   end
 
@@ -102,7 +129,7 @@ local function calcShadows(self, lightPos, resolutionMultiplier)
   for _, coords in ipairs(positionUtils.getCoordinatesAround(lightPos.x+0.5, lightPos.y+0.5, lightRadius)) do
     bresenham.los(lightPos.x*resolutionMultiplier,lightPos.y*resolutionMultiplier,
     coords.x*resolutionMultiplier, coords.y*resolutionMultiplier, function(x, y)
-      local occluded = universe.isPositionOccluded(
+      local occluded = isPositionOccluded(
       Vector(math.floor(x/resolutionMultiplier), math.floor(y/resolutionMultiplier))
       )
 

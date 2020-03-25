@@ -2,7 +2,7 @@ local BehaviourTree = require('libs.behaviourtree')
 local lume = require('libs.lume')
 
 local positionUtils = require('utils.position')
-local entityManager = require('models.entityManager')
+local entityRegistry = require('models.entityRegistry')
 local UntilDecorator = require('models.ai.decorators.until')
 local GotoAction = require('models.ai.sharedActions.goto')
 
@@ -36,7 +36,7 @@ function createTree(actor, world, jobType)
   local progressDestruct = BehaviourTree.Task:new(progressDestruct)
   local gotoAction = GotoAction()
 
-  local target = entityManager.get(actor.work.jobId)
+  local target = entityRegistry.get(actor.work.jobId)
   print("Setting target", target)
   local constructionComponent = target.construction
   local targetGridPosition = positionUtils.pixelsToGridCoordinates(target.position.vector)

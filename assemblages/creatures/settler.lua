@@ -3,7 +3,7 @@ local inspect = require('libs.inspect') --luacheck: ignore
 local lume = require('libs.lume')
 local media = require('utils.media')
 local jobManager = require('models.jobManager')
-local entityManager = require('models.entityManager')
+local entityRegistry = require('models.entityRegistry')
 
 return function(settler, gridPosition, name)
   settler:assemble(ECS.a.creatures.creature, gridPosition)

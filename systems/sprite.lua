@@ -5,7 +5,7 @@ local utils = require('utils.utils')
 local media = require('utils.media')
 
 local positionUtils = require('utils.position')
-local entityManager = require('models.entityManager')
+local entityRegistry = require('models.entityRegistry')
 
 local SpriteSystem = ECS.System( { pool = { "sprite", "position" } })
 
@@ -93,7 +93,7 @@ function SpriteSystem:generateGUIDraw()
         local invIndex = 0
         local lineSpace = 10
         for _, itemId in ipairs(inventory) do
-          local item = entityManager.get(itemId)
+          local item = entityRegistry.get(itemId)
           local amount = item.amount.amount
           local selector = item.selector.selector
           love.graphics.setColor(1, 1, 1, 1)

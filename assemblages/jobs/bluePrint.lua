@@ -1,12 +1,12 @@
 local positionUtils = require('utils.position')
 local itemUtils = require('utils.itemUtils')
-local entityManager = require('models.entityManager')
+local entityRegistry = require('models.entityRegistry')
 
 return function(e, gridPosition, itemData, bluePrintItemSelector)
   e
   :give("job", "bluePrint", "bluePrintFinished")
   :give("name", "BluePrintJob")
-  :give("id", entityManager.generateId())
+  :give("id", entityRegistry.generateId())
   :give("onMap")
   :give("bluePrintJob", itemData.constructionSpeed or 1)
   :give("inventory") -- Item consumed so far

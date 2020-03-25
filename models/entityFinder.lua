@@ -4,23 +4,12 @@ local inspect = require('libs.inspect') --luacheck: ignore
 local itemUtils = require('utils.itemUtils')
 local positionUtils = require('utils.position')
 
-local universe = {}
+local entityFinder = {}
 
 local entityPosMap = {}
 local entityItemSelectorMap = {}
-local occluderMap = {}
 
-function universe.onCollisionEntityAdded(_, entity) --luacheck: ignore
-  local position = positionUtils.pixelsToGridCoordinates(entity.position.vector)
-  Gamestate.current():changeMapAt(position.x, position.y, 1)
-end
-
-function universe.onCollisionEntityRemoved(_, entity)
-    local position = positionUtils.pixelsToGridCoordinates(entity.position.vector)
-    Gamestate.current():changeMapAt(position.x, position.y, 0)
-end
-
-function universe.onOnMapItemAdded(_, entity)
+function entityFinder.onOnMapItemAdded(_, entity)
   local selector = entity.selector.selector
   if not entityItemSelectorMap[selector] then
     entityItemSelectorMap[selector] = {}
@@ -29,7 +18,7 @@ function universe.onOnMapItemAdded(_, entity)
   table.insert(entityItemSelectorMap[selector], entity)
 end
 
-function universe.onOnMapItemRemoved(_, entity)
+function entityFinder.onOnMapItemRemoved(_, entity)
   local selector = entity.selector.selector
 
   local items = entityItemSelectorMap[selector]
@@ -38,18 +27,18 @@ function universe.onOnMapItemRemoved(_, entity)
   end
 end
 
-function universe.getPositionStringFromEntity(entity)
+function entityFinder.getPositionStringFromEntity(entity)
   local pixelPosition = entity.position.vector
   local position = positionUtils.pixelsToGridCoordinates(pixelPosition)
-  return universe.getGridPositionString(position)
+  return entityFinder.getGridPositionString(position)
 end
 
-function universe.getGridPositionString(gridPosition)
+function entityFinder.getGridPositionString(gridPosition)
   return gridPosition.x .. ":" .. gridPosition.y
 end
 
-function universe.onOnMapEntityAdded(_, entity)
-  local posString = universe.getPositionStringFromEntity(entity)
+function entityFinder.onOnMapEntityAdded(_, entity)
+  local posString = entityFinder.getPositionStringFromEntity(entity)
   if not entityPosMap[posString] then
     entityPosMap[posString] = {}
   end
@@ -57,9 +46,9 @@ function universe.onOnMapEntityAdded(_, entity)
   table.insert(entityPosMap[posString], entity)
 end
 
-function universe.onOnMapEntityRemoved(_, entity)
+function entityFinder.onOnMapEntityRemoved(_, entity)
   if not entity.position then return end
-  local posString = universe.getPositionStringFromEntity(entity)
+  local posString = entityFinder.getPositionStringFromEntity(entity)
 
   if not entityPosMap[posString] then
     error("Trying to remove nonExistent entity from pos: " .. posString)
@@ -68,30 +57,7 @@ function universe.onOnMapEntityRemoved(_, entity)
   lume.remove(entityPosMap[posString], entity)
 end
 
-function universe.onOccluderEntityAdded(_, entity)
-  local posString = universe.getPositionStringFromEntity(entity)
-
-  occluderMap[posString] = 1
-end
-
-function universe.onOccluderEntityRemoved(_, entity)
-  if not entity.position then return end
-  local posString = universe.getPositionStringFromEntity(entity)
-
-  occluderMap[posString] = 0
-end
-
-function universe.isPositionOccluded(gridPosition)
-  local posString = gridPosition.x .. ":" .. gridPosition.y
-
-  if occluderMap[posString] == 1 then
-    return true
-  end
-
-  return false
-end
-
-function universe.getEntitiesInLocation(gridPosition)
+function entityFinder.getEntitiesInLocation(gridPosition)
   local posString = gridPosition.x .. ":" .. gridPosition.y
 
   if not entityPosMap[posString] then
@@ -101,21 +67,21 @@ function universe.getEntitiesInLocation(gridPosition)
   return entityPosMap[posString]
 end
 
-function universe.isPositionOccupied(gridPosition)
-  return entityPosMap[universe.getGridPositionString(gridPosition)]
+function entityFinder.isPositionOccupied(gridPosition)
+  return entityPosMap[entityFinder.getGridPositionString(gridPosition)]
 end
 
 -- -- TODO: THREADING FUCKS THIS UP
--- function universe.findPathToClosestEmptyCell(gridPosition)
+-- function entityFinder.findPathToClosestEmptyCell(gridPosition)
 --   print("WELL DUH findPathToClosestEmptyCell")
 --   local node = grid:getNodeAt(gridPosition.x, gridPosition.y)
 -- 
---   if not universe.isPositionWalkable(gridPosition) then
+--   if not entityFinder.isPositionWalkable(gridPosition) then
 --     local radius = 1
 --     while radius < 10 do
 --       for nodeAround in grid:around(node, radius) do
---         if universe.isPositionWalkable(Vector(nodeAround:getX(), nodeAround:getY())) then
---           return universe.getPath(gridPosition, Vector(node:getX(), node:getY()))
+--         if entityFinder.isPositionWalkable(Vector(nodeAround:getX(), nodeAround:getY())) then
+--           return entityFinder.getPath(gridPosition, Vector(node:getX(), node:getY()))
 --         end
 --       end
 -- 
@@ -124,11 +90,11 @@ end
 --   end
 -- end
 
-function universe.getEntitiesInCoordinates(coordinateList, selector, componentRequirements)
+function entityFinder.getEntitiesInCoordinates(coordinateList, selector, componentRequirements)
   local entities = {}
 
   for _, coordinate in ipairs(coordinateList) do
-    local locationEntities = universe.getEntitiesInLocation(coordinate)
+    local locationEntities = entityFinder.getEntitiesInLocation(coordinate)
     entities = lume.concat(entities, lume.filter(locationEntities, function(entity)
       if selector then
         if not entity.selector or entity.selector.selector ~= selector then
@@ -149,7 +115,7 @@ function universe.getEntitiesInCoordinates(coordinateList, selector, componentRe
   return entities
 end
 
-function universe.getItemsOnGround(selector, componentRequirements)
+function entityFinder.getItemsOnGround(selector, componentRequirements)
   if componentRequirements then
     if not entityItemSelectorMap[selector] then
       return
@@ -167,8 +133,8 @@ function universe.getItemsOnGround(selector, componentRequirements)
   end
 end
 
-function universe.getItemFromGround(itemSelector, gridPosition, componentRequirements) --luacheck: ignore
-  local items = universe.getItemsOnGround(itemSelector, componentRequirements)
+function entityFinder.getItemFromGround(itemSelector, gridPosition, componentRequirements) --luacheck: ignore
+  local items = entityFinder.getItemsOnGround(itemSelector, componentRequirements)
   print("Any items anywhere?", itemSelector, items, #items)
   if not items then return nil end
 
@@ -183,7 +149,7 @@ function universe.getItemFromGround(itemSelector, gridPosition, componentRequire
   return nil -- Could not find item on ground
 end
 
-function universe.takeItemFromGround(originalItem, amount)
+function entityFinder.takeItemFromGround(originalItem, amount)
   local selector = originalItem.selector.selector
   local item, wasSplit = itemUtils.splitItemStackIfNeeded(originalItem, amount)
 
@@ -196,4 +162,4 @@ function universe.takeItemFromGround(originalItem, amount)
   return item
 end
 
-return universe
+return entityFinder

@@ -46,14 +46,6 @@ return {
   clear = clear,
   generateId = generateId,
   getEntities = function()
-  --  print("All entities!")
-  --  for id, entity in pairs(entities) do
-  --    local jobtext = ""
-  --    if entity.job then
-  --      jobtext = entity.job.jobType
-  --    end
-  --    print("Entity:", id, entity, jobtext)
-  --  end
     return entities
   end,
 }

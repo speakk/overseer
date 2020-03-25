@@ -1,4 +1,4 @@
-local entityManager = require('models.entityManager')
+local entityRegistry = require('models.entityRegistry')
 
 local jobs = {}
 
@@ -9,7 +9,7 @@ local function getFirstSubJob(job)
   if job.children then
     local children = job.children.children
     for _, childId in ipairs(children) do
-      local child = entityManager.get(childId)
+      local child = entityRegistry.get(childId)
       local firstChildJob = getFirstSubJob(child)
       if firstChildJob then
         local firstChildJobComponent = firstChildJob.job
