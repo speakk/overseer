@@ -1,14 +1,13 @@
 local Vector = require('libs.brinevector')
+local Gamestate = require('libs.hump.gamestate')
 
 local utils = require('utils.utils')
 local media = require('utils.media')
 
-local positionUtils = require('models.positionUtils')
+local positionUtils = require('utils.position')
 local entityManager = require('models.entityManager')
 
 local SpriteSystem = ECS.System( { pool = { "sprite", "position" } })
-
-local cellSize = positionUtils.getCellSize()
 
 function SpriteSystem:init()
   self.tilesetBatch = love.graphics.newSpriteBatch(media.atlas, 500)
@@ -62,6 +61,7 @@ function SpriteSystem:drawEntity(l, t, w, h, entity)
       end
     end
 
+    local cellSize = Gamestate.current().mapConfig.cellSize
     local finalX = positionVector.x + cellSize / 2
     local finalY = positionVector.y + cellSize / 2
 

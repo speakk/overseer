@@ -1,6 +1,6 @@
 local camera = require('models.camera')
 local Gamestate = require("libs.hump.gamestate")
-local positionUtils = require('models.positionUtils')
+local positionUtils = require('utils.position')
 local media = require('utils.media')
 local Vector = require('libs.brinevector')
 local lume = require('libs.lume')
@@ -20,7 +20,7 @@ function DrawSystem:init()
 
   self.mapConfig = Gamestate.current().mapConfig
   self.map = Gamestate.current().map
-  self.mapColors = Gamestate.current().map
+  self.mapColors = Gamestate.current().mapColors
 
   for i=1,self.mapConfig.width do
     table.insert(randomWalkX, i)

@@ -1,14 +1,16 @@
 local Vector = require('libs.brinevector')
+local Gamestate = require("libs.hump.gamestate")
 local inspect = require('libs.inspect') --luacheck: ignore
 local lume = require('libs.lume')
 local entityManager = require('models.entityManager')
 
-local positionUtils = require('models.positionUtils')
+local positionUtils = require('utils.position')
 local itemUtils = require('utils.itemUtils')
 
 local ItemSystem = ECS.System({ pool = {"item"}})
 
-function ItemSystem:initializeTestItems(mapSize) --luacheck: ignore
+function ItemSystem:initializeTestItems() --luacheck: ignore
+  local mapConfig = Gamestate.current().mapConfig
   local randomTable = {
     --walls = { "wooden_wall", "iron_wall" },
     raw_materials = { "wood", "iron", "stone", "steel" },
@@ -16,7 +18,7 @@ function ItemSystem:initializeTestItems(mapSize) --luacheck: ignore
   }
 
   for i=1,40,1 do  --luacheck: ignore
-    local position = Vector(math.random(mapSize.x), math.random(mapSize.y))
+    local position = Vector(math.random(mapConfig.width), math.random(mapConfig.height))
     if positionUtils.isPositionWalkable(position) then
       local keys1 = lume.keys(randomTable)
       local key = keys1[math.random(#keys1)]
@@ -34,8 +36,9 @@ function ItemSystem:initializeTestItems(mapSize) --luacheck: ignore
 end
 
 function ItemSystem:initializeTestTrees(mapSize)
+  local mapConfig = Gamestate.current().mapConfig
   for i=1,400,1 do  --luacheck: ignore
-    local position = Vector(love.math.random(mapSize.x), love.math.random(mapSize.y))
+    local position = Vector(math.random(mapConfig.width), math.random(mapConfig.height))
     if positionUtils.isPositionWalkable(position) then
       local selector = "growing.tree"
       local rawWood = itemUtils.createItem('raw_materials.wood', 2)
@@ -74,8 +77,9 @@ function ItemSystem:initializeTestTrees(mapSize)
 end
 
 function ItemSystem:initializeTestShrubbery(mapSize)
+  local mapConfig = Gamestate.current().mapConfig
   for i=1,200,1 do  --luacheck: ignore
-    local position = Vector(love.math.random(mapSize.x), love.math.random(mapSize.y))
+    local position = Vector(math.random(mapConfig.width), math.random(mapConfig.height))
     local entity = ECS.Entity()
     entity:give("sprite", "vegetation." .. lume.randomchoice({"bush01", "grass01", "grass02", "grass03"}))
     :give("onMap")
@@ -85,6 +89,5 @@ function ItemSystem:initializeTestShrubbery(mapSize)
     --itemUtils.placeItemOnGround(item, position)
   end
 end
-ItemSystem.Inventory = {}
 
 return ItemSystem

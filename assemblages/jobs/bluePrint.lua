@@ -1,4 +1,4 @@
-local positionUtils = require('models.positionUtils')
+local positionUtils = require('utils.position')
 local itemUtils = require('utils.itemUtils')
 local entityManager = require('models.entityManager')
 

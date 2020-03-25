@@ -2,6 +2,7 @@ local Gamestate = require("libs.hump.gamestate")
 local lume = require('libs.lume')
 local inspect = require('libs.inspect') --luacheck: ignore
 local itemUtils = require('utils.itemUtils')
+local positionUtils = require('utils.position')
 
 local universe = {}
 
@@ -10,12 +11,12 @@ local entityItemSelectorMap = {}
 local occluderMap = {}
 
 function universe.onCollisionEntityAdded(_, entity) --luacheck: ignore
-  local position = universe.pixelsToGridCoordinates(entity.position.vector)
+  local position = positionUtils.pixelsToGridCoordinates(entity.position.vector)
   Gamestate.current():changeMapAt(position.x, position.y, 1)
 end
 
 function universe.onCollisionEntityRemoved(_, entity)
-    local position = universe.pixelsToGridCoordinates(entity.position.vector)
+    local position = positionUtils.pixelsToGridCoordinates(entity.position.vector)
     Gamestate.current():changeMapAt(position.x, position.y, 0)
 end
 
@@ -39,7 +40,7 @@ end
 
 function universe.getPositionStringFromEntity(entity)
   local pixelPosition = entity.position.vector
-  local position = universe.pixelsToGridCoordinates(pixelPosition)
+  local position = positionUtils.pixelsToGridCoordinates(pixelPosition)
   return universe.getGridPositionString(position)
 end
 
@@ -172,9 +173,9 @@ function universe.getItemFromGround(itemSelector, gridPosition, componentRequire
   if not items then return nil end
 
   for _, item in ipairs(items) do
-    local position = universe.pixelsToGridCoordinates(item.position.vector)
+    local position = positionUtils.pixelsToGridCoordinates(item.position.vector)
     --print("Position", inspect(position))
-    if universe.isInPosition(gridPosition, position, true) then
+    if positionUtils.isInPosition(gridPosition, position, true) then
       return item
     end
   end

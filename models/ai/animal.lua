@@ -1,9 +1,10 @@
 local BehaviourTree = require('libs.behaviourtree')
+local Gamestate = require("libs.hump.gamestate")
 local lume = require('libs.lume')
 local Vector = require('libs.brinevector')
 local inspect = require('libs.inspect')
 
-local positionUtils = require('models.positionUtils')
+local positionUtils = require('utils.position')
 local entityManager = require('models.entityManager')
 local jobManager = require('models.jobManager')
 local UntilDecorator = require('models.ai.decorators.until')
@@ -28,7 +29,7 @@ local idle = {
         if nextPosition.x < 1 then nextPosition.x = 1 end
         if nextPosition.x > mapConfig.width then nextPosition.x = mapConfig.width-1 end
         if nextPosition.y < 1 then nextPosition.y = 1 end
-        if nextPosition.y > mapConfig.height.y then nextPosition.y = mapConfig.height-1 end
+        if nextPosition.y > mapConfig.height then nextPosition.y = mapConfig.height-1 end
         blackboard.idleTarget:give("position", positionUtils.gridPositionToPixels(nextPosition))
         blackboard.target = blackboard.idleTarget
         blackboard.lastIdleRandomTick = currentTime

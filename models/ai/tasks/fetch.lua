@@ -1,7 +1,7 @@
 local BehaviourTree = require('libs.behaviourtree')
 local lume = require('libs.lume')
 
-local positionUtils = require('models.positionUtils')
+local positionUtils = require('utils.position')
 local universe = require('models.universe')
 local entityManager = require('models.entityManager')
 local UntilDecorator = require('models.ai.decorators.until')
@@ -30,7 +30,7 @@ local function createTree(actor, world, jobType)
   local getPotentialItemStack = BehaviourTree.Task:new({
     run = function(task, blackboard)
       print("fetch getPotentialItemStack", blackboard.selector)
-      local itemsOnMap = positionUtils.getItemsOnGround(blackboard.selector, { "item" })
+      local itemsOnMap = universe.getItemsOnGround(blackboard.selector, { "item" })
 
       if not itemsOnMap or #itemsOnMap == 0 then
         print("NO ITEMSONMAP JESUS CHRIST")

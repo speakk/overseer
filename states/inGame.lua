@@ -1,4 +1,5 @@
 local PathFindGrid = require("models.pathFindGrid")
+local Timer = require('libs.hump.timer')
 local mapGenerator = require("utils.mapGenerator")
 
 local inGame = {}
@@ -43,8 +44,6 @@ function inGame:enter(from) --luacheck: ignore
 
   self.world:addSystems(unpack(inGameSystems))
 
-  self.world:emit("registerDrawFunction", self.world:getSystem(ECS.Systems.map),
-  self.world:getSystem(ECS.Systems.map).customDraw)
   self.world:emit("registerDrawFunction", self.world:getSystem(ECS.Systems.sprite),
   self.world:getSystem(ECS.Systems.sprite).customDraw)
   self.world:emit("registerGUIDrawGenerator", self.world:getSystem(ECS.Systems.sprite),
@@ -80,6 +79,7 @@ function inGame:changeMapAt(x, y, value)
 end
 
 function inGame:update(dt)
+  Timer.update(dt)
   self.world:emit('resetVelocities')
   self.world:emit('update', dt)
 end
@@ -117,9 +117,9 @@ function inGame:initializeTestStuff()
   self.world:getSystem(ECS.Systems.light):initializeTestLights()
   self.world:getSystem(ECS.Systems.settler):initializeTestSettlers()
   self.world:getSystem(ECS.Systems.settler):initializeTestCreatures()
-  self.world:getSystem(ECS.Systems.item):initializeTestItems(self.positionUtils.getSize())
-  self.world:getSystem(ECS.Systems.item):initializeTestTrees(self.positionUtils.getSize())
-  self.world:getSystem(ECS.Systems.item):initializeTestShrubbery(self.positionUtils.getSize())
+  self.world:getSystem(ECS.Systems.item):initializeTestItems()
+  self.world:getSystem(ECS.Systems.item):initializeTestTrees()
+  self.world:getSystem(ECS.Systems.item):initializeTestShrubbery()
 end
 
 function inGame:leave()

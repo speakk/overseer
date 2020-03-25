@@ -1,5 +1,4 @@
 local Gamestate = require("libs.hump.gamestate")
-local loading = require('states.loading')
 local settings = require('settings')
 
 local Vector = require('libs.brinevector')
@@ -50,10 +49,10 @@ function PlayerInputSystem:keypressed(pressedKey, scancode, isrepeat) --luacheck
     self:getWorld():emit("saveGame", settings.quick_save_name)
   end
 
-  if pressedKey == 'f9' then
-    Gamestate.switch(loading, settings.quick_save_name)
-    --self:getWorld():emit("loadGame")
-  end
+  -- if pressedKey == 'f9' then
+  --   Gamestate.switch(loading, settings.quick_save_name)
+  --   --self:getWorld():emit("loadGame")
+  -- end
 
   if pressedKey == 'z' then
     DEBUG = not DEBUG

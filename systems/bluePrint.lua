@@ -1,7 +1,7 @@
 local inspect = require('libs.inspect') --luacheck: ignore
 local Vector = require('libs.brinevector')
 
-local positionUtils = require('models.positionUtils')
+local positionUtils = require('utils.position')
 local BluePrintSystem = ECS.System({pool = {"bluePrintJob", "job"}})
 
 function BluePrintSystem:bluePrintsPlaced(coords, constructionType, bluePrintSelector)

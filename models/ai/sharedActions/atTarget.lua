@@ -1,5 +1,5 @@
 local BehaviourTree = require('libs.behaviourtree')
-local positionUtils = require('models.positionUtils')
+local positionUtils = require('utils.position')
 
 return function()
   return BehaviourTree.Task:new({

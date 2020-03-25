@@ -1,11 +1,15 @@
 local Vector = require('libs.brinevector')
+local Timer = require('libs.hump.timer')
 local bresenham = require('libs.bresenham')
 local Gamestate = require("libs.hump.gamestate")
 
-local positionUtils = require('models.positionUtils')
+local positionUtils = require('utils.position')
 local universe = require('models.universe')
 
-local LightSystem = ECS.System({ pool = { "light", "position" }})
+local LightSystem = ECS.System({
+  pool = { "light", "position" },
+  occluders = { "onMap", "position", "occluder" }
+})
 
 local lightGradientImage = love.graphics.newImage("media/misc/light_gradient.png")
 local lightCircleImage = love.graphics.newImage("media/misc/light_circle.png")
@@ -26,13 +30,28 @@ function LightSystem:init()
   lightCanvas = love.graphics.newCanvas(self.mapConfig.width, self.mapConfig.height+1)
   lightAmbientMixCanvas = love.graphics.newCanvas(self.mapConfig.width+1, self.mapConfig.height+1)
   lightAmbientMixCanvas:setFilter("nearest", "linear")
+
+  self.occluders.onEntityAdded = function(_, entity)
+    self:gridUpdated()
+  end
+
+  self.occluders.onEntityRemoved = function(_, entity)
+    self:gridUpdated()
+  end
+
+  self.pool.onEntityAdded = function(_, entity)
+    self:gridUpdated()
+  end
+
+  self.pool.onEntityRemoved = function(_, entity)
+    self:gridUpdated()
+  end
 end
 
-local function drawAmbientLight()
-  local cellSize = Gamestate.current().mapConfig.cellSize
+local function drawAmbientLight(self)
   love.graphics.clear(1,1,1,1)
   love.graphics.setColor(unpack(ambientColor))
-  love.graphics.rectangle('fill', 0,0, (positionUtils.ize.x+1)*cellSize, (positionUtils.ize.y+1)*cellSize)
+  love.graphics.rectangle('fill', 0,0, (self.mapConfig.width+1)*self.mapConfig.cellSize, (self.mapConfig.height+1)*self.mapConfig.cellSize)
 end
 
 local function drawLightCanvas()
@@ -42,13 +61,13 @@ local function drawLightCanvas()
   love.graphics.setBlendMode("alpha")
 end
 
-local function mixAmbientAndLights()
+local function mixAmbientAndLights(self)
   love.graphics.push('all')
   love.graphics.reset()
   love.graphics.setScissor()
   love.graphics.setCanvas(lightAmbientMixCanvas)
   love.graphics.setColor(1, 1, 1, 1)
-  drawAmbientLight()
+  drawAmbientLight(self)
   drawLightCanvas()
   love.graphics.setCanvas()
   love.graphics.pop()
@@ -107,52 +126,62 @@ local function calcShadows(self, lightPos, resolutionMultiplier)
   return shadowMap
 end
 
+-- TODO: Make a buffer for this (say 20ms) where if this gets updated multiple times in a row, it only gets actually re-rendered at the end of the 20ms period
+local bufferLength = 0.2
+local bufferTimer = nil
 function LightSystem:gridUpdated()
-  love.graphics.setCanvas( {lightCanvas, stencil = true } )
-  love.graphics.clear(0,0,0,1)
+  if bufferTimer then return end
 
-  love.graphics.setColor(1,1,1,1)
-  love.graphics.setBlendMode("add")
+  bufferTimer = Timer.after(bufferLength, function()
+    print("Grid updated so drawing lights")
+    love.graphics.setCanvas( {lightCanvas, stencil = true } )
+    love.graphics.clear(0,0,0,1)
 
-  local shadowResolutionMultiplier = 1
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.setBlendMode("add")
 
-  for _, light in ipairs(self.pool) do
-    local position = light.position.vector
-    local gridPosition = positionUtils.pixelsToGridCoordinates(position)
+    local shadowResolutionMultiplier = 1
 
-    love.graphics.stencil(function()
-      local shadowMap = calcShadows(self, gridPosition, shadowResolutionMultiplier)
-      for y = 1,#shadowMap do
-        for x = 1,#shadowMap[y] do
-          if shadowMap[y][x] == 1 then -- add shadow
-            love.graphics.setColor(1, 0, 1, 1)
-            love.graphics.rectangle('fill', x/shadowResolutionMultiplier, y/shadowResolutionMultiplier,
-            shadowResolutionMultiplier, shadowResolutionMultiplier)
+    for _, light in ipairs(self.pool) do
+      local position = light.position.vector
+      local gridPosition = positionUtils.pixelsToGridCoordinates(position)
+
+      love.graphics.stencil(function()
+        local shadowMap = calcShadows(self, gridPosition, shadowResolutionMultiplier)
+        for y = 1,#shadowMap do
+          for x = 1,#shadowMap[y] do
+            if shadowMap[y][x] == 1 then -- add shadow
+              love.graphics.setColor(1, 0, 1, 1)
+              love.graphics.rectangle('fill', x/shadowResolutionMultiplier, y/shadowResolutionMultiplier,
+              shadowResolutionMultiplier, shadowResolutionMultiplier)
+            end
           end
         end
-      end
-    end,
-    "replace", 1, false)
+      end,
+      "replace", 1, false)
 
-    love.graphics.setStencilTest("less", 1)
+      love.graphics.setStencilTest("less", 1)
 
-    local color = light.light.color
-    love.graphics.setColor(color)
-    love.graphics.draw(lightCircleImage,
-    gridPosition.x-lightCircleImageWidth*lightCircleImageScale*0.5,
-    gridPosition.y-lightCircleImageHeight*lightCircleImageScale*0.5,
-    0, lightCircleImageScale, lightCircleImageScale)
-    love.graphics.setStencilTest()
-  end
+      local color = light.light.color
+      love.graphics.setColor(color)
+      love.graphics.draw(lightCircleImage,
+      gridPosition.x-lightCircleImageWidth*lightCircleImageScale*0.5,
+      gridPosition.y-lightCircleImageHeight*lightCircleImageScale*0.5,
+      0, lightCircleImageScale, lightCircleImageScale)
+      love.graphics.setStencilTest()
+    end
 
-  love.graphics.setBlendMode("alpha")
-  love.graphics.setCanvas()
+    love.graphics.setBlendMode("alpha")
+    love.graphics.setCanvas()
+
+    bufferTimer = nil
+  end)
 end
 
 function LightSystem:timeChanged(time, timeOfDay) --luacheck: ignore
   local lightLevel = math.sin((timeOfDay-0.25)*math.pi*2)
   ambientColor = { 0.6+lightLevel*0.4, 0.6+lightLevel*0.4, 1.0, 1.0, 1.0 }
-  mixAmbientAndLights()
+  mixAmbientAndLights(self)
 end
 
 

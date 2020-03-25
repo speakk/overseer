@@ -1,6 +1,7 @@
 local Vector = require('libs.brinevector')
 local Gamestate = require("libs.hump.gamestate")
 local bresenham = require('libs.bresenham')
+local cpml = require 'libs.cpml'
 
 local function getPosString(x, y)
   return x .. ":" .. y
@@ -119,7 +120,7 @@ end
 local isInPosition = function(position, comparePosition, acceptNeighbours)
   if position == comparePosition then return true end
 
-  local grid = Gamestate.pathFindGrid:getGrid()
+  local grid = Gamestate.current().pathFindGrid:getGrid()
 
   if acceptNeighbours then
     local toNode = grid:getNodeAt(comparePosition.x, comparePosition.y)
@@ -135,8 +136,14 @@ end
 
 local isPositionWalkable = function(position)
   local pathFindGrid = Gamestate.current().pathFindGrid
-  return pathFindGrid.isGridWalkable(position)
+  return pathFindGrid:isGridWalkable(position)
 end
+
+local clampToWorldBounds = function(gridPosition)
+  local mapConfig = Gamestate.current().mapConfig
+  return Vector(cpml.utils.clamp(gridPosition.x, 1, mapConfig.width), cpml.utils.clamp(gridPosition.y, 1, mapConfig.height))
+end
+
 
 return {
   getOuterBorderCoordinates = getOuterBorderCoordinates,
@@ -146,5 +153,6 @@ return {
   pixelsToGridCoordinates = pixelsToGridCoordinates,
   isPositionWithinArea = isPositionWithinArea,
   isInPosition = isInPosition,
+  clampToWorldBounds = clampToWorldBounds,
   isPositionWalkable = isPositionWalkable
 }

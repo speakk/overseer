@@ -1,4 +1,4 @@
-local positionUtils = require('models.positionUtils')
+local positionUtils = require('utils.position')
 local entityManager = require('models.entityManager')
 
 return function(e, gridPosition)

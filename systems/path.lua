@@ -1,8 +1,9 @@
 local Vector = require('libs.brinevector')
+local Gamestate = require("libs.hump.gamestate")
 local Path = require('libs.jumper.core.path')
 local Node = require('libs.jumper.core.node')
 local inspect = require('libs.inspect')
-local positionUtils = require('models.positionUtils')
+local positionUtils = require('utils.position')
 local pathFinder = require('models.pathFinder')
 local PathSystem = ECS.System({ pool = { "path", "position" } })
 
@@ -24,7 +25,7 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
       love.timer.getTime() - pathComponent.componentAdded > pathComponent.randomDelay then
       local entityPosition = positionUtils.pixelsToGridCoordinates(entity.position.vector)
       pathComponent.pathThread = pathFinder.getPathThread(
-        positionUtils.getMap(), entityPosition.x, entityPosition.y, pathComponent.toX, pathComponent.toY
+        Gamestate.current().map, entityPosition.x, entityPosition.y, pathComponent.toX, pathComponent.toY
       )
     end
 

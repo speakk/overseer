@@ -1,9 +1,10 @@
 local BehaviourTree = require('libs.behaviourtree')
+local Gamestate = require("libs.hump.gamestate")
 local lume = require('libs.lume')
 local Vector = require('libs.brinevector')
 local inspect = require('libs.inspect')
 
-local positionUtils = require('models.positionUtils')
+local positionUtils = require('utils.position')
 local entityManager = require('models.entityManager')
 local jobManager = require('models.jobManager')
 local UntilDecorator = require('models.ai.decorators.until')
@@ -12,9 +13,9 @@ local AtTarget = require('models.ai.sharedActions.atTarget')
 local GetTreeDt = require('models.ai.sharedActions.getTreeDt')
 
 local behaviours = {
-  fetch = require('models.ai.task.fetch').createTree,
-  bluePrint = require('models.ai.task.bluePrint').createTree,
-  destruct = require('models.ai.task.destruct').createTree
+  fetch = require('models.ai.tasks.fetch').createTree,
+  bluePrint = require('models.ai.tasks.bluePrint').createTree,
+  destruct = require('models.ai.tasks.destruct').createTree
 }
 
 local checkJobs = {
@@ -98,10 +99,10 @@ local idle = {
         local currentPosition = positionUtils.pixelsToGridCoordinates(blackboard.actor.position.vector)
         local radius = 10
         local nextPosition = Vector(love.math.random(currentPosition.x - radius, currentPosition.x + radius), love.math.random(currentPosition.y - radius, currentPosition.y + radius))
-        if nextPosition.x < 1 then nextPosition.x = 2 end
+        if nextPosition.x < 1 then nextPosition.x = 1 end
         if nextPosition.x > mapConfig.width then nextPosition.x = mapConfig.width-1 end
-        if nextPosition.y < 1 then nextPosition.y = 2 end
-        if nextPosition.y > mapConfig.height.y then nextPosition.y = mapConfig.height-1 end
+        if nextPosition.y < 1 then nextPosition.y = 1 end
+        if nextPosition.y > mapConfig.height then nextPosition.y = mapConfig.height-1 end
         --print("currentPosition, nextPosition", currentPosition, nextPosition)
         blackboard.idleTarget:give("position", positionUtils.gridPositionToPixels(nextPosition))
         blackboard.target = blackboard.idleTarget

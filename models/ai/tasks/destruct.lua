@@ -1,7 +1,7 @@
 local BehaviourTree = require('libs.behaviourtree')
 local lume = require('libs.lume')
 
-local positionUtils = require('models.positionUtils')
+local positionUtils = require('utils.position')
 local entityManager = require('models.entityManager')
 local UntilDecorator = require('models.ai.decorators.until')
 local GotoAction = require('models.ai.sharedActions.goto')

@@ -38,7 +38,6 @@ function ItemUtils.createItem(selector, amount)
 
   local world = Gamestate.current().world
 
-  print("Adding to world", selector)
   world:addEntity(item)
   world:__flush()
 

@@ -1,7 +1,7 @@
 require('libs.batteries.functional')
 local Vector = require('libs.brinevector')
 local lume = require('libs.lume')
-local positionUtils = require('utils.positionUtils')
+local positionUtils = require('utils.position')
 local camera = require('models.camera')
 
 local constructionTypes = require('data.constructionTypes')
