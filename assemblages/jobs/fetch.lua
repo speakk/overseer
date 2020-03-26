@@ -1,11 +1,11 @@
 local entityRegistry = require('models.entityRegistry')
 
-return function(subJob, targetId, itemData, selector)
+-- targetId == where to return stuff to
+return function(subJob, targetId, selector, amount)
   subJob
   :give("id", entityRegistry.generateId())
   :give("job", "fetch")
   :give("name", "FetchJob")
   :give("item", itemData)
-  :give("selector", selector)
-  :give("fetchJob", targetId, selector, itemData.requirements[selector])
+  :give("fetchJob", targetId, selector, amount)
 end

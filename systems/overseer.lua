@@ -8,7 +8,6 @@ local Vector = require('libs.brinevector')
 local lume = require('libs.lume')
 local inspect = require('libs.inspect') --luacheck: ignore
 
-local constructionTypes = require('data.constructionTypes')
 local settings = require('settings')
 
 local OverseerSystem = ECS.System()
@@ -60,7 +59,6 @@ function OverseerSystem:init()
   }
 
   self.selectedAction = ""
-  self.dataSelector = "walls.subItems.wooden_wall"
 end
 
 function OverseerSystem:generateGUIDraw() --luacheck: ignore
@@ -97,14 +95,15 @@ function OverseerSystem:generateGUIDraw() --luacheck: ignore
   end
 end
 
-function OverseerSystem:dataSelectorChanged(selector, params)
-  self.dataSelector = selector
+function OverseerSystem:selectedAssemblageChanged(assemblage, params)
+  print("selectedAssemblageChanged", assemblage)
+  self.selectedAssemblage = assemblage
   self.dataSelectorParams = params
   --self:getWorld():emit("dataSelectorChanged", selector)
 end
 
-function OverseerSystem:getDataSelector()
-  return self.dataSelector
+function OverseerSystem:getSelectedAssemblage()
+  return self.selectedAssemblage
 end
 
 function OverseerSystem:selectedModeChanged(selector)
@@ -200,11 +199,11 @@ function OverseerSystem:mouseReleased(mouseCoordinates, button) --luacheck: igno
 end
 
 function OverseerSystem:build(coords)
-  if not self.dataSelector then return end
-  local data = constructionTypes.getBySelector(self.dataSelector)
-  if data then
-    self:getWorld():emit("bluePrintsPlaced", coords, data, self.dataSelector)
-  end
+  print("Build", self.selectedAssemblage)
+  if not self.selectedAssemblage then return end
+  --local data = constructionTypes.getBySelector(self.selectedAssemblage)
+  --local data = ECS.a[
+  self:getWorld():emit("bluePrintsPlaced", coords, self.selectedAssemblage)
 end
 
 function OverseerSystem:zones(coords, rect) --luacheck: ignore

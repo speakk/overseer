@@ -1,12 +1,13 @@
 local nuklear = require("nuklear")
 local settings = require("settings")
 local inspect = require("libs.inspect") --luacheck: ignore
+local lume = require("libs.lume")
 local Vector = require('libs.brinevector')
 
 local camera = require("models.camera")
 
 local ui
-local constructionTypes = require('data.constructionTypes')
+--local constructionTypes = require('data.constructionTypes')
 
 local menuWidth = 400
 local menuHeight = 300
@@ -43,7 +44,19 @@ local uiState = {
       name = "Build",
       id = "build",
       shortCut = "q",
-      subItems = constructionTypes.data
+      subItems = {
+        construct = {
+          name = "Construct",
+          subItems = lume.map(lume.concat(ECS.a.doors, ECS.a.walls), function(assemblage)
+            local e = ECS.Entity():assemble(assemblage)
+            if not e.name then return nil end
+            return {
+              name = e.name.name,
+              assemblage = assemblage
+            }
+          end)
+        }
+      }
     },
     {
       name = "Zones",
@@ -92,20 +105,21 @@ local function buildMenuHierarchy(self, items, key, path)
     if items.requirements then
       requirements = "Requires: "
       for itemKey, value in pairs(items.requirements) do
-        requirements = requirements .. constructionTypes.getBySelector(itemKey).name .. ": " .. value
+        --requirements = requirements .. constructionTypes.getBySelector(itemKey).name .. ": " .. value
+        requirements = "todo"
         requirements = requirements .. ", "
       end
     end
 
-    local selectionMatch = path == self.dataSelector
+    local selectionMatch = items.assemblage == self.selectedAssemblage
     local sel = { value = selectionMatch}
     local name = items.name
     if requirements then name = name .. ", " .. requirements end
     if ui:selectable(name, sel) then
       if sel.value then
 
-        self.dataSelector = path
-        self:getWorld():emit("dataSelectorChanged", path, items.params)
+        self.selectedAssemblage = items.assemblage
+        self:getWorld():emit("selectedAssemblageChanged", items.assemblage, items.params)
       end
     end
   elseif type(items) == "table" then
@@ -123,7 +137,7 @@ end
 function GUISystem:init()
   ui = nuklear.newUI()
   self.selectedAction = nil
-  self.dataSelector = nil
+  self.selectedAssemblage = nil
 
 end
 
@@ -244,8 +258,8 @@ function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
   end
 end
 
-function GUISystem:setDataSelector(selector)
-  self.dataSelector = selector
+function GUISystem:setSelectedAssemblage(assemblage)
+  self.selectedAssemblage = assemblage
 end
 
 function GUISystem:mousemoved(x, y, dx, dy, istouch) --luacheck: ignore

@@ -4,8 +4,6 @@ local lume = require('libs.lume')
 local positionUtils = require('utils.position')
 local camera = require('models.camera')
 
-local constructionTypes = require('data.constructionTypes')
-
 local ZoneSystem = ECS.System({ pool = { "zone", "rect" } })
 
 local lastZoneUpdate = love.timer.getTime()
@@ -41,8 +39,7 @@ local zoneHandlers = {
 
       for _, coordinate in ipairs(coords) do
         if not positionUtils.isPositionOccupied(coordinate) then
-          local data = constructionTypes.getBySelector(constructSelector)
-          self:getWorld():emit("bluePrintsPlaced", {coordinate}, data, constructSelector)
+          self:getWorld():emit("bluePrintsPlaced", {coordinate}, selector)
         end
       end
     end

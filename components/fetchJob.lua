@@ -1,3 +1,4 @@
+-- targetId == where to return stuff to
 local fetchJob = ECS.Component(..., function(component, targetId, selector, amount)
   component.targetId = targetId
   component.selector = selector or error("Fetch has no selector!")

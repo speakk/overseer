@@ -4,5 +4,3 @@ local plant = ECS.Component(..., function(component, frames, growInterval, curre
   component.currentStage = currentStage or 1
 end)
 return plant
-
-

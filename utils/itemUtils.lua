@@ -1,7 +1,6 @@
 local Gamestate = require("libs.hump.gamestate")
 local inspect = require('libs.inspect') -- luacheck: ignore
 local entityRegistry = require('models.entityRegistry')
-local constructionTypes = require('data.constructionTypes')
 
 local ItemUtils = {}
 
@@ -23,18 +22,13 @@ end
 function ItemUtils.createItem(selector, amount)
   amount = amount or 1
 
-  local item = ECS.Entity()
-  local itemData = constructionTypes.getBySelector(selector)
+  local item = ECS.Entity():assemble(ECS.a.getBySelector(selector))
   --local color = itemData.color or { 0.5, 0.5, 0.5 }
   item:give("item", itemData)
   :give("selector", selector)
   :give("amount", amount)
   :give("name", "Item: " .. selector)
   :give("id", entityRegistry.generateId())
-
-  for _, component in ipairs(itemData.components) do
-    item:give(component.name, unpack(component.properties))
-  end
 
   local world = Gamestate.current().world
 

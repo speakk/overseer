@@ -13,8 +13,8 @@ function ItemSystem:initializeTestItems() --luacheck: ignore
   local mapConfig = Gamestate.current().mapConfig
   local randomTable = {
     --walls = { "wooden_wall", "iron_wall" },
-    raw_materials = { "wood", "iron", "stone", "steel" },
-    seeds = { "potato_seed" }
+    rawMaterials = { "wood", "iron", "stone", "steel" },
+    seeds = { "potato" }
   }
 
   for i=1,40,1 do  --luacheck: ignore
@@ -41,7 +41,7 @@ function ItemSystem:initializeTestTrees(mapSize)
     local position = Vector(math.random(mapConfig.width), math.random(mapConfig.height))
     if positionUtils.isPositionWalkable(position) then
       local selector = "growing.tree"
-      local rawWood = itemUtils.createItem('raw_materials.wood', 2)
+      local rawWood = itemUtils.createItem('rawMaterials.wood', 2)
       local entity = ECS.Entity()
       entity:give("sprite", "vegetation.tree01")
       :give("onMap")

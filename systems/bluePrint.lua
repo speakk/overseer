@@ -4,16 +4,18 @@ local Vector = require('libs.brinevector')
 local positionUtils = require('utils.position')
 local BluePrintSystem = ECS.System({pool = {"bluePrintJob", "job"}})
 
-function BluePrintSystem:bluePrintsPlaced(coords, constructionType, bluePrintSelector)
+function BluePrintSystem:bluePrintsPlaced(coords, assemblage)
   print("bluePrintsPlaced")
   for _, position in ipairs(coords) do
     if positionUtils.isPositionWalkable(position) then
-      local job = ECS.Entity():assemble(ECS.a.jobs.bluePrint, position, constructionType, bluePrintSelector)
-      if constructionType.requirements then
+      local job = ECS.Entity()
+        :assemble(assemblage)
+        :assemble(ECS.a.jobs.bluePrint, position)
+      if job.requirements then
         job:give("children", {})
         local childrenIds = job.children.children
-        for selector, _ in pairs(constructionType.requirements) do
-          local subJob = ECS.Entity():assemble(ECS.a.jobs.fetch, job.id.id, constructionType, selector)
+        for selector, amount in pairs(job.requirements.value) do
+          local subJob = ECS.Entity():assemble(ECS.a.jobs.fetch, job.id.id, selector, amount)
           subJob:give("parent", job.id.id)
           table.insert(childrenIds, subJob.id.id)
           self:getWorld():addEntity(subJob)
@@ -53,19 +55,7 @@ function BluePrintSystem:generateGUIDraw()
 end
 
 function BluePrintSystem:jobFinished(job) --luacheck: ignore
-  job:give("collision")
-  job:give("construction", 100)
-  job:remove("transparent")
-
-  local itemData = job.item.itemData
-
-  if itemData.components then
-    for _, component in ipairs(itemData.components) do
-      if component.afterConstructed then
-        job:give(component.name, unpack(component.properties))
-      end
-    end
-  end
+  job:give('active')
 end
 
 local buildProgressSpeedModifier = 5
