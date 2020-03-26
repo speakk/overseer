@@ -115,45 +115,36 @@ function LightSystem:initializeTestLights()
   end
 end
 
-local function calcShadows(self, lights, resolutionMultiplier)
-  local mapSize = Vector(self.mapConfig.width, self.mapConfig.height)
+local function calcShadows(self, lightPos, resolutionMultiplier, lightRadius)
+  local mapSize = Vector(lightRadius*2, lightRadius*2)
+  --local mapSize = Vector(self.mapConfig.width, self.mapConfig.height)
   local shadowMap = {}
-  for y = -1,(mapSize.y+1)*resolutionMultiplier do
+  for y = 1,(mapSize.y+1)*resolutionMultiplier do
     local row = {}
-    for x = -1,(mapSize.x+1)*resolutionMultiplier do row[x] = 1 end -- 1 = Shadow
+    for x = 1,(mapSize.x+1)*resolutionMultiplier do row[x] = 1 end -- 1 = Shadow
     shadowMap[y] = row
   end
 
-  local lightRadius = 14 -- radius in tiles
+  for _, coords in ipairs(positionUtils.getCoordinatesAround(lightPos.x, lightPos.y, lightRadius)) do
+    bresenham.los(lightPos.x*resolutionMultiplier,lightPos.y*resolutionMultiplier,
+    coords.x*resolutionMultiplier, coords.y*resolutionMultiplier, function(origX, origY)
+      local x = origX - lightPos.x + 1 + mapSize.x/2
+      local y = origY - lightPos.y + 1 + mapSize.y/2
+      --print("xy", x, y, lightPos.x, lightPos.y, origX, origY)
 
-  for _, light in ipairs(lights) do
-    local lightPos = positionUtils.pixelsToGridCoordinates(light.position.vector)
-    for _, coords in ipairs(positionUtils.getCoordinatesAround(lightPos.x+0.5, lightPos.y+0.5, lightRadius)) do
-      bresenham.los(lightPos.x*resolutionMultiplier,lightPos.y*resolutionMultiplier,
-      coords.x*resolutionMultiplier, coords.y*resolutionMultiplier, function(x, y)
+      --if shadowMap[y][x] == 1 then return true end
 
-        if x < (mapSize.x+1)*resolutionMultiplier and
-          x >= 0 and
-          y >= 0 and
-          y < (mapSize.y+1)*resolutionMultiplier then
+      local occluded = isPositionOccluded(
+      Vector(math.floor(origX/resolutionMultiplier), math.floor(origY/resolutionMultiplier))
+      )
 
-          if shadowMap[y][x] == 0 then return true end
-
-          local occluded = isPositionOccluded(
-          Vector(math.floor(x/resolutionMultiplier), math.floor(y/resolutionMultiplier))
-          )
-
-
-          if not occluded then
-            if not shadowMap[y-1] then print ("Oh dear", y-1, x-1) end
-            shadowMap[y][x] = 0 -- add light
-            return true
-          else
-            return false
-          end
-        end
-      end)
-    end
+      if not occluded then
+        shadowMap[y][x] = 0 -- add light
+        return true
+      else
+        return false
+      end
+    end)
   end
 
   return shadowMap
@@ -175,25 +166,32 @@ function LightSystem:gridUpdated()
 
     local shadowResolutionMultiplier = 1
 
-    local shadowMap = calcShadows(self, self.pool, shadowResolutionMultiplier)
-
-    love.graphics.stencil(function()
+    function drawStencil(self, gridPosition, shadowResolutionMultiplier, lightRadius)
+      local shadowMap = calcShadows(self, gridPosition, shadowResolutionMultiplier, lightRadius)
       for y = 1,#shadowMap do
         for x = 1,#shadowMap[y] do
           if shadowMap[y][x] == 1 then -- add shadow
             love.graphics.setColor(1, 0, 1, 1)
-            love.graphics.rectangle('fill', x/shadowResolutionMultiplier, y/shadowResolutionMultiplier,
+            love.graphics.rectangle('fill', x+gridPosition.x-lightRadius-1/shadowResolutionMultiplier, y+gridPosition.y-lightRadius-1/shadowResolutionMultiplier,
             shadowResolutionMultiplier, shadowResolutionMultiplier)
           end
         end
       end
-    end,
-    "replace", 1, false)
+    end
 
-    love.graphics.setStencilTest("less", 1)
     for _, light in ipairs(self.pool) do
       local position = light.position.vector
       local gridPosition = positionUtils.pixelsToGridCoordinates(position)
+      local lightRadius = 9
+
+      love.graphics.stencil(function()
+        drawStencil(self, gridPosition, shadowResolutionMultiplier, lightRadius)
+      end,
+      "replace", 1, false)
+
+      --drawStencil(self, gridPosition, shadowResolutionMultiplier, lightRadius)
+
+      love.graphics.setStencilTest("less", 1)
 
       local color = light.light.color
       love.graphics.setColor(color)
@@ -201,8 +199,8 @@ function LightSystem:gridUpdated()
       gridPosition.x-lightCircleImageWidth*lightCircleImageScale*0.5,
       gridPosition.y-lightCircleImageHeight*lightCircleImageScale*0.5,
       0, lightCircleImageScale, lightCircleImageScale)
+      love.graphics.setStencilTest()
     end
-    love.graphics.setStencilTest()
 
     love.graphics.setBlendMode("alpha")
     love.graphics.setCanvas()

@@ -11,7 +11,7 @@ local frontNames = { "Herbert", "George", "Rebecca", "Suzanne", "Korb",
 local lastNames = { "Mallory", "Rombert", "Bluelie", "Smith", "Knob", "Wallace", "Stratham", "Prism" }
 
 function SettlerSystem:initializeTestSettlers()
-  for _ = 1,40 do
+  for _ = 1,20 do
     local mapConfig = Gamestate.current().mapConfig
     local position
     while true do

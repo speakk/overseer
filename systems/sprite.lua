@@ -16,11 +16,10 @@ end
 function SpriteSystem:customDraw(l, t, w, h)
   self.tilesetBatch:clear()
   -- TODO: OPTIMIZE THIS SUCKER
-  local zSorted = table.insertion_sort(table.copy(self.pool), function(a, b)
-    return a.position.vector.y < b.position.vector.y
-  end)
-  --local zSorted = lume.sort(self.pool, function(a, b) return a.position.vector.y < b.position.vector.y end)
-  --(self.pool, function(a, b) return a.position.vector.y < b.position.vector.y end)
+  -- local zSorted = table.insertion_sort(table.copy(self.pool), function(a, b)
+  --   return a.position.vector.y < b.position.vector.y
+  -- end)
+  local zSorted = self.pool
   for _, entity in ipairs(zSorted) do
     self:drawEntity(l, t, w, h, entity)
   end
