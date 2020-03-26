@@ -109,7 +109,7 @@ local function buildMenuHierarchy(self, items, key, path)
       end
     end
   elseif type(items) == "table" then
-    if items.name and items.subItems then
+    if items.name and items.subItems and not items.hideFromMenu then
       if ui:treePush('tab', items.name) then
         for subKey, item in pairs(items.subItems) do
           buildMenuHierarchy(self, item, subKey, path)

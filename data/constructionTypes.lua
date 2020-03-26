@@ -151,6 +151,10 @@ local data = {
       potato_seed = {
         name = "Potato seed",
         components = { { name = "sprite", properties = { "seeds.seeds_potato" } } }
+      },
+      tree = {
+        name = "Tree seed",
+        components = { { name = "sprite", properties = { "seeds.seeds_potato" } } }
       }
     }
   }
