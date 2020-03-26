@@ -12,7 +12,7 @@ limits = love.graphics.getSystemLimits( )
 print(inspect(limits))
 
 DEBUG = false
--- PROFILER = true
+--PROFILER = true
 
 local Concord = require("libs.concord")
 

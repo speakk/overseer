@@ -47,7 +47,7 @@ local uiState = {
       subItems = {
         construct = {
           name = "Construct",
-          subItems = lume.map(lume.concat(ECS.a.doors, ECS.a.walls), function(assemblage)
+          subItems = lume.map(lume.concat(ECS.a.doors, ECS.a.walls, ECS.a.lights), function(assemblage)
             local e = ECS.Entity():assemble(assemblage)
             if not e.name then return nil end
             return {

@@ -115,7 +115,7 @@ function LightSystem:initializeTestLights()
   end
 end
 
-local function calcShadows(self, lightPos, resolutionMultiplier)
+local function calcShadows(self, lights, resolutionMultiplier)
   local mapSize = Vector(self.mapConfig.width, self.mapConfig.height)
   local shadowMap = {}
   for y = -1,(mapSize.y+1)*resolutionMultiplier do
@@ -126,28 +126,34 @@ local function calcShadows(self, lightPos, resolutionMultiplier)
 
   local lightRadius = 14 -- radius in tiles
 
-  for _, coords in ipairs(positionUtils.getCoordinatesAround(lightPos.x+0.5, lightPos.y+0.5, lightRadius)) do
-    bresenham.los(lightPos.x*resolutionMultiplier,lightPos.y*resolutionMultiplier,
-    coords.x*resolutionMultiplier, coords.y*resolutionMultiplier, function(x, y)
-      local occluded = isPositionOccluded(
-      Vector(math.floor(x/resolutionMultiplier), math.floor(y/resolutionMultiplier))
-      )
+  for _, light in ipairs(lights) do
+    local lightPos = positionUtils.pixelsToGridCoordinates(light.position.vector)
+    for _, coords in ipairs(positionUtils.getCoordinatesAround(lightPos.x+0.5, lightPos.y+0.5, lightRadius)) do
+      bresenham.los(lightPos.x*resolutionMultiplier,lightPos.y*resolutionMultiplier,
+      coords.x*resolutionMultiplier, coords.y*resolutionMultiplier, function(x, y)
 
-      if x < (mapSize.x+1)*resolutionMultiplier and
-        x >= 0 and
-        y >= 0 and
-        y < (mapSize.y+1)*resolutionMultiplier then
+        if x < (mapSize.x+1)*resolutionMultiplier and
+          x >= 0 and
+          y >= 0 and
+          y < (mapSize.y+1)*resolutionMultiplier then
+
+          if shadowMap[y][x] == 0 then return true end
+
+          local occluded = isPositionOccluded(
+          Vector(math.floor(x/resolutionMultiplier), math.floor(y/resolutionMultiplier))
+          )
 
 
-        if not occluded then
-          if not shadowMap[y-1] then print ("Oh dear", y-1, x-1) end
-          shadowMap[y][x] = 0 -- add light
-          return true
-        else
-          return false
+          if not occluded then
+            if not shadowMap[y-1] then print ("Oh dear", y-1, x-1) end
+            shadowMap[y][x] = 0 -- add light
+            return true
+          else
+            return false
+          end
         end
-      end
-    end)
+      end)
+    end
   end
 
   return shadowMap
@@ -169,25 +175,25 @@ function LightSystem:gridUpdated()
 
     local shadowResolutionMultiplier = 1
 
+    local shadowMap = calcShadows(self, self.pool, shadowResolutionMultiplier)
+
+    love.graphics.stencil(function()
+      for y = 1,#shadowMap do
+        for x = 1,#shadowMap[y] do
+          if shadowMap[y][x] == 1 then -- add shadow
+            love.graphics.setColor(1, 0, 1, 1)
+            love.graphics.rectangle('fill', x/shadowResolutionMultiplier, y/shadowResolutionMultiplier,
+            shadowResolutionMultiplier, shadowResolutionMultiplier)
+          end
+        end
+      end
+    end,
+    "replace", 1, false)
+
+    love.graphics.setStencilTest("less", 1)
     for _, light in ipairs(self.pool) do
       local position = light.position.vector
       local gridPosition = positionUtils.pixelsToGridCoordinates(position)
-
-      love.graphics.stencil(function()
-        local shadowMap = calcShadows(self, gridPosition, shadowResolutionMultiplier)
-        for y = 1,#shadowMap do
-          for x = 1,#shadowMap[y] do
-            if shadowMap[y][x] == 1 then -- add shadow
-              love.graphics.setColor(1, 0, 1, 1)
-              love.graphics.rectangle('fill', x/shadowResolutionMultiplier, y/shadowResolutionMultiplier,
-              shadowResolutionMultiplier, shadowResolutionMultiplier)
-            end
-          end
-        end
-      end,
-      "replace", 1, false)
-
-      love.graphics.setStencilTest("less", 1)
 
       local color = light.light.color
       love.graphics.setColor(color)
@@ -195,8 +201,8 @@ function LightSystem:gridUpdated()
       gridPosition.x-lightCircleImageWidth*lightCircleImageScale*0.5,
       gridPosition.y-lightCircleImageHeight*lightCircleImageScale*0.5,
       0, lightCircleImageScale, lightCircleImageScale)
-      love.graphics.setStencilTest()
     end
+    love.graphics.setStencilTest()
 
     love.graphics.setBlendMode("alpha")
     love.graphics.setCanvas()
