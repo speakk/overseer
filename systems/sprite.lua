@@ -1,5 +1,6 @@
 local Vector = require('libs.brinevector')
 local Gamestate = require('libs.hump.gamestate')
+local lume = require('libs.lume')
 
 local utils = require('utils.utils')
 local media = require('utils.media')
@@ -9,17 +10,25 @@ local entityRegistry = require('models.entityRegistry')
 
 local SpriteSystem = ECS.System( { pool = { "sprite", "position" } })
 
+local sortPool = {}
+
 function SpriteSystem:init()
   self.tilesetBatch = love.graphics.newSpriteBatch(media.atlas, 500)
+
+  self.pool.onEntityAdded = function(pool, entity)
+    table.insert(sortPool, entity)
+  end
+
+  self.pool.onEntityRemoved = function(pool, entity)
+    lume.remove(sortPool, entity)
+  end
 end
 
 function SpriteSystem:customDraw(l, t, w, h)
   self.tilesetBatch:clear()
-  -- TODO: OPTIMIZE THIS SUCKER
-  -- local zSorted = table.insertion_sort(table.copy(self.pool), function(a, b)
-  --   return a.position.vector.y < b.position.vector.y
-  -- end)
-  local zSorted = self.pool
+  local zSorted = table.insertion_sort(sortPool, function(a, b)
+    return a.position.vector.y < b.position.vector.y
+  end)
   for _, entity in ipairs(zSorted) do
     self:drawEntity(l, t, w, h, entity)
   end
