@@ -7,8 +7,8 @@ local positionUtils = require('utils.position')
 local entityFinder = require('models.entityFinder')
 
 local LightSystem = ECS.System({
-  pool = { "light", "position" },
-  occluders = { "onMap", "position", "occluder" }
+  pool = { "light", "position", "active" },
+  occluders = { "onMap", "position", "occluder", "active" }
 })
 
 local lightGradientImage = love.graphics.newImage("media/misc/light_gradient.png")

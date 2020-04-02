@@ -22,11 +22,6 @@ local drag = {
 }
 
 function OverseerSystem:init()
-  self.resources = {
-    wood = 30,
-    metal = 5
-  }
-
   self.actionCallbacks = {
     build = {
       action1 = function(mouseCoordinates, button) --luacheck: ignore
@@ -100,10 +95,6 @@ function OverseerSystem:selectedAssemblageChanged(assemblage, params)
   self.selectedAssemblage = assemblage
   self.dataSelectorParams = params
   --self:getWorld():emit("dataSelectorChanged", selector)
-end
-
-function OverseerSystem:getSelectedAssemblage()
-  return self.selectedAssemblage
 end
 
 function OverseerSystem:selectedModeChanged(selector)

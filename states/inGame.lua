@@ -115,8 +115,8 @@ end
 
 function inGame:initializeTestStuff()
   self.world:getSystem(ECS.Systems.light):initializeTestLights()
-  -- self.world:getSystem(ECS.Systems.settler):initializeTestSettlers()
-  -- self.world:getSystem(ECS.Systems.settler):initializeTestCreatures()
+  self.world:getSystem(ECS.Systems.settler):initializeTestSettlers()
+  self.world:getSystem(ECS.Systems.settler):initializeTestCreatures()
   self.world:getSystem(ECS.Systems.item):initializeTestItems()
   self.world:getSystem(ECS.Systems.item):initializeTestTrees()
   self.world:getSystem(ECS.Systems.item):initializeTestShrubbery()

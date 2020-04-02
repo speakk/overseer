@@ -3,6 +3,7 @@ local Vector = require('libs.brinevector')
 local lume = require('libs.lume')
 local positionUtils = require('utils.position')
 local camera = require('models.camera')
+local entityFinder = require('models.entityFinder')
 
 local ZoneSystem = ECS.System({ pool = { "zone", "rect" } })
 
@@ -21,13 +22,13 @@ end
 local zoneHandlers = {
   deconstruct = {
     run = function(self, zone, params, coords, dt) --luacheck: ignore
-      local entities = positionUtils.getEntitiesInCoordinates(coords, params.selector, params.componentRequirements)
+      local entities = entityFinder.getEntitiesInCoordinates(coords, params.selector, params.componentRequirements)
       self:getWorld():emit("cancelConstruction", entities)
     end
   },
   harvest = {
     run = function(self, zone, params, coords, dt) --luacheck: ignore
-      local entities = positionUtils.getEntitiesInCoordinates(coords, nil, {'plant'})
+      local entities = entityFinder.getEntitiesInCoordinates(coords, nil, {'plant'})
       local ripeEntities = lume.filter(entities, function(entity) return entity.plant.finished end)
       print("ripeEntities", #ripeEntities)
       self:getWorld():emit("cancelConstruction", ripeEntities)
@@ -36,10 +37,11 @@ local zoneHandlers = {
   construct = {
     run = function(self, zone, params, coords, dt) --luacheck: ignore
       local constructSelector = params.selector
+      local assemblage = ECS.a.getBySelector(params.selector)
 
       for _, coordinate in ipairs(coords) do
-        if not positionUtils.isPositionOccupied(coordinate) then
-          self:getWorld():emit("bluePrintsPlaced", {coordinate}, selector)
+        if not entityFinder.isPositionOccupied(coordinate) then
+          self:getWorld():emit("bluePrintsPlaced", {coordinate}, assemblage)
         end
       end
     end

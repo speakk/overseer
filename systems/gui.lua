@@ -3,8 +3,11 @@ local settings = require("settings")
 local inspect = require("libs.inspect") --luacheck: ignore
 local lume = require("libs.lume")
 local Vector = require('libs.brinevector')
+local media = require('utils.media')
 
 local camera = require("models.camera")
+
+local atlas = media.atlas
 
 local ui
 --local constructionTypes = require('data.constructionTypes')
@@ -43,15 +46,18 @@ local uiState = {
     {
       name = "Build",
       id = "build",
+      event = "build",
       shortCut = "q",
       subItems = {
         construct = {
           name = "Construct",
+          spriteSelector = "tiles.door_wood01",
           subItems = lume.map(lume.concat(ECS.a.doors, ECS.a.walls, ECS.a.lights), function(assemblage)
             local e = ECS.Entity():assemble(assemblage)
             if not e.name then return nil end
             return {
               name = e.name.name,
+              spriteSelector = e.sprite.selector,
               assemblage = assemblage
             }
           end)
@@ -70,7 +76,7 @@ local uiState = {
               name = "Potato",
               params = {
                 types = {"construct", "harvest"},
-                selector = "growing.potato"
+                selector = "plants.potato"
               }
             }
           }
@@ -79,7 +85,7 @@ local uiState = {
           name = "Chop trees",
           params = {
             types = { "deconstruct" },
-            selector = "growing.tree"
+            selector = "plants.tree"
           }
         }
       }
@@ -111,24 +117,43 @@ local function buildMenuHierarchy(self, items, key, path)
       end
     end
 
-    local selectionMatch = items.assemblage == self.selectedAssemblage
+    --local selectionMatch = items.assemblage == self.selectedAssemblage
+    local selectionMatch = path == self.selectedPath
     local sel = { value = selectionMatch}
     local name = items.name
     if requirements then name = name .. ", " .. requirements end
-    if ui:selectable(name, sel) then
-      if sel.value then
-
-        self.selectedAssemblage = items.assemblage
-        self:getWorld():emit("selectedAssemblageChanged", items.assemblage, items.params)
-      end
+    local image = nil
+    if items.spriteSelector then
+      image = { atlas, media.getSpriteQuad(items.spriteSelector) }
     end
+    ui:stylePush({selectable={
+      ['normal']=nuklear.colorRGBA(255,255,255, 0),
+      ['hover']=nuklear.colorRGBA(255,255,255, 0),
+      ['normal active']=nuklear.colorRGBA(255,255,255, 0),
+      ['hover active']=nuklear.colorRGBA(255,255,255, 0),
+      ['pressed active']=nuklear.colorRGBA(255,255,255, 0),
+      ['text hover']=nuklear.colorRGBA(255,255,100, 255),
+      ['text hover active']=nuklear.colorRGBA(255,170,100, 255),
+      ['text normal active']=nuklear.colorRGBA(255,170,100, 255)
+      }})
+    if ui:selectable(name, image, sel) then
+      self.selectedAssemblage = items.assemblage
+      self.selectedPath = path
+      self:getWorld():emit("selectedAssemblageChanged", items.assemblage, items.params)
+    end
+    ui:stylePop()
+
   elseif type(items) == "table" then
     if items.name and items.subItems and not items.hideFromMenu then
-      if ui:treePush('tab', items.name) then
+      local image = nil
+      if items.spriteSelector then
+        image = { atlas, media.getSpriteQuad(items.spriteSelector) }
+      end
+      if ui:treePush('tab', items.name, image) then
         for subKey, item in pairs(items.subItems) do
           buildMenuHierarchy(self, item, subKey, path)
         end
-      ui:treePop()
+        ui:treePop()
       end
     end
   end
@@ -138,7 +163,6 @@ function GUISystem:init()
   ui = nuklear.newUI()
   self.selectedAction = nil
   self.selectedAssemblage = nil
-
 end
 
 function GUISystem:update(dt) --luacheck: ignore
@@ -148,7 +172,7 @@ function GUISystem:update(dt) --luacheck: ignore
   local actionsBarHeight = settings.actions_bar_height
 
   if ui:windowBegin('actions_bar', 0, windowHeight-actionsBarHeight, windowWidth, actionsBarHeight) then
-    ui:layoutRow('dynamic', actionsBarHeight-10, 10)
+    ui:layoutRow('dynamic', actionsBarHeight-10, 8)
     for _, menuItem in ipairs(uiState.menuHierarchy) do
       local sel = { value = menuItem.id == self.selectedAction }
       if ui:selectable(menuItem.name .. ' (' .. (menuItem.shortCut or '') .. ')', sel) then
@@ -222,6 +246,12 @@ function GUISystem:mousepressed(x, y, button, istouch, presses)
   end
   local globalX, globalY = camera:toWorld(x, y)
   self:getWorld():emit("mapClicked", Vector(globalX, globalY), button, self.selectedAction)
+
+  -- if self.selectedMenu then
+  --   local event = self.selectedMenu.event
+  --   local params = self.selectedParams
+  --   self:getWorld():emit(event, globalX, globalY, button, table.unpack(params))
+  -- end
 end
 
 function GUISystem:mousereleased(x, y, button, istouch, presses) --luacheck: ignore
