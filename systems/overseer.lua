@@ -14,47 +14,15 @@ local OverseerSystem = ECS.System()
 
 local zoneColor = { 0.3, 0.3, 0.9, 0.5 }
 
-
-local drag = {
-  startPoint = Vector(),
-  endPoint = Vector(),
-  active = false
-}
-
-function OverseerSystem:init()
-  self.actionCallbacks = {
-    build = {
-      action1 = function(mouseCoordinates, button) --luacheck: ignore
-        --actions.action1(mouseCoordinates, button)
-        self:dragAction(mouseCoordinates, button, false, function(coords, rect) --luacheck: ignore
-          self:build(coords)
-        end,
-        { 1, 1, 1, 1 })
-      end,
-      action2 = function(mouseCoordinates, button) --luacheck: ignore
-        self:dragAction(mouseCoordinates, button, true, function(coords, rect) --luacheck: ignore
-          self:destruct(coords)
-        end,
-        { 1, 0, 0, 1 })
-      end,
-    },
-    zones = {
-      action1 = function(mouseCoordinates, button) --luacheck: ignore
-        print("ZONE ACITON1")
-        self:dragAction(mouseCoordinates, button, true, function(coords, rect)
-          self:zones(coords, rect)
-        end,
-        zoneColor)
-      end,
-      action2 = function(mouseCoordinates, button) --luacheck: ignore
-        print("ZONE action 2")
-        self:getWorld():emit("zoneDeleteClick", mouseCoordinates)
-      end
-    }
+function getNewDragAction()
+  return {
+    startPoint = Vector(),
+    endPoint = Vector(),
+    active = false
   }
-
-  self.selectedAction = ""
 end
+
+local drag = getNewDragAction()
 
 function OverseerSystem:generateGUIDraw() --luacheck: ignore
   if drag.active then
@@ -90,24 +58,6 @@ function OverseerSystem:generateGUIDraw() --luacheck: ignore
   end
 end
 
--- function OverseerSystem:selectedAssemblageChanged(assemblage, params)
---   print("selectedAssemblageChanged", assemblage)
---   self.selectedAssemblage = assemblage
---   self.dataSelectorParams = params
---   --self:getWorld():emit("dataSelectorChanged", selector)
--- end
-
-function OverseerSystem:selectedModeChanged(selector)
-  self.selectedAction = selector
-end
-
-function OverseerSystem:getSelectedAction()
-  return self.selectedAction
-end
-
-function OverseerSystem:update(dt) --luacheck: ignore
-end
-
 function OverseerSystem:enactDrag(dragEvent) --luacheck: ignore
   if not dragEvent or not dragEvent.action then print("uh what") return end
   local gridCoordsStart = positionUtils.pixelsToGridCoordinates(dragEvent.startPoint)
@@ -126,12 +76,6 @@ function OverseerSystem:enactDrag(dragEvent) --luacheck: ignore
     x2 = gridCoordsEnd.x,
     y2 = gridCoordsEnd.y
   })
-
-  -- if dragEvent.type == 'construct' then
-  --   self:build(nodes)
-  -- elseif dragEvent.type == 'destruct' then
-  --   self:destruct(nodes)
-  -- end
 end
 
 function OverseerSystem:startDrag(mouseCoordinates, fill, action) --luacheck: ignore
@@ -147,12 +91,7 @@ function OverseerSystem:endDrag(mouseCoordinates)
   self:enactDrag(drag)
 end
 
-function OverseerSystem:buildClicked(globalX, globalY, button, params)
-  print("buildClicked", params.assembleFunction)
-  drag.active = false
-  drag.startPoint = nil
-  drag.endPoint = nil
-
+function OverseerSystem:buildClick(globalX, globalY, button, params)
   local mouseCoordinates = Vector(globalX, globalY)
 
   if button == 1 then
@@ -166,24 +105,6 @@ function OverseerSystem:buildClicked(globalX, globalY, button, params)
     end,
     { 1, 0, 0, 1 })
   end
-end
-
-function OverseerSystem:mapClicked(mouseCoordinates, button, actionType)
-  drag.active = false
-  drag.startPoint = nil
-  drag.endPoint = nil
-
-  if not actionType or not self.selectedAction then return end
-  local actions = self.actionCallbacks[actionType]
-  if not actions then return end
-  print("actionType, actions", actionType, actions)
-
-  if button == 1 then
-    actions.action1(mouseCoordinates, button)
-  else
-    actions.action2(mouseCoordinates, button)
-  end
-  --self:mapClicked(mouseCoordinates, button, actions.action1, actions.action2)
 end
 
 function OverseerSystem:dragAction(mouseCoordinates, button, fill, callBack, color) --luacheck: ignore
@@ -201,8 +122,6 @@ function OverseerSystem:dragAction(mouseCoordinates, button, fill, callBack, col
 end
 
 function OverseerSystem:mouseReleased(mouseCoordinates, button) --luacheck: ignore
-
-  if not self.selectedAction then return end
   if not drag.active then return end
 
   if not settings.mouse_toggle_construct then
@@ -213,8 +132,6 @@ end
 function OverseerSystem:build(coords, assemblage)
   print("Build", assemblage)
   if not assemblage then return end
-  --local data = constructionTypes.getBySelector(self.selectedAssemblage)
-  --local data = ECS.a[
   self:getWorld():emit("bluePrintsPlaced", coords, assemblage)
 end
 
@@ -251,4 +168,3 @@ function OverseerSystem:destruct(coords)
 end
 
 return OverseerSystem
-

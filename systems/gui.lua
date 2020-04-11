@@ -54,7 +54,7 @@ local uiState = {
     {
       name = "Build",
       id = "build",
-      event = "buildClicked",
+      event = "buildClick",
       shortCut = "q",
       subItems = {
         construct = {
@@ -68,6 +68,7 @@ local uiState = {
               local e = ECS.Entity():assemble(item)
               if e.name then
                 print("Alright uh categoryKey / itemKey", key, itemKey, item)
+                -- TODO: At the moment the itemKey and categoryKey isn't actually used. Might be useful if don't want to pass actual assembleFunction but just the path to the assemblage
                 table.insert(allItems, {
                   name = e.name.name,
                   categoryKey = key,
