@@ -13,13 +13,8 @@
 	      so these functions can be reentrant
 ]]
 
---import vec2 if not defined globally
-local global_vec2 = vec2
-local vec2 = global_vec2
-if not vec2 then
-	local vec2_path = (...):gsub("intersect", "vec2")
-	vec2 = require(vec2_path)
-end
+local path = (...):gsub("intersect", "")
+local vec2 = require(path .. "vec2")
 
 --module storage
 local intersect = {}
@@ -395,6 +390,27 @@ function intersect.aabb_aabb_collide_continuous(
 	end
 
 	return false
+end
+
+--check if a point is in a polygon
+--point is the point to test
+--poly is a list of points in order
+--based on winding number, so re-intersecting areas are counted as solid rather than inverting
+function intersect.point_in_poly(point, poly)
+	local wn = 0
+	for i, a in ipairs(poly) do
+		local b = poly[i + 1] or poly[1]
+		if a.y <= point.y then
+			if b.y > point.y and vec2.winding_side(a, b, point) > 0 then
+				wn = wn + 1
+			end
+		else
+			if b.y <= point.y and vec2.winding_side(a, b, point) < 0 then
+				wn = wn - 1
+			end
+		end
+	end
+	return wn ~= 0
 end
 
 return intersect

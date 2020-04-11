@@ -90,12 +90,12 @@ function OverseerSystem:generateGUIDraw() --luacheck: ignore
   end
 end
 
-function OverseerSystem:selectedAssemblageChanged(assemblage, params)
-  print("selectedAssemblageChanged", assemblage)
-  self.selectedAssemblage = assemblage
-  self.dataSelectorParams = params
-  --self:getWorld():emit("dataSelectorChanged", selector)
-end
+-- function OverseerSystem:selectedAssemblageChanged(assemblage, params)
+--   print("selectedAssemblageChanged", assemblage)
+--   self.selectedAssemblage = assemblage
+--   self.dataSelectorParams = params
+--   --self:getWorld():emit("dataSelectorChanged", selector)
+-- end
 
 function OverseerSystem:selectedModeChanged(selector)
   self.selectedAction = selector
@@ -147,6 +147,27 @@ function OverseerSystem:endDrag(mouseCoordinates)
   self:enactDrag(drag)
 end
 
+function OverseerSystem:buildClicked(globalX, globalY, button, params)
+  print("buildClicked", params.assembleFunction)
+  drag.active = false
+  drag.startPoint = nil
+  drag.endPoint = nil
+
+  local mouseCoordinates = Vector(globalX, globalY)
+
+  if button == 1 then
+    self:dragAction(mouseCoordinates, button, false, function(coords, rect) --luacheck: ignore
+      self:build(coords, params.assembleFunction)
+    end,
+    { 1, 1, 1, 1 })
+  else
+    self:dragAction(mouseCoordinates, button, true, function(coords, rect) --luacheck: ignore
+      self:destruct(coords)
+    end,
+    { 1, 0, 0, 1 })
+  end
+end
+
 function OverseerSystem:mapClicked(mouseCoordinates, button, actionType)
   drag.active = false
   drag.startPoint = nil
@@ -189,16 +210,27 @@ function OverseerSystem:mouseReleased(mouseCoordinates, button) --luacheck: igno
   end
 end
 
-function OverseerSystem:build(coords)
-  print("Build", self.selectedAssemblage)
-  if not self.selectedAssemblage then return end
+function OverseerSystem:build(coords, assemblage)
+  print("Build", assemblage)
+  if not assemblage then return end
   --local data = constructionTypes.getBySelector(self.selectedAssemblage)
   --local data = ECS.a[
-  self:getWorld():emit("bluePrintsPlaced", coords, self.selectedAssemblage)
+  self:getWorld():emit("bluePrintsPlaced", coords, assemblage)
 end
 
-function OverseerSystem:zones(coords, rect) --luacheck: ignore
-  local params = self.dataSelectorParams
+function OverseerSystem:zonesClick(globalX, globalY, button, params)
+  local mouseCoordinates = Vector(globalX, globalY)
+  if button == 1 then
+    self:dragAction(mouseCoordinates, button, true, function(coords, rect)
+      self:zones(coords, rect, params)
+    end,
+    zoneColor)
+  else
+    self:getWorld():emit("zoneDeleteClick", mouseCoordinates)
+  end
+end
+
+function OverseerSystem:zones(coords, rect, params) --luacheck: ignore
   local zoneEntity = ECS.Entity()
   zoneEntity:give("id", entityRegistry.generateId())
   zoneEntity:give("zone", params.types, params)

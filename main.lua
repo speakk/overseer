@@ -3,8 +3,10 @@ local windowHeight = 800
 love.window.setMode(windowWidth, windowHeight, { resizable=true })
 love.graphics.setDefaultFilter('nearest', 'nearest')
 
-require("libs.batteries.stable_sort")
-require("libs.batteries.table")
+--require("libs.batteries.stable_sort")
+--require("libs.batteries.table")
+
+require("libs.batteries"):export()
 
 local inspect = require('libs.inspect')
 local lume = require('libs.lume')
@@ -39,13 +41,13 @@ for _, name in ipairs(assemblageNames) do
 end
 
 local function getAssemblageBySelectorTable(data, selectorTable)
-  print("selectorTable", selectorTable, data)
+  --print("selectorTable", selectorTable, data)
   if #selectorTable == 0 then
     return data
   end
   local newTable = {unpack(selectorTable)}
   local lastSelector = table.remove(newTable, 1)
-  print("lastSelector", lastSelector)
+  --print("lastSelector", lastSelector)
   return getAssemblageBySelectorTable(data[lastSelector], newTable)
 
   --if #selectorTable > 1 and data[lastSelector] then return getAssemblageBySelectorTable(data[lastSelector], newTable) end

@@ -24,11 +24,25 @@ function SpriteSystem:init()
   end
 end
 
+local function compareY(a, b, cellSize)
+  local posA = a.position.vector.y
+  local posB = b.position.vector.y
+  local spriteA = media.getSprite(a.sprite.selector)
+  if spriteA.originY then
+    posA = posA + spriteA.originY * cellSize
+  end
+  local spriteB = media.getSprite(b.sprite.selector)
+  if spriteB.originY then
+    posB = posB + spriteB.originY * cellSize
+  end
+  --return a.position.vector.y < b.position.vector.y
+  return posA < posB
+end
+
 function SpriteSystem:customDraw(l, t, w, h)
   self.tilesetBatch:clear()
-  local zSorted = table.insertion_sort(sortPool, function(a, b)
-    return a.position.vector.y < b.position.vector.y
-  end)
+  local cellSize = Gamestate.current().mapConfig.cellSize
+  local zSorted = table.insertion_sort(sortPool, function(a, b) return compareY(a, b, cellSize) end)
   for _, entity in ipairs(zSorted) do
     self:drawEntity(l, t, w, h, entity)
   end

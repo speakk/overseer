@@ -40,33 +40,55 @@ local drawSettlerListWindow = function(self, uiState) --luacheck: ignore
   ui:windowEnd()
 end
 
+local categories = { "doors", "walls", "lights" }
+
+local assemblages = {}
+
+for _, key in ipairs(categories) do
+  table.insert(assemblages, { id = key, items = ECS.a[key] })
+end
+
 local uiState = {
   selectedSettler = nil,
   menuHierarchy = {
     {
       name = "Build",
       id = "build",
-      event = "build",
+      event = "buildClicked",
       shortCut = "q",
       subItems = {
         construct = {
           name = "Construct",
           spriteSelector = "tiles.door_wood01",
-          subItems = lume.map(lume.concat(ECS.a.doors, ECS.a.walls, ECS.a.lights), function(assemblage)
-            local e = ECS.Entity():assemble(assemblage)
-            if not e.name then return nil end
-            return {
-              name = e.name.name,
-              spriteSelector = e.sprite.selector,
-              assemblage = assemblage
-            }
-          end)
+          subItems = functional.reduce(assemblages, function(allItems, assemblage)
+            print("Reduce", #allItems, assemblage)
+            local key = assemblage.key
+            local items = assemblage.items
+            for itemKey, item in pairs(items) do
+              local e = ECS.Entity():assemble(item)
+              if e.name then
+                print("Alright uh categoryKey / itemKey", key, itemKey, item)
+                table.insert(allItems, {
+                  name = e.name.name,
+                  categoryKey = key,
+                  itemKey = itemKey,
+                  spriteSelector = e.sprite.selector,
+                  params = {
+                    assembleFunction = item
+                  }
+                })
+              end
+            end
+
+            return allItems
+          end, {})
         }
       }
     },
     {
       name = "Zones",
       id = "zones",
+      event = "zonesClick",
       shortCut = "e",
       subItems = {
         farming = {
@@ -137,9 +159,10 @@ local function buildMenuHierarchy(self, items, key, path)
       ['text normal active']=nuklear.colorRGBA(255,170,100, 255)
       }})
     if ui:selectable(name, image, sel) then
-      self.selectedAssemblage = items.assemblage
+      --self.selectedAssemblage = items.assemblage
+      self.selectedParams = items.params
       self.selectedPath = path
-      self:getWorld():emit("selectedAssemblageChanged", items.assemblage, items.params)
+      --self:getWorld():emit("selectedAssemblageChanged", items.assemblage, items.params)
     end
     ui:stylePop()
 
@@ -174,14 +197,14 @@ function GUISystem:update(dt) --luacheck: ignore
   if ui:windowBegin('actions_bar', 0, windowHeight-actionsBarHeight, windowWidth, actionsBarHeight) then
     ui:layoutRow('dynamic', actionsBarHeight-10, 8)
     for _, menuItem in ipairs(uiState.menuHierarchy) do
-      local sel = { value = menuItem.id == self.selectedAction }
+      local sel = { value = menuItem == self.selectedMenu }
       if ui:selectable(menuItem.name .. ' (' .. (menuItem.shortCut or '') .. ')', sel) then
         if sel.value then
-          self.selectedAction = menuItem.id
-          self:getWorld():emit("selectedModeChanged", menuItem.id)
+          self.selectedMenu = menuItem
+          --self:getWorld():emit("selectedModeChanged", menuItem.id)
         else
-          self.selectedAction = ""
-          self:getWorld():emit("selectedModeChanged", "")
+          self.selectedMenu = ""
+          --self:getWorld():emit("selectedModeChanged", "")
         end
       end
     end
@@ -189,7 +212,7 @@ function GUISystem:update(dt) --luacheck: ignore
   ui:windowEnd()
 
   for _, menuItem in pairs(uiState.menuHierarchy) do
-    if self.selectedAction == menuItem.id then
+    if self.selectedMenu == menuItem then
       if menuItem.subItems then
         if ui:windowBegin('menu', 0, windowHeight-menuHeight-actionsBarHeight, menuWidth, menuHeight) then
           for key, subItem in pairs(menuItem.subItems) do
@@ -245,13 +268,13 @@ function GUISystem:mousepressed(x, y, button, istouch, presses)
     return
   end
   local globalX, globalY = camera:toWorld(x, y)
-  self:getWorld():emit("mapClicked", Vector(globalX, globalY), button, self.selectedAction)
+  --self:getWorld():emit("mapClicked", Vector(globalX, globalY), button, self.selectedAction)
 
-  -- if self.selectedMenu then
-  --   local event = self.selectedMenu.event
-  --   local params = self.selectedParams
-  --   self:getWorld():emit(event, globalX, globalY, button, table.unpack(params))
-  -- end
+  if self.selectedMenu then
+    local event = self.selectedMenu.event
+    local params = self.selectedParams
+    self:getWorld():emit(event, globalX, globalY, button, params)
+  end
 end
 
 function GUISystem:mousereleased(x, y, button, istouch, presses) --luacheck: ignore
@@ -268,12 +291,12 @@ function GUISystem:keypressed(pressedKey, scancode, isrepeat) --luacheck: ignore
     if menuItem.shortCut == pressedKey then
       menuItem.selected = not menuItem.selected
       if menuItem.selected then
-        self.selectedAction = menuItem.id
-        print("Setting selectedAction", menuItem.id)
-        self:getWorld():emit('selectedModeChanged', menuItem.id)
+        self.selectedMenu = menuItem
+        print("Setting selectedMenu", menuItem.id)
+        --self:getWorld():emit('selectedModeChanged', menuItem.id)
       else
-        self.selectedAction = ""
-        self:getWorld():emit('selectedModeChanged', "")
+        self.selectedMenu = nil
+        --self:getWorld():emit('selectedModeChanged', "")
       end
     end
     if menuItem.subItems then
