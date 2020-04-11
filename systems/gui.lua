@@ -121,9 +121,6 @@ local uiState = {
   }
 }
 
-
-
-
 local GUISystem = ECS.System( {settlers = { "settler" } })
 
 local function buildMenuHierarchy(self, items, key, path)
@@ -133,13 +130,11 @@ local function buildMenuHierarchy(self, items, key, path)
     if items.requirements then
       requirements = "Requires: "
       for itemKey, value in pairs(items.requirements) do
-        --requirements = requirements .. constructionTypes.getBySelector(itemKey).name .. ": " .. value
         requirements = "todo"
         requirements = requirements .. ", "
       end
     end
 
-    --local selectionMatch = items.assemblage == self.selectedAssemblage
     local selectionMatch = path == self.selectedPath
     local sel = { value = selectionMatch}
     local name = items.name
@@ -159,10 +154,8 @@ local function buildMenuHierarchy(self, items, key, path)
       ['text normal active']=nuklear.colorRGBA(255,170,100, 255)
       }})
     if ui:selectable(name, image, sel) then
-      --self.selectedAssemblage = items.assemblage
       self.selectedParams = items.params
       self.selectedPath = path
-      --self:getWorld():emit("selectedAssemblageChanged", items.assemblage, items.params)
     end
     ui:stylePop()
 
@@ -201,10 +194,8 @@ function GUISystem:update(dt) --luacheck: ignore
       if ui:selectable(menuItem.name .. ' (' .. (menuItem.shortCut or '') .. ')', sel) then
         if sel.value then
           self.selectedMenu = menuItem
-          --self:getWorld():emit("selectedModeChanged", menuItem.id)
         else
-          self.selectedMenu = ""
-          --self:getWorld():emit("selectedModeChanged", "")
+          self.selectedMenu = nil
         end
       end
     end
@@ -268,7 +259,6 @@ function GUISystem:mousepressed(x, y, button, istouch, presses)
     return
   end
   local globalX, globalY = camera:toWorld(x, y)
-  --self:getWorld():emit("mapClicked", Vector(globalX, globalY), button, self.selectedAction)
 
   if self.selectedMenu then
     local event = self.selectedMenu.event

@@ -93,6 +93,7 @@ function JobSystem:gridUpdated()
 end
 
 function JobSystem:startJob(worker, job, jobQueue) -- luacheck: ignore
+  print("Starting job", worker, job, job.job.jobType, job.id.id)
   job.job.reserved = worker.id.id
   worker:give("work", job.id.id)
   lume.remove(jobQueue, job)
@@ -114,6 +115,7 @@ function JobSystem:jobFinished(entity) --luacheck: ignore
   jobComponent.reserved = false
 
   local finishEvent = jobComponent.finishEvent
+  print("finishEvent!", finishEvent, entity)
   if finishEvent then
     self:getWorld():emit(finishEvent, entity, self:getWorld())
   end
@@ -123,7 +125,8 @@ end
 
 function JobSystem:cancelConstruction(entities) --luacheck: ignore
   for _, job in ipairs(entities) do
-    if job.job then
+    -- TODO: This is maybe a bit off
+    if job.job and job.job.jobType == 'bluePrint' then
       local worker = entityRegistry.get(job.job.reserved)
       if worker then
         worker:remove("work")

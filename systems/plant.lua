@@ -1,4 +1,4 @@
-local PlantSystem = ECS.System({ plants = { "plant" } })
+local PlantSystem = ECS.System({ plants = { "plant", "active" } })
 
 function PlantSystem:init()
   self.plants.onEntityAdded = function(pool, entity) --luacheck: ignore

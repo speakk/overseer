@@ -71,10 +71,13 @@ local doWork = {
     else
       print("Work: success")
       local work = blackboard.actor.work
+      print("work", work)
       if not work then return task:success() end
       local job = entityRegistry.get(work.jobId)
+      print("job", job)
       if not job then return task:success() end
       local jobType = job.job.jobType
+      print("jobType?", jobType, "emitting jobFinished")
       blackboard.world:emit("jobFinished", job)
       return task:success()
     end
