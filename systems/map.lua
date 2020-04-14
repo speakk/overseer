@@ -25,8 +25,8 @@ function onCollisionEntityRemoved(_, entity)
 end
 
 function MapSystem:init()
-  self.collision.onEntityAdded = onCollisionEntityAdded
-  self.collision.onEntityRemoved = onCollisionEntityRemoved
+  -- self.collision.onEntityAdded = onCollisionEntityAdded
+  -- self.collision.onEntityRemoved = onCollisionEntityRemoved
   -- self.onMap.onEntityAdded = entityFinder.onOnMapEntityAdded
   -- self.onMap.onEntityRemoved = entityFinder.onOnMapEntityRemoved
   -- self.onMapItem.onEntityAdded = entityFinder.onOnMapItemAdded

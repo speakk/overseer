@@ -46,7 +46,6 @@ local zoneHandlers = {
   },
   construct = {
     run = function(self, zone, params, coords, dt) --luacheck: ignore
-      local constructSelector = params.selector
       local assemblage = ECS.a.getBySelector(params.selector)
 
       for _, coordinate in ipairs(coords) do

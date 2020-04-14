@@ -6,7 +6,7 @@ local function intersection(a, b)
       table.insert(result, item)
     end
   end
-  
+
   return result
 end
 

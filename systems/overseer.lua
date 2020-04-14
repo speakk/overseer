@@ -14,7 +14,7 @@ local OverseerSystem = ECS.System()
 
 local zoneColor = { 0.3, 0.3, 0.9, 0.5 }
 
-function getNewDragAction()
+local function getNewDragAction()
   return {
     startPoint = Vector(),
     endPoint = Vector(),

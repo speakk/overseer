@@ -24,7 +24,7 @@ function ItemUtils.createItem(selector, amount)
 
   local item = ECS.Entity():assemble(ECS.a.getBySelector(selector))
   --local color = itemData.color or { 0.5, 0.5, 0.5 }
-  item:give("item", itemData)
+  item:give("item")
   :give("selector", selector)
   :give("amount", amount)
   :give("name", "Item: " .. selector)
@@ -39,8 +39,9 @@ function ItemUtils.createItem(selector, amount)
 end
 
 function ItemUtils.takeItemFromGround(originalItem, amount)
-  local selector = originalItem.selector.selector
+  print("takeItemFromGround", originalItem, amount)
   local item, wasSplit = ItemUtils.splitItemStackIfNeeded(originalItem, amount)
+  print("item, wasSplit", item, wasSplit)
 
   if not wasSplit then
     --lume.remove(entityItemSelectorMap[selector], originalItem)

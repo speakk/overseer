@@ -2,6 +2,7 @@ local BehaviourTree = require('libs.behaviourtree')
 local lume = require('libs.lume')
 
 local positionUtils = require('utils.position')
+local ItemUtils = require('utils.itemUtils')
 local entityFinder = require('models.entityFinder')
 local entityRegistry = require('models.entityRegistry')
 local UntilDecorator = require('models.ai.decorators.until')
@@ -32,6 +33,7 @@ local function createTree(actor, world, jobType)
       print("fetch getPotentialItemStack", blackboard.selector)
       --local itemsOnMap = entityFinder.getItemsOnGround(blackboard.selector, { "item" })
       local itemsOnMap = entityFinder.getEntities('selector', blackboard.selector, { "item" })
+      print("Found many items:", #itemsOnMap)
 
       if not itemsOnMap or #itemsOnMap == 0 then
         print("NO ITEMSONMAP JESUS CHRIST")
@@ -46,6 +48,7 @@ local function createTree(actor, world, jobType)
         return item.amount.amount - reservedComponent.amount > blackboard.targetAmount
         --return not item.reserved
       end)
+      print("potentialItemsStack ends up being size:", #blackboard.potentialItemsStack)
       task:success()
     end
   })
@@ -78,11 +81,11 @@ local function createTree(actor, world, jobType)
       --print("gridPosition", gridPosition)
       --local itemInCurrentLocation = entityFinder.getItemFromGround(blackboard.selector, gridPosition, { "item" })
       local itemInCurrentLocation = entityFinder.getByQueryObject(
-        entityFinder.queryBuilders.positionListAndSelector({gridPosition}, blackboard.selector),
+        entityFinder.queryBuilders.positionListAndSelector(positionUtils.getCoordinatesAround(gridPosition.x, gridPosition.y, 1), blackboard.selector),
         { 'item' })
-      --print("itemInCurrentLocation", blackboard.selector, itemInCurrentLocation)
-      if not itemInCurrentLocation then
-        --print("Failing, not itemInCurrentLocation")
+      print("itemInCurrentLocation", blackboard.selector, itemInCurrentLocation)
+      if not itemInCurrentLocation or #itemInCurrentLocation == 0 then
+        print("Failing, not itemInCurrentLocation")
         task:fail()
         return
       end
@@ -128,15 +131,16 @@ local function createTree(actor, world, jobType)
             task:fail()
             return
           else
-            --print("Adding to reservedAmount", blackboard.targetAmount)
+            print("Adding to reservedAmount", blackboard.targetAmount)
             reservedComponent.amount = reservedComponent.amount + blackboard.targetAmount
           end
         else
-          --print("Giving reservedComponent", blackboard.targetAmount)
+          print("Giving reservedComponent", blackboard.targetAmount)
           potentialItem:give("reserved", blackboard.actor.id.id, blackboard.targetAmount)
         end
         --print("potentialItem", potentialItem, potentialItem.item.selector)
         --print("potentialItem position", positionUtils.pixelsToGridCoordinates(potentialItem.position.vector))
+        print("Setting target for fetch as", potentialItem, potentialItem.position)
         blackboard.target = potentialItem
         --print("popTargetFromItemStack success")
         task:success()

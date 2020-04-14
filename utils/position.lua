@@ -141,7 +141,10 @@ end
 
 local clampToWorldBounds = function(gridPosition)
   local mapConfig = Gamestate.current().mapConfig
-  return Vector(cpml.utils.clamp(gridPosition.x, 1, mapConfig.width), cpml.utils.clamp(gridPosition.y, 1, mapConfig.height))
+  return Vector(
+    cpml.utils.clamp(gridPosition.x, 1, mapConfig.width),
+    cpml.utils.clamp(gridPosition.y, 1, mapConfig.height)
+  )
 end
 
 
