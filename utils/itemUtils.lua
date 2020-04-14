@@ -38,4 +38,17 @@ function ItemUtils.createItem(selector, amount)
   return item
 end
 
+function ItemUtils.takeItemFromGround(originalItem, amount)
+  local selector = originalItem.selector.selector
+  local item, wasSplit = ItemUtils.splitItemStackIfNeeded(originalItem, amount)
+
+  if not wasSplit then
+    --lume.remove(entityItemSelectorMap[selector], originalItem)
+    originalItem:remove("position")
+    originalItem:remove("onMap")
+  end
+
+  return item
+end
+
 return ItemUtils

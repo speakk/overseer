@@ -161,7 +161,8 @@ function OverseerSystem:destruct(coords)
   local allEntities = {}
   for _, position in ipairs(coords) do
     --local gridPosition = positionUtils.clampToWorldBounds(position)
-    local entities = entityFinder.getEntitiesInLocation(position)
+    --local entities = entityFinder.getEntitiesInLocation(position)
+    local entities = entityFinder.getEntities("position", entityFinder.getGridPositionString(position))
     allEntities = lume.concat(allEntities, entities)
   end
   self:getWorld():emit("cancelConstruction", allEntities)

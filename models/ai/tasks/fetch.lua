@@ -30,7 +30,8 @@ local function createTree(actor, world, jobType)
   local getPotentialItemStack = BehaviourTree.Task:new({
     run = function(task, blackboard)
       print("fetch getPotentialItemStack", blackboard.selector)
-      local itemsOnMap = entityFinder.getItemsOnGround(blackboard.selector, { "item" })
+      --local itemsOnMap = entityFinder.getItemsOnGround(blackboard.selector, { "item" })
+      local itemsOnMap = entityFinder.getEntities('selector', blackboard.selector, { "item" })
 
       if not itemsOnMap or #itemsOnMap == 0 then
         print("NO ITEMSONMAP JESUS CHRIST")
@@ -75,7 +76,10 @@ local function createTree(actor, world, jobType)
       print("fetch pickItemAmountUp")
       local gridPosition = positionUtils.pixelsToGridCoordinates(blackboard.actor.position.vector)
       --print("gridPosition", gridPosition)
-      local itemInCurrentLocation = entityFinder.getItemFromGround(blackboard.selector, gridPosition, { "item" })
+      --local itemInCurrentLocation = entityFinder.getItemFromGround(blackboard.selector, gridPosition, { "item" })
+      local itemInCurrentLocation = entityFinder.getByQueryObject(
+        entityFinder.queryBuilders.positionListAndSelector({gridPosition}, blackboard.selector),
+        { 'item' })
       --print("itemInCurrentLocation", blackboard.selector, itemInCurrentLocation)
       if not itemInCurrentLocation then
         --print("Failing, not itemInCurrentLocation")
@@ -83,7 +87,9 @@ local function createTree(actor, world, jobType)
         return
       end
 
-      local item = entityFinder.takeItemFromGround(itemInCurrentLocation, blackboard.targetAmount)
+      local itemInCurrentLocation = itemInCurrentLocation[1]
+
+      local item = ItemUtils.takeItemFromGround(itemInCurrentLocation, blackboard.targetAmount)
       local itemAmount = item.amount.amount
 
       if itemAmount >= blackboard.targetAmount then

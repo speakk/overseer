@@ -1,0 +1,71 @@
+Finding entities:
+
+One use case:
+A list of positions
+Also a selector
+Also a list of components
+
+{
+  {
+    operation = "intersection",
+    items = {
+      {
+        operation = "union",
+        items = {
+          {
+            indexKey = "position",
+            value = "blaa"
+          },
+          {
+            indexKey = "position",
+            value = "bloo"
+          },
+        },
+      },
+      {
+        operation = "union",
+        items = {
+          {
+            indexKey = "selector",
+            value = "food"
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+
+intersection:
+
+a = 1,4
+b = 4,2
+c = 2,4
+d = 6,2
+
+1,4 vs 4,2
+-> 4
+4 vs 2,4
+-> 4
+4 vs 6,2
+-> nil
+
+a = 1,4,3
+b = 4,2,3
+c = 2,4,3
+d = 4,2,3
+d = 2,3
+
+a vs b
+1,4,3 vs 4,2,3
+-> 4,3
+
+r vs c
+4,3 vs 2,4,3
+-> 4,3
+
+r vs d
+4,3 vs 
+-> nil

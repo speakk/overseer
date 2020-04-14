@@ -4,6 +4,7 @@ local lume = require('libs.lume')
 local positionUtils = require('utils.position')
 local camera = require('models.camera')
 local entityFinder = require('models.entityFinder')
+local tableUtil = require('utils.table')
 
 local ZoneSystem = ECS.System({ pool = { "zone", "rect" } })
 
@@ -22,13 +23,22 @@ end
 local zoneHandlers = {
   deconstruct = {
     run = function(self, zone, params, coords, dt) --luacheck: ignore
-      local entities = entityFinder.getEntitiesInCoordinates(coords, params.selector, params.componentRequirements)
+      --local entities = entityFinder.getEntitiesInCoordinates(coords, params.selector, params.componentRequirements)
+      local entities = entityFinder.getByQueryObject(
+        entityFinder.queryBuilders.positionListAndSelector(coords, params.selector),
+        params.componentRequirements)
+
+      -- local entities = functional.reduce(coords, function(all, coord)
+      --   return table.append_inplace(all, entityFinder.getEntities("position", entityFinder.getGridPositionString(coord)))
+      -- end, {})
+      -- entities = entityFinder.filterByComponentList(entities, params.componentRequirements)
       self:getWorld():emit("cancelConstruction", entities)
     end
   },
   harvest = {
     run = function(self, zone, params, coords, dt) --luacheck: ignore
-      local entities = entityFinder.getEntitiesInCoordinates(coords, nil, {'plant'})
+      --local entities = entityFinder.getEntitiesInCoordinates(coords, nil, {'plant'})
+      local entities = entityFinder.getByQueryObject(entityFinder.queryBuilders.positionList(coords), { 'plant' })
       local ripeEntities = lume.filter(entities, function(entity) return entity.plant.finished end)
       print("ripeEntities", #ripeEntities)
       self:getWorld():emit("cancelConstruction", ripeEntities)

@@ -1,4 +1,4 @@
-local entityFinder = require('models.entityFinder')
+--local entityFinder = require('models.entityFinder')
 local Gamestate = require("libs.hump.gamestate")
 local positionUtils = require('utils.position')
 local entityRegistry = require('models.entityRegistry')
@@ -27,10 +27,10 @@ end
 function MapSystem:init()
   self.collision.onEntityAdded = onCollisionEntityAdded
   self.collision.onEntityRemoved = onCollisionEntityRemoved
-  self.onMap.onEntityAdded = entityFinder.onOnMapEntityAdded
-  self.onMap.onEntityRemoved = entityFinder.onOnMapEntityRemoved
-  self.onMapItem.onEntityAdded = entityFinder.onOnMapItemAdded
-  self.onMapItem.onEntityRemoved = entityFinder.onOnMapItemRemoved
+  -- self.onMap.onEntityAdded = entityFinder.onOnMapEntityAdded
+  -- self.onMap.onEntityRemoved = entityFinder.onOnMapEntityRemoved
+  -- self.onMapItem.onEntityAdded = entityFinder.onOnMapItemAdded
+  -- self.onMapItem.onEntityRemoved = entityFinder.onOnMapItemRemoved
 end
 
 local function recursiveDelete(self, entity)
