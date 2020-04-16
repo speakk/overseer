@@ -8,6 +8,7 @@ love.graphics.setDefaultFilter('nearest', 'nearest')
 
 require("libs.batteries"):export()
 
+local entityRegistry = require 'models.entityRegistry'
 local inspect = require('libs.inspect')
 local lume = require('libs.lume')
 limits = love.graphics.getSystemLimits( )
@@ -56,7 +57,12 @@ end
 
 ECS.a.getBySelector = function(selector)
   local selectorTable = lume.split(selector, ".")
-  return getAssemblageBySelectorTable(ECS.a, selectorTable)
+  local assemblage = getAssemblageBySelectorTable(ECS.a, selectorTable)
+  return function(e)
+    e:give('selector', selector)
+    e:give('id', entityRegistry.generateId())
+    e:assemble(assemblage)
+  end
 end
 
 Concord.utils.loadNamespace("components")

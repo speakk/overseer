@@ -25,6 +25,7 @@ local checkJobs = {
     if jobs and #jobs > 0 then
       local job = jobs[1]
       print("Actor reserving job", blackboard.actor, job)
+      print(inspect(job, {depth = 2}))
       -- TODO: Remove jobs from the startJob signature, probably
       blackboard.world:emit("startJob", blackboard.actor, job, jobs)
       task:success()

@@ -24,9 +24,23 @@ local zoneHandlers = {
   deconstruct = {
     run = function(self, zone, params, coords, dt) --luacheck: ignore
       --local entities = entityFinder.getEntitiesInCoordinates(coords, params.selector, params.componentRequirements)
-      local entities = entityFinder.getByQueryObject(
-        entityFinder.queryBuilders.positionListAndSelector(coords, params.selector),
-        params.componentRequirements)
+      -- local entities = entityFinder.getByQueryObject(
+      --   entityFinder.queryBuilders.positionListAndSelector(coords, params.selector),
+      --   params.componentRequirements)
+      -- local entities = entityFinder.filterBySelector(
+      --   entityFinder.getByQueryObject(
+      --     entityFinder.queryBuilders.positionList(coords),
+      --     params.componentRequirements
+      --   ),
+      --   params.selector
+      -- )
+      local entities = entityFinder.filterBySelector(
+        entityFinder.getByList(
+          functional.map(coords, function(coord) return { key = "position", value = entityFinder.getGridPositionString(coord) } end), 
+          params.componentRequirements
+        ),
+        params.selector
+      )
 
       -- local entities = functional.reduce(coords, function(all, coord)
       --   return table.append_inplace(all, entityFinder.getEntities("position", entityFinder.getGridPositionString(coord)))

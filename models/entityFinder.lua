@@ -20,7 +20,11 @@ entityFinder.makeIndexFunction = function(key, indexKeyFunction)
 
     for _, index in ipairs(indexes) do
       if remove then
+        print("Removing", key, index, entity)
         local items = entityFinder.indices[key].items[index]
+        if not items then
+          print("Tried to delete but was not there: key / index / entity", key, index, entity)
+        end
         table.remove_value(items, entity)
       else
         local items = entityFinder.indices[key].items[index] or {}
@@ -65,45 +69,6 @@ entityFinder.indices = {
   }
 }
 
-entityFinder.queryBuilders = {
-  positionListAndSelector = function(coords, selector)
-    return {
-      operation = "intersection",
-      items = {
-        {
-          operation = "union",
-          items = functional.map(coords, function(coord)
-            return {
-              indexKey = "position",
-              value = entityFinder.getGridPositionString(coord)
-            }
-          end)
-        },
-        {
-          operation = "union",
-          items = {
-            {
-              indexKey = "selector",
-              value = selector
-            }
-          }
-        }
-      }
-    }
-  end,
-  positionList = function(coords)
-    return {
-      operation = "union",
-      items = functional.map(coords, function(coord)
-        return {
-          indexKey = "position",
-          value = entityFinder.getGridPositionString(coord)
-        }
-      end)
-    }
-  end
-}
-
 function entityFinder.getEntities(indexKey, index, componentsFilter)
   print("Getting entities", indexKey, index, componentsFilter)
   local items = entityFinder.indices[indexKey].items[index]
@@ -120,6 +85,27 @@ function entityFinder.getEntities(indexKey, index, componentsFilter)
   return items or {}
 end
 
+function entityFinder.getByList(indexPairs, componentsFilter)
+  return functional.reduce(indexPairs, function(result, indexPair)
+    print("value coord", indexPair.key, indexPair.value)
+    local indexKey = indexPair.key
+    local indexValue = indexPair.value
+    print("Getting entities", indexKey, index, componentsFilter)
+    local items = entityFinder.indices[indexKey].items[indexValue]
+    --print("Items with indexKey", indexKey, inspect(entityFinder.indices[indexKey].items, { depth = 1 }))
+    print("Found entities? -> ", items)
+    if items then
+      print("Entities length:", #items)
+    end
+
+    if items and componentsFilter then
+      items = entityFinder.filterByComponentList(items, componentsFilter)
+    end
+
+    return table.append_inplace(result, items or {})
+  end, {})
+end
+
 function entityFinder.filterByComponentList(entities, componentsList)
   return functional.filter(entities, function(entity)
     for _, filter in ipairs(componentsList) do
@@ -129,76 +115,107 @@ function entityFinder.filterByComponentList(entities, componentsList)
   end)
 end
 
--- function entityFinder.getEntitiesByMultiplePredicates(predicates, componentsFilter)
---   local itemsLists = functional.map(predicates, function(predicate)
---     return entityFinder.indices[predicate.indexKey].items[predicate.index]
---   end)
--- 
---   local result = {}
--- 
---   for i, listA in ipairs(itemsLists) do
---     for k in i+1,#itemsLists-i do
---       local listB = itemsLists[k]
---       table.append_inplace(result, tableUtils.intersection(listA, listB))
---     end
---   end
--- 
---   return result
--- end
-
-local function makeOperation(operationFunction)
-  return function(itemsLists)
-    if #itemsLists == 0 then return {} end 
-    local result = {unpack(itemsLists[1])}
-    for i = 2,#itemsLists do
-      local list = itemsLists[i]
-      table.append_inplace(result, operationFunction(result, list))
-    end
-    return result
-  end
-end
-
-local operations = {
-  intersection = makeOperation(tableUtils.intersection),
-  union = makeOperation(function(_, b) return b end)
-}
-
-local function doQuery(queryObject, result)
-  result = result or {}
-  print("allResult length", #result)
-  --local combined = functional.reduce(queryObject, function(result, queryObject)
-  --print("doQuery", inspect(queryObject, { depth = 2 }))
-  if queryObject.operation then
-    local operation = queryObject.operation
-    print("Doing operation", operation, "items:", queryObject.items, "results so far", #result)
-    for _, item in ipairs(queryObject.items) do
-      table.append_inplace(result, operations[operation](doQuery(item, result)))
-    end
-  else
-    print("No operation left, gathering results with", queryObject.indexKey, queryObject.value)
-    table.append_inplace(result, entityFinder.getEntities(queryObject.indexKey, queryObject.value))
-  end
-
-  print("Result length now", #result)
-  return result
-  --end, {})
-
-  --print("Combined length:", #combined)
-  --return table.append(allResult, combined)
-end
-
-function entityFinder.getByQueryObject(queryObject, componentsFilter)
-  local result = doQuery(queryObject)
-  print("So end result is", #result)
-  if componentsFilter then
-    result = entityFinder.filterByComponentList(result, componentsFilter)
-  end
-
-  return result
+function entityFinder.filterBySelector(entities, selector)
+  return functional.filter(entities, function(entity)
+    return string.find(entity.selector.selector, '^' .. selector)
+  end)
 end
 
 function entityFinder.isPositionOccupied(gridPosition)
   return entityFinder.indices.position[entityFinder.getGridPositionString(gridPosition)]
 end
+
+-- local function makeOperation(operationFunction)
+--   return function(itemsLists)
+--     if #itemsLists == 0 then return {} end 
+--     local result = {unpack(itemsLists[1])}
+--     for i = 2,#itemsLists do
+--       local list = itemsLists[i]
+--       table.append_inplace(result, operationFunction(result, list))
+--     end
+--     return result
+--   end
+-- end
+-- 
+-- local operations = {
+--   intersection = makeOperation(tableUtils.intersection),
+--   union = makeOperation(function(_, b) return b end)
+-- }
+
+-- local function doQuery(queryObject, result, operation)
+--   --result = result or {}
+--   print("allResult length", #result)
+--   --local combined = functional.reduce(queryObject, function(result, queryObject)
+--   --print("doQuery", inspect(queryObject, { depth = 2 }))
+--   if queryObject.operation then
+--     local operation = queryObject.operation
+--     print("Doing operation", operation, "items:", queryObject.items, "results so far", #result)
+--     for _, item in ipairs(queryObject.items) do
+--       --table.append_inplace(result, operations[operation](doQuery(item, result)))
+--       doQuery(item, result, operation)
+--     end
+--   else
+--     print("No operation left, gathering results with", queryObject.indexKey, queryObject.value)
+--     table.append_inplace(result, operations[operation](entityFinder.getEntities(queryObject.indexKey, queryObject.value)))
+--   end
+-- 
+--   print("Result length now", #result)
+--   return result
+--   --end, {})
+-- 
+--   --print("Combined length:", #combined)
+--   --return table.append(allResult, combined)
+-- end
+-- 
+-- function entityFinder.getByQueryObject(queryObject, componentsFilter)
+--   local result = {}
+--   doQuery(queryObject, result)
+--   print("So end result is", #result)
+--   if componentsFilter then
+--     result = entityFinder.filterByComponentList(result, componentsFilter)
+--   end
+-- 
+--   return result
+-- end
+--
+-- entityFinder.queryBuilders = {
+--   positionListAndSelector = function(coords, selector)
+--     return {
+--       operation = "intersection",
+--       items = {
+--         {
+--           operation = "union",
+--           items = functional.map(coords, function(coord)
+--             return {
+--               indexKey = "position",
+--               value = entityFinder.getGridPositionString(coord)
+--             }
+--           end)
+--         },
+--         {
+--           operation = "union",
+--           items = {
+--             {
+--               indexKey = "selector",
+--               value = selector
+--             }
+--           }
+--         }
+--       }
+--     }
+--   end,
+--   positionList = function(coords)
+--     return {
+--       operation = "union",
+--       items = functional.map(coords, function(coord)
+--         return {
+--           indexKey = "position",
+--           value = entityFinder.getGridPositionString(coord)
+--         }
+--       end)
+--     }
+--   end
+-- }
+
 
 return entityFinder

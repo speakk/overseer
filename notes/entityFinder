@@ -69,3 +69,16 @@ r vs c
 r vs d
 4,3 vs 
 -> nil
+
+
+
+
+ACTUAL USE CASES:
+-chop trees?
+-clean _all_ vegetation (zone or one-off)
+-harvest plants (ripe?) (zone or one-off)
+-settlers / animals finding food (what if want only good quality food?), construction materials, guns, etc
+-find settlers / enemies / animals in area (think: rectangle selection)
+
+
+
