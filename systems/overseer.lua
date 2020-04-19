@@ -158,14 +158,19 @@ function OverseerSystem:zones(coords, rect, params) --luacheck: ignore
 end
 
 function OverseerSystem:destruct(coords)
-  local allEntities = {}
-  for _, position in ipairs(coords) do
-    --local gridPosition = positionUtils.clampToWorldBounds(position)
-    --local entities = entityFinder.getEntitiesInLocation(position)
-    local entities = entityFinder.getEntities("position", entityFinder.getGridPositionString(position))
-    allEntities = lume.concat(allEntities, entities)
-  end
-  self:getWorld():emit("cancelConstruction", allEntities)
+  -- local allEntities = {}
+  -- for _, position in ipairs(coords) do
+  --   --local gridPosition = positionUtils.clampToWorldBounds(position)
+  --   --local entities = entityFinder.getEntitiesInLocation(position)
+  --   local entities = entityFinder.getEntities("position", entityFinder.getGridPositionString(position))
+  --   allEntities = lume.concat(allEntities, entities)
+  -- end
+  print("Going for destruct", coords)
+  local entities = entityFinder.getByList(
+    functional.map(coords, function(coord) return { key = "position", value = entityFinder.getGridPositionString(coord) } end)
+  )
+  print("Entities to destroy", entities, #entities)
+  self:getWorld():emit("destructEntities", entities)
 end
 
 return OverseerSystem

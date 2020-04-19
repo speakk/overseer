@@ -8,6 +8,7 @@ return function(e, gridPosition)
   :give("id", entityRegistry.generateId())
   :give("onMap")
   :give("bluePrintJob", 1)
+  :give("bluePrint")
   :give("inventory") -- Item consumed so far
   :give("position", positionUtils.gridPositionToPixels(gridPosition))
 end

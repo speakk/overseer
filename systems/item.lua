@@ -83,7 +83,7 @@ function ItemSystem:initializeTestShrubbery(mapSize)
   local mapConfig = Gamestate.current().mapConfig
   for i=1,200,1 do  --luacheck: ignore
     local position = Vector(math.random(mapConfig.width), math.random(mapConfig.height))
-    local entity = ECS.Entity()
+    local entity = ECS.Entity():assemble(ECS.a.getBySelector("plants.plant"))
     entity:give("sprite", "vegetation." .. lume.randomchoice({"bush01", "grass01", "grass02", "grass03"}))
     :give("onMap")
     :give("selector", "shrubberytest")

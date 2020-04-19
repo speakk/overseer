@@ -56,6 +56,7 @@ end
 
 function BluePrintSystem:jobFinished(job) --luacheck: ignore
   job:give('active')
+  job:remove('bluePrint')
 end
 
 local buildProgressSpeedModifier = 5

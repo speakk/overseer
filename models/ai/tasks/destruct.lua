@@ -12,17 +12,17 @@ local progressDestruct = {
   end,
   run = function(task, blackboard)
     local constructionSkill = blackboard.actor.settler.skills.construction
-    if blackboard.constructionComponent.durability > 0 then
+    if blackboard.durability.value > 0 then
       print("Progress destruct!, actor work: ", blackboard.actor.work)
       local time = love.timer.getTime()
       local delta = time - blackboard.lastBuildTick
       print("delta", time, constructionSkill * delta)
-      blackboard.world:emit('destructProgress', blackboard.constructionComponent, constructionSkill * delta)
+      blackboard.world:emit('destructProgress', blackboard.durability, constructionSkill * delta)
       blackboard.lastBuildTick = time
       task:running()
       return
     else
-      print("Destruct finished!", blackboard.constructionComponent, "actorid", blackboard.actor, "WORK:", blackboard.actor.work)
+      print("Destruct finished!", blackboard.durability, "actorid", blackboard.actor, "WORK:", blackboard.actor.work)
       blackboard.finished = true
       print("path component in bp", blackboard.actor, blackboard.actor.path)
       blackboard.actor:remove("path")
@@ -38,7 +38,7 @@ local function createTree(actor, world, jobType)
 
   local target = entityRegistry.get(actor.work.jobId)
   print("Setting target", target)
-  local constructionComponent = target.construction
+  local durability = target.durability
   local targetGridPosition = positionUtils.pixelsToGridCoordinates(target.position.vector)
   local tree = BehaviourTree:new({
     tree = BehaviourTree.Sequence:new({
@@ -53,7 +53,7 @@ local function createTree(actor, world, jobType)
     target = target,
     actor = actor,
     inventory = inventory,
-    constructionComponent = constructionComponent,
+    durability = durability,
     targetGridPosition = targetGridPosition,
     world = world,
     jobType = jobType

@@ -32,7 +32,7 @@ ECS.System = Concord.system
 ECS.World = Concord.world
 ECS.Entity = Concord.entity
 
-local assemblageNames = { "creatures", "doors", "food", "jobs", "lights", "plants", "rawMaterials", "seeds", "walls" }
+local assemblageNames = { "creatures", "doors", "food", "jobs", "lights", "plants", "rawMaterials", "seeds", "walls", "abstract" }
 
 ECS.a = { }
 

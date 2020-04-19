@@ -20,6 +20,7 @@ function inGame:enter(from) --luacheck: ignore
   local inGameSystems = {
     ECS.Systems.serialization,
     ECS.Systems.entityFinder,
+    ECS.Systems.destruct,
     ECS.Systems.settler,
     ECS.Systems.map,
     ECS.Systems.bluePrint,

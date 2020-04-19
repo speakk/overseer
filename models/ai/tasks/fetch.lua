@@ -78,11 +78,14 @@ local function createTree(actor, world, jobType)
     run = function(task, blackboard)
       print("fetch pickItemAmountUp")
       local gridPosition = positionUtils.pixelsToGridCoordinates(blackboard.actor.position.vector)
-      --print("gridPosition", gridPosition)
-      --local itemInCurrentLocation = entityFinder.getItemFromGround(blackboard.selector, gridPosition, { "item" })
-      local itemInCurrentLocation = entityFinder.getByQueryObject(
-        entityFinder.queryBuilders.positionListAndSelector(positionUtils.getCoordinatesAround(gridPosition.x, gridPosition.y, 1), blackboard.selector),
-        { 'item' })
+
+      local itemInCurrentLocation = entityFinder.filterBySelector(
+        entityFinder.getByList(
+          functional.map(positionUtils.getCoordinatesAround(gridPosition.x, gridPosition.y, 1), function(coord) return { key = "position", value = entityFinder.getGridPositionString(coord) } end), 
+          { 'item' }
+        ),
+        blackboard.selector
+      )
       print("itemInCurrentLocation", blackboard.selector, itemInCurrentLocation)
       if not itemInCurrentLocation or #itemInCurrentLocation == 0 then
         print("Failing, not itemInCurrentLocation")

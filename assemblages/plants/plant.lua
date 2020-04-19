@@ -1,6 +1,6 @@
 return function(e)
   e
-  :give("construction", 100)
+  :assemble(ECS.a.abstract.physical)
   :give('plant')
 end
 

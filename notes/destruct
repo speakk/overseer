@@ -1,0 +1,13 @@
+If something is ordered to be destructed:
+- It ONLY disappears immediately if it is a bluePrint
+- Otherwise make destruct job
+  - Is the health what we chip away at?
+- BUT: How to only target at things that can be destructed?
+  - Options:
+    - Everything except creature-component entities
+    - Entities with X component. WHAT IS IT?
+      - canBeDestructed ?
+
+
+When constructing, is it constructprogress we increase, or health?
+- Once finished constructing we delete bluePrint component

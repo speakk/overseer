@@ -7,6 +7,7 @@ return function(e, gridPosition)
   :give("position", positionUtils.gridPositionToPixels(gridPosition))
   :give("speed", 300)
   :give("satiety")
+  :give("creature")
   :give("health")
   :give("velocity")
 end
