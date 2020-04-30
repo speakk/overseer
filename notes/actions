@@ -1,0 +1,42 @@
+Types of work:
+Firefight
+Patient
+Doctor
+Bed rest
+Basic
+Warden
+Handle
+Cook
+Hunt
+Construct
+Grow
+Mine
+Plant cut
+Smith
+Tailor
+Art
+Craft
+Haul
+Clean
+Research
+
+Is type of work linked to the actual job generated from the work type?
+Firefighting work might involve fetching fire hydrant and putting out fire, how to conceptualize this?
+I suppose it could be in the AI: "I need to put out the fire. Do I have a hydrant? No: Get it" Perfect candidate for a BT. 
+
+Maybe the same concept could be applied to the construct job? "I need to construct this thing. Does it already have the required materials? No! Let's go get them" This would exclude the option of someone doing the hauling even if they're not adept at constructing. How to get around this? It would be nice to get rid of the "these jobs need to be done before these jobs" hierarchy, instead it would be "does this job have its requirements met? yes/no -> do job"
+
+Do we have a bluePrintJob, or is it something else?
+
+What if a job itself doesn't have an "adept at" thing, but actions themselves? That way a settler could be like "Oh there's a blueprintJob to be done, let me see if I can do any of the actions required for it?" Would this be too complicated, too performance heavy? It would require being able to "reserve" actions so that people don't end up fetching multiple things at the same time... 
+
+Let's try with another example:
+Smithing, same thing. Does it make sense to divide it into multiple "jobs", one needs the material to do it, but usually the person doing the smithing just gets the item...... Same thing for "healing", someone would get the medicine and administer it. Constructing might be one of the only ones where it makes sense to have the fetches be separate, so maybe this could be supported by having job hierarchies, but normally fetching would be part of the AI as an action, as opposed to a separate job?
+
+Mining would just be "go-to", "mine" actions, aka "mining needs to be done, commence mining BT as the current "work" BT in the weight runner"
+
+
+
+BT's:
+
+If fetch is it's own BT how do we initiate it in the context of another task?

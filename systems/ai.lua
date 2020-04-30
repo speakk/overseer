@@ -1,8 +1,9 @@
 local AISystem = ECS.System({ai = {"ai"}})
 
 local behaviours = {
-  settler = require('models.ai.settler').createTree,
-  animal = require('models.ai.animal').createTree
+  settler = require('models.ai.settler').createWeightRunner,
+  animal = require('models.ai.settler').createWeightRunner
+  --animal = require('models.ai.animal').createWeightRunner
 }
 
 local attachedBehaviours = {}
@@ -49,7 +50,7 @@ function AISystem:update(dt)
     for _, entity in ipairs(self.ai) do
       local behaviourType = entity.ai.behaviourType
       local id = entity.id.id
-      attachedBehaviours[id][behaviourType]:run()
+      attachedBehaviours[id][behaviourType].run(entity, dt)
     end
   end
 end
