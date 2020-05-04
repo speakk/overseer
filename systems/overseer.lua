@@ -5,7 +5,6 @@ local camera = require('models.camera')
 local entityRegistry = require('models.entityRegistry')
 
 local Vector = require('libs.brinevector')
-local lume = require('libs.lume')
 local inspect = require('libs.inspect') --luacheck: ignore
 
 local settings = require('settings')
@@ -167,7 +166,10 @@ function OverseerSystem:destruct(coords)
   -- end
   print("Going for destruct", coords)
   local entities = entityFinder.getByList(
-    functional.map(coords, function(coord) return { key = "position", value = entityFinder.getGridPositionString(coord) } end)
+    functional.map(coords, function(coord) return {
+      key = "position",
+      value = entityFinder.getGridPositionString(coord)
+    } end)
   )
   print("Entities to destroy", entities, #entities)
   self:getWorld():emit("destructEntities", entities)

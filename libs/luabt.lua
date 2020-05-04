@@ -24,9 +24,19 @@ function luabt.create(node)
                return false, not success
             end
          end
+       elseif node.type == "until" then
+         return function()
+            child = children[1]
+            running, success = child()
+            if running or not success then
+              return true
+            else
+              return false, true
+            end
+         end
       elseif node.type == "sequence" then
          -- return a sequence control flow node
-         return function()
+         return function(treeDt)
             for index, child in ipairs(children) do
                running, success = child()
                if running then
@@ -40,7 +50,7 @@ function luabt.create(node)
       elseif node.type == "sequence*" then
          -- return a sequence control flow node with memory
          local states = {}
-         return function()
+         return function(treeDt)
             for index, child in ipairs(children) do
                if states[index] == nil then
                   running, states[index] = child()
@@ -59,7 +69,7 @@ function luabt.create(node)
          end
       elseif node.type == "selector" then
          -- return a selector control flow node
-         return function()
+         return function(treeDt)
             for index, child in ipairs(children) do
                running, success = child()
                if running then
@@ -73,7 +83,7 @@ function luabt.create(node)
       elseif node.type == "selector*" then
          -- return a selector control flow node with memory
          local states = {}
-         return function()
+         return function(treeDt)
             for index, child in ipairs(children) do
                if states[index] == nil then
                   running, states[index] = child()
@@ -90,7 +100,9 @@ function luabt.create(node)
             states = {}
             return false, false
          end
-      end
+       elseif node.type then
+         error("Node type not recognized " .. tostring(node.type))
+       end
    end
 end
 

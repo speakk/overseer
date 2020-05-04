@@ -1,5 +1,3 @@
-local BehaviourTree = require('libs.behaviourtree')
-
 return function(blackboard)
   return function()
     if not blackboard.lastTick then

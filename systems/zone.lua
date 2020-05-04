@@ -4,7 +4,6 @@ local lume = require('libs.lume')
 local positionUtils = require('utils.position')
 local camera = require('models.camera')
 local entityFinder = require('models.entityFinder')
-local tableUtil = require('utils.table')
 
 local ZoneSystem = ECS.System({ pool = { "zone", "rect" } })
 
@@ -36,16 +35,15 @@ local zoneHandlers = {
       -- )
       local entities = entityFinder.filterBySelector(
         entityFinder.getByList(
-          functional.map(coords, function(coord) return { key = "position", value = entityFinder.getGridPositionString(coord) } end), 
+          functional.map(coords, function(coord) return {
+            key = "position",
+            value = entityFinder.getGridPositionString(coord)
+          } end),
           params.componentRequirements
         ),
         params.selector
       )
 
-      -- local entities = functional.reduce(coords, function(all, coord)
-      --   return table.append_inplace(all, entityFinder.getEntities("position", entityFinder.getGridPositionString(coord)))
-      -- end, {})
-      -- entities = entityFinder.filterByComponentList(entities, params.componentRequirements)
       self:getWorld():emit("cancelConstruction", entities)
     end
   },

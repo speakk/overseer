@@ -15,11 +15,11 @@ local sortPool = {}
 function SpriteSystem:init()
   self.tilesetBatch = love.graphics.newSpriteBatch(media.atlas, 500)
 
-  self.pool.onEntityAdded = function(pool, entity)
+  self.pool.onEntityAdded = function(_, entity)
     table.insert(sortPool, entity)
   end
 
-  self.pool.onEntityRemoved = function(pool, entity)
+  self.pool.onEntityRemoved = function(_, entity)
     lume.remove(sortPool, entity)
   end
 end

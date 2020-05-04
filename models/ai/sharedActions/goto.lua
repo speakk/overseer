@@ -1,8 +1,8 @@
-local BehaviourTree = require('libs.behaviourtree')
 local positionUtils = require('utils.position')
 
 return function(blackboard)
   return function()
+    print("GOTO")
     if blackboard.actor.path then
       if blackboard.actor.path.finished then
         blackboard.actor:remove("path")

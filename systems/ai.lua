@@ -50,7 +50,7 @@ function AISystem:update(dt)
     for _, entity in ipairs(self.ai) do
       local behaviourType = entity.ai.behaviourType
       local id = entity.id.id
-      attachedBehaviours[id][behaviourType].run(entity, dt)
+      attachedBehaviours[id][behaviourType].run(dt)
     end
   end
 end

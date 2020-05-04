@@ -1,4 +1,3 @@
-local BehaviourTree = require('libs.behaviourtree')
 local positionUtils = require('utils.position')
 
 return function(blackboard)

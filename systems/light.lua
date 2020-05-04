@@ -164,9 +164,8 @@ function LightSystem:gridUpdated()
     love.graphics.setColor(1,1,1,1)
     love.graphics.setBlendMode("add")
 
-    local shadowResolutionMultiplier = 1
 
-    function drawStencil(self, gridPosition, shadowResolutionMultiplier, lightRadius)
+    local function drawStencil(self, gridPosition, shadowResolutionMultiplier, lightRadius)
       local shadowMap = calcShadows(self, gridPosition, shadowResolutionMultiplier, lightRadius)
       for y = 1,#shadowMap do
         for x = 1,#shadowMap[y] do
@@ -178,6 +177,8 @@ function LightSystem:gridUpdated()
         end
       end
     end
+
+    local shadowResolutionMultiplier = 1
 
     for _, light in ipairs(self.pool) do
       local position = light.position.vector
