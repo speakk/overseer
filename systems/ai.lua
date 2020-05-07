@@ -1,10 +1,5 @@
+local weightRunnerTypes = require 'models.ai.weightRunner'.loadTypes()
 local AISystem = ECS.System({ai = {"ai"}})
-
-local behaviours = {
-  settler = require('models.ai.settler').createWeightRunner,
-  animal = require('models.ai.settler').createWeightRunner
-  --animal = require('models.ai.animal').createWeightRunner
-}
 
 local attachedBehaviours = {}
 
@@ -15,7 +10,7 @@ local function attachBehaviour(entity, type, world)
   local id = entity.id.id
   attachedBehaviours[id] = attachedBehaviours[id] or {}
 
-  attachedBehaviours[id][type] = behaviours[type](entity, world, type)
+  attachedBehaviours[id][type] = weightRunnerTypes[type](entity, world, type)
 end
 
 local function detachBehaviour(entity, type)

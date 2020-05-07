@@ -32,7 +32,8 @@ ECS.System = Concord.system
 ECS.World = Concord.world
 ECS.Entity = Concord.entity
 
-local assemblageNames = { "creatures", "doors", "food", "jobs", "lights", "plants", "rawMaterials", "seeds", "walls", "abstract" }
+--local assemblageNames = { "creatures", "doors", "food", "jobs", "lights", "plants", "rawMaterials", "seeds", "walls", "abstract" }
+local assemblageNames = love.filesystem.getDirectoryItems("assemblages")
 
 ECS.a = { }
 

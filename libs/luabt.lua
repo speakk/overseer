@@ -2,7 +2,7 @@
 local luabt = {}
 
 -- define the create function
-function luabt.create(node)
+function luabt.create(node, blackboard)
    -- execution node
    if type(node) == "function" then
       return node
@@ -11,13 +11,13 @@ function luabt.create(node)
       local children = {}
       -- recursively construct child nodes
       for index, child in ipairs(node.children) do
-         children[index] = luabt.create(child)
+         children[index] = luabt.create(child, blackboard)
       end
       if node.type == "negate" then
          -- return a negate decorator node
-         return function()
+         return function(blackboard)
             child = children[1]
-            running, success = child()
+            running, success = child(blackboard)
             if running then
                return true
             else
@@ -25,9 +25,9 @@ function luabt.create(node)
             end
          end
        elseif node.type == "until" then
-         return function()
+         return function(blackboard)
             child = children[1]
-            running, success = child()
+            running, success = child(blackboard)
             if running or not success then
               return true
             else
@@ -38,7 +38,7 @@ function luabt.create(node)
          -- return a sequence control flow node
          return function(treeDt)
             for index, child in ipairs(children) do
-               running, success = child()
+               running, success = child(blackboard)
                if running then
                   return true -- child running
                elseif success == false then
@@ -53,7 +53,7 @@ function luabt.create(node)
          return function(treeDt)
             for index, child in ipairs(children) do
                if states[index] == nil then
-                  running, states[index] = child()
+                  running, states[index] = child(blackboard)
                   if running then
                      return true -- child running
                   elseif states[index] == false then
@@ -71,7 +71,7 @@ function luabt.create(node)
          -- return a selector control flow node
          return function(treeDt)
             for index, child in ipairs(children) do
-               running, success = child()
+               running, success = child(blackboard)
                if running then
                   return true -- child running
                elseif success == true then
@@ -86,7 +86,7 @@ function luabt.create(node)
          return function(treeDt)
             for index, child in ipairs(children) do
                if states[index] == nil then
-                  running, states[index] = child()
+                  running, states[index] = child(blackboard)
                   if running then
                      return true -- child running
                   elseif states[index] == true then
