@@ -8,8 +8,8 @@ function inGame:enter(from) --luacheck: ignore
   self.world = ECS.World()
 
   self.mapConfig = {
-    width = 100,
-    height = 100,
+    width = 90,
+    height = 90,
     cellSize = 32
   }
 

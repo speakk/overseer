@@ -17,7 +17,7 @@ return Class {
     return {
       type = "sequence",
       children = {
-        function() print("Sequence started for FETCH") end,
+        function() print("Sequence started for FETCH") return false, true end,
         {
           type = "selector*",
           children = {
@@ -27,7 +27,7 @@ return Class {
               children = {
                 nodes.getPotentialItemStack,
                 {
-                  type = "until",
+                  type = "doUntil",
                   children = {
                     {
                       type = "sequence*",
@@ -36,19 +36,13 @@ return Class {
                         {
                           type = "sequence*",
                           children = {
-                            {
-                              type = "negate",
-                              children = {
-                                nodes.hasEnoughOfItem
-                              }
-                            },
-                            {
-                              type = "selector*",
-                              children = {
-                                commonNodes.atTarget,
-                                commonNodes.gotoAction
-                              }
-                            },
+                            -- {
+                            --   type = "negate",
+                            --   children = {
+                            --     nodes.hasEnoughOfItem
+                            --   }
+                            -- },
+                            commonNodes.goto,
                             nodes.pickItemAmountUp,
                             nodes.clearCurrentTarget
                           }
@@ -71,7 +65,7 @@ return Class {
               type = "selector*",
               children = {
                 commonNodes.atTarget,
-                commonNodes.gotoAction
+                commonNodes.goto
               }
             },
             nodes.insertItemIntoDestination
@@ -192,7 +186,7 @@ return Class {
       popTargetFromItemStack = function()
         print("fetch popTargetFromItemStack")
         if not blackboard.potentialItemsStack or #blackboard.potentialItemsStack <= 0 then
-          --print("No potentialItemsStack in fact")
+          print("No potentialItemsStack in fact")
           return false, false
         end
 
@@ -217,7 +211,7 @@ return Class {
           --print("popTargetFromItemStack success")
           return false, true
         else
-          --print("No potentialItem in fact")
+          print("No potentialItem in fact")
           return false, false
         end
       end,

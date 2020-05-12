@@ -14,7 +14,7 @@ return Class {
       children = {
         nodes.isBluePrintFinished,
         nodes.progressBuilding,
-        commonNodes.gotoAction,
+        commonNodes.goto,
       }
     }
   end,
@@ -68,12 +68,12 @@ return Class {
           return false, false
         end
       end,
-      progressBuilding = function()
+      progressBuilding = function(treeDt)
         print("rpgoress buidlign")
         local constructionSkill = actor.settler.skills.construction
         if blackboard.bluePrintComponent.buildProgress < 100 then
           print("Progress building!")
-          world:emit('bluePrintProgress', blackboard.bluePrintComponent, constructionSkill * blackboard.treeDt)
+          world:emit('bluePrintProgress', blackboard.bluePrintComponent, constructionSkill * treeDt)
           return true
         else
           return false, true

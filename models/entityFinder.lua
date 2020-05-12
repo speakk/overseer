@@ -7,13 +7,13 @@ local entityFinder = {}
 entityFinder.makeIndexFunction = function(key, indexKeyFunction)
   return function(entity, remove)
     local indexes = indexKeyFunction(entity)
-    print("indexes type", type(indexes))
+    --print("indexes type", type(indexes))
     if type(indexes) ~= 'table' then
-      print("Not table, making table, right?")
+      --print("Not table, making table, right?")
       indexes = { indexes }
-      print(indexes)
+      --print(indexes)
     end
-    print("indexes", indexes)
+    --print("indexes", indexes)
 
     for _, index in ipairs(indexes) do
       if remove then

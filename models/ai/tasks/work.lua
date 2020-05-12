@@ -5,7 +5,6 @@ local Task = require('models.ai.task')
 local entityRegistry = require('models.entityRegistry')
 local jobManager = require('models.jobManager')
 
-
 return Class {
   __includes = Task,
   init = function(self, actor, world)
@@ -58,7 +57,7 @@ return Class {
           return false, false
         end
       end,
-      doWork = function()
+      doWork = function(treeDt)
         print("doWork")
         -- TODO: Properly hceck if the work the succeeded and handle somehow
         if not blackboard.currentWork then
@@ -71,16 +70,16 @@ return Class {
             return false, false
           end
           local jobType = job.job.jobType
-          blackboard.currentWork = self.types[jobType](actor, world, jobType)
-          print("So uh... starting?", jobType, inspect(blackboard.currentWork))
+          blackboard.currentWork = self.tasks[jobType](actor, world, jobType)
+          print("So uh... starting?", jobType)
           --return false, false
         end
 
-        local workResult = blackboard.currentWork(blackboard.treeDt)
-        print("workResult", workResult)
-        if workResult then
+        local running, result = blackboard.currentWork:run(treeDt)
+        print("workResult running, result", running, result)
+        if running then
           return true
-        else
+        elseif result then
           print("Work: success")
           local work = actor.work
           print("work", work)
@@ -93,6 +92,9 @@ return Class {
           world:emit("jobFinished", job)
           blackboard.currentWork = nil
           return false, true
+        else
+          print("Work failed!")
+          return false, false
         end
       end
     }

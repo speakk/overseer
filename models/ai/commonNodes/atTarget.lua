@@ -1,8 +1,9 @@
 local positionUtils = require('utils.position')
 
-return function(blackboard)
+return function(actor, blackboard)
   return function()
-    local gridPosition = positionUtils.pixelsToGridCoordinates(blackboard.actor.position.vector)
+    print("AtTarget")
+    local gridPosition = positionUtils.pixelsToGridCoordinates(actor.position.vector)
     local targetGridPosition = positionUtils.pixelsToGridCoordinates(blackboard.target.position.vector)
 
     if positionUtils.isInPosition(gridPosition, targetGridPosition, true) then

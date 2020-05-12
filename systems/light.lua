@@ -212,7 +212,7 @@ end
 
 function LightSystem:timeChanged(time, timeOfDay) --luacheck: ignore
   local lightLevel = math.sin((timeOfDay-0.25)*math.pi*2)
-  ambientColor = { 0.6+lightLevel*0.4, 0.6+lightLevel*0.4, 1.0, 1.0, 1.0 }
+  ambientColor = { 0.75+lightLevel*0.35, 0.75+lightLevel*0.35, 1.0, 1.0, 1.0 }
   mixAmbientAndLights(self)
 end
 

@@ -8,15 +8,15 @@ local Task = require('models.ai.task')
 return Class {
   __includes = Task,
   init = function(self, actor, world)
+    print("Initializing idle for actor", actor)
     Task.init(self, actor, world)
   end,
   initializeTree = function(commonNodes, nodes)
     return {
       type = "sequence",
       children = {
-        commonNodes.getTreeDt,
         nodes.idle,
-        commonNodes.gotoAction
+        commonNodes.goto
       }
     }
   end,
@@ -31,6 +31,7 @@ return Class {
   initializeNodes = function(_, actor, _, blackboard)
     return {
       idle = function()
+        print("Idlin'!")
         local currentTime = love.timer.getTime()
 
         if not blackboard.lastIdleRandomTick then
@@ -53,6 +54,7 @@ return Class {
             --print("currentPosition, nextPosition", currentPosition, nextPosition)
             blackboard.idleTarget:give("position", positionUtils.gridPositionToPixels(nextPosition))
             blackboard.target = blackboard.idleTarget
+            --print("Giving target", blackboard.target)
             blackboard.lastIdleRandomTick = currentTime
           end
         end

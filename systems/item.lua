@@ -37,7 +37,7 @@ end
 
 function ItemSystem:initializeTestTrees(mapSize)
   local mapConfig = Gamestate.current().mapConfig
-  for i=1,400,1 do  --luacheck: ignore
+  for i=1,200,1 do  --luacheck: ignore
     local position = Vector(math.random(mapConfig.width), math.random(mapConfig.height))
     if positionUtils.isPositionWalkable(position) then
       local selector = "growing.tree"

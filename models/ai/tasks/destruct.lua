@@ -25,7 +25,7 @@ return Class {
     return {
       type = "sequence",
       children = {
-        commonNodes.gotoAction,
+        commonNodes.goto,
         nodes.progressDestruct
       }
     }

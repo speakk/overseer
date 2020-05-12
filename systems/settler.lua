@@ -11,7 +11,7 @@ local frontNames = { "Herbert", "George", "Rebecca", "Suzanne", "Korb",
 local lastNames = { "Mallory", "Rombert", "Bluelie", "Smith", "Knob", "Wallace", "Stratham", "Prism" }
 
 function SettlerSystem:initializeTestSettlers()
-  for _ = 1,20 do
+  for _ = 1,6 do
     local mapConfig = Gamestate.current().mapConfig
     local position
     while true do
@@ -29,18 +29,18 @@ function SettlerSystem:initializeTestSettlers()
 end
 
 function SettlerSystem:initializeTestCreatures()
-  for _ = 1,20 do
-    local mapConfig = Gamestate.current().mapConfig
-    local position
-    while true do
-      position = positionUtils.clampToWorldBounds(Vector(math.random(mapConfig.width), math.random(mapConfig.height)))
-      if positionUtils.isPositionWalkable(position) then
-        break
-      end
-    end
-    local creature = ECS.Entity():assemble(ECS.a.creatures.crawler, position)
-    self:getWorld():addEntity(creature)
-  end
+  -- for _ = 1,1 do
+  --   local mapConfig = Gamestate.current().mapConfig
+  --   local position
+  --   while true do
+  --     position = positionUtils.clampToWorldBounds(Vector(math.random(mapConfig.width), math.random(mapConfig.height)))
+  --     if positionUtils.isPositionWalkable(position) then
+  --       break
+  --     end
+  --   end
+  --   local creature = ECS.Entity():assemble(ECS.a.creatures.crawler, position)
+  --   self:getWorld():addEntity(creature)
+  -- end
 end
 
 return SettlerSystem

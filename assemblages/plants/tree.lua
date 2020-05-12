@@ -6,7 +6,7 @@ return function(e)
   :give('requirements', {
     ["seeds.tree"] = 1
   })
-  :give('sprite', 'vegetation.tree01')
+  :give('sprite', 'vegetation.tree02')
   :give("animation", {
     idle = {
       targetComponent = 'sprite',
@@ -14,7 +14,7 @@ return function(e)
       interpolate = false,
       repeatAnimation = true,
       values = {
-        "vegetation.tree01", "vegetation.tree01b"
+        "vegetation.tree02", "vegetation.tree02b"
       },
       currentValueIndex = love.math.random(1,2),
       frameLength = 0.4, -- in ms

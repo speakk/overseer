@@ -10,6 +10,7 @@ local function attachBehaviour(entity, type, world)
   local id = entity.id.id
   attachedBehaviours[id] = attachedBehaviours[id] or {}
 
+  print("type", type, weightRunnerTypes)
   attachedBehaviours[id][type] = weightRunnerTypes[type](entity, world, type)
 end
 
@@ -45,7 +46,7 @@ function AISystem:update(dt)
     for _, entity in ipairs(self.ai) do
       local behaviourType = entity.ai.behaviourType
       local id = entity.id.id
-      attachedBehaviours[id][behaviourType].run(dt)
+      attachedBehaviours[id][behaviourType]:run(aiInterval)
     end
   end
 end

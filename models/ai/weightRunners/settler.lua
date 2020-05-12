@@ -1,8 +1,8 @@
 local Class = require 'libs.hump.class'
 local lume = require 'libs.lume' --luacheck: ignore
 
-local WeightRunner = require 'weightRunner'
-local tasks = require 'task'.loadTypes()
+local WeightRunner = require 'models.ai.weightRunner'
+local tasks = require 'models.ai.taskTypes'
 
 return Class {
   __includes = WeightRunner,

@@ -5,6 +5,8 @@ local Node = require('libs.jumper.core.node')
 local inspect = require('libs.inspect')
 local positionUtils = require('utils.position')
 local pathFinder = require('models.pathFinder')
+
+
 local PathSystem = ECS.System({ pool = { "path", "position" } })
 
 function PathSystem:update(dt) --luacheck: ignore
@@ -14,6 +16,7 @@ function PathSystem:update(dt) --luacheck: ignore
 end
 
 function PathSystem:processPathFinding(entity) --luacheck: ignore
+  --print("Has path component", entity)
   local pathComponent = entity.path
   --print("pathComponent in processPathFinding", entity, pathComponent)
   local velocityComponent = entity.velocity
@@ -21,6 +24,7 @@ function PathSystem:processPathFinding(entity) --luacheck: ignore
   velocityComponent.vector = Vector(0, 0)
 
   if not pathComponent.path then
+    --print("No path yet so calculating one")
     if not pathComponent.pathThread and
       love.timer.getTime() - pathComponent.componentAdded > pathComponent.randomDelay then
       local entityPosition = positionUtils.pixelsToGridCoordinates(entity.position.vector)

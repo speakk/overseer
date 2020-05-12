@@ -11,12 +11,12 @@ local mediaDB = {
     name = "vegetation",
     items = {
       {
-        fileName = 'tree01',
+        fileName = 'tree02',
         originX = 0.5,
         originY = 1
       },
       {
-        fileName = 'tree01b',
+        fileName = 'tree02b',
         originX = 0.5,
         originY = 1
       },
