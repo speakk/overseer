@@ -20,6 +20,21 @@ local mediaDB = {
         originX = 0.5,
         originY = 1
       },
+      {
+        fileName = 'tree03',
+        originX = 0.5,
+        originY = 1
+      },
+      {
+        fileName = 'tree04',
+        originX = 0.5,
+        originY = 1
+      },
+      {
+        fileName = 'tree05',
+        originX = 0.5,
+        originY = 1
+      },
       'bush01', 'grass01', 'grass02', 'grass03'
     }
   },
