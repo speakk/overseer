@@ -50,7 +50,16 @@ local zoneHandlers = {
   harvest = {
     run = function(self, zone, params, coords, dt) --luacheck: ignore
       --local entities = entityFinder.getEntitiesInCoordinates(coords, nil, {'plant'})
-      local entities = entityFinder.getByQueryObject(entityFinder.queryBuilders.positionList(coords), { 'plant' })
+      --local entities = entityFinder.getByQueryObject(entityFinder.queryBuilders.positionList(coords), { 'plant' })
+      local entities = entityFinder.filterByComponentList(
+        entityFinder.getByList(
+          functional.map(coords, function(coord) return {
+            key = "position",
+            value = entityFinder.getGridPositionString(coord)
+          } end)
+        ),
+        { 'plant' }
+      )
       local ripeEntities = lume.filter(entities, function(entity) return entity.plant.finished end)
       print("ripeEntities", #ripeEntities)
       self:getWorld():emit("cancelConstruction", ripeEntities)
@@ -114,10 +123,10 @@ function ZoneSystem:generateGUIDraw()
     end
 
     love.graphics.rectangle("line",
-      startPoint.x,
-      startPoint.y,
-      endPoint.x - startPoint.x,
-      endPoint.y - startPoint.y
+    startPoint.x,
+    startPoint.y,
+    endPoint.x - startPoint.x,
+    endPoint.y - startPoint.y
     )
 
     if entity.color then
@@ -129,10 +138,10 @@ function ZoneSystem:generateGUIDraw()
     end
 
     love.graphics.rectangle("fill",
-      startPoint.x,
-      startPoint.y,
-      endPoint.x - startPoint.x,
-      endPoint.y - startPoint.y
+    startPoint.x,
+    startPoint.y,
+    endPoint.x - startPoint.x,
+    endPoint.y - startPoint.y
     )
   end
 end

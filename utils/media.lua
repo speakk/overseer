@@ -102,6 +102,14 @@ local mediaDB = {
         originY = 0.8
       },
     }
+  },
+  {
+    name = "menus",
+    items = {
+      {
+        fileName = "main_menu"
+      }
+    }
   }
 }
 

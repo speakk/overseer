@@ -66,6 +66,10 @@ entityFinder.indices = {
   }
 }
 
+-- Get entities directly by indexed property.
+-- indexKey: Index name, must be found in entityFinder.indices
+-- index: Actual key to get the entity by
+-- Optional component filter array (and filter)
 function entityFinder.getEntities(indexKey, index, componentsFilter)
   print("Getting entities", indexKey, index, componentsFilter)
   local items = entityFinder.indices[indexKey].items[index]
